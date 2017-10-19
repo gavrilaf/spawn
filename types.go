@@ -29,3 +29,12 @@ type ClientsStorage interface {
 type TokenStorage interface {
 	IsTokenValid(accessToken string) bool
 }
+
+// Login form structure.
+type Login struct {
+	ClientID   string `form:"client_id" json:"client_id" binding:"required"`
+	Username   string `form:"username" json:"username" binding:"required"`
+	DeviceID   string `form:"device_id" json:"device_id" binding:"required"`
+	SignSecret string `form:"sign_secret" json:"sign_secret" binding:"required"`
+	SignKey    string `form:"sign_key" json:"sign_key" binding:"required"`
+}

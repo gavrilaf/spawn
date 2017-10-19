@@ -1,8 +1,8 @@
 package main
 
 import (
-	"net/http"
-	"os"
+	//"net/http"
+	//"os"
 	"time"
 
 	"github.com/gavrilaf/go-auth/jwt"
@@ -10,7 +10,7 @@ import (
 )
 
 func helloHandler(c *gin.Context) {
-	claims := jwt.ExtractClaims(c)
+	//claims := jwt.ExtractClaims(c)
 
 }
 
@@ -63,10 +63,9 @@ func main() {
 		TimeFunc: time.Now,
 	}
 
-	auth := r.Group("/auth")
+	auth := router.Group("/auth")
 	{
 		auth.POST("/login", authMiddleware.LoginHandler)
-		auth.GET("/refresh_token", authMiddleware.RefreshHandler)
 	}
 
 	router.Run()

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	types "github.com/gavrilaf/go-auth"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -74,12 +75,6 @@ type GinJWTMiddleware struct {
 
 	// TimeFunc provides the current time. You can override it to use another time value. This is useful for testing or if your server uses a different time zone than your tokens.
 	TimeFunc func() time.Time
-}
-
-// Login form structure.
-type Login struct {
-	Username string `form:"username" json:"username" binding:"required"`
-	Password string `form:"password" json:"password" binding:"required"`
 }
 
 // MiddlewareInit initialize jwt configs.
@@ -183,10 +178,11 @@ func (mw *GinJWTMiddleware) LoginHandler(c *gin.Context) {
 	// Initial middleware default setting.
 	mw.MiddlewareInit()
 
-	var loginVals Login
+	var loginVals types.Login
 
-	if c.ShouldBindWith(&loginVals, binding.JSON) != nil {
-		mw.unauthorized(c, http.StatusBadRequest, "Missing Username or Password")
+	err := c.ShouldBindWith(&loginVals, binding.JSON)
+	if c != nil {
+		mw.unauthorized(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -195,7 +191,7 @@ func (mw *GinJWTMiddleware) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	userID, ok := mw.Authenticator(loginVals.Username, loginVals.Password, c)
+	userID, ok := mw.Authenticator(loginVals.Username, "loginVals.Password", c)
 
 	if !ok {
 		mw.unauthorized(c, http.StatusUnauthorized, "Incorrect Username / Password")
