@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	types "github.com/gavrilaf/go-auth"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -20,6 +19,14 @@ const (
 )
 
 var SecretKey = []byte("This-is-secret-key")
+
+type Login struct {
+	ClientID   string `json:"client_id" binding:"required"`
+	Username   string `json:"username" binding:"required"`
+	DeviceID   string `json:"device_id" binding:"required"`
+	SignSecret string `json:"sign_secret" binding:"required"`
+	SignKey    string `json:"sign_key" binding:"required"`
+}
 
 // AuthMiddleware provides a Json-Web-Token authentication implementation. On failure, a 401 HTTP response
 // is returned. On success, the wrapped middleware is called, and the userID is made available as
@@ -61,7 +68,7 @@ func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 // Reply will be of the form {"token": "TOKEN"}.
 func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
 
-	var loginVals types.Login
+	var loginVals Login
 
 	err := c.ShouldBindWith(&loginVals, binding.JSON)
 	if err != nil {

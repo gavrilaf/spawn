@@ -1,4 +1,4 @@
-package go_auth
+package types
 
 type User struct {
 	ID        string
@@ -32,9 +32,9 @@ type TokenStorage interface {
 
 // Login form structure.
 type Login struct {
-	ClientID   string `form:"client_id" json:"client_id" binding:"required"`
-	Username   string `form:"username" json:"username" binding:"required"`
-	DeviceID   string `form:"device_id" json:"device_id" binding:"required"`
-	SignSecret string `form:"sign_secret" json:"sign_secret" binding:"required"`
-	SignKey    string `form:"sign_key" json:"sign_key" binding:"required"`
+	ClientID   string `json:"client_id" binding:"required"`
+	Username   string `json:"username" binding:"required"`
+	DeviceID   string `json:"device_id" binding:"required"`
+	SignSecret string `json:"sign_secret" binding:"required"`
+	SignKey    string `json:"sign_key" binding:"required"`
 }
