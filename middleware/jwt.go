@@ -2,10 +2,12 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/gavrilaf/go-auth/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -28,6 +30,8 @@ type Login struct {
 	SignKey    string `json:"sign_key" binding:"required"`
 }
 
+//type
+
 // AuthMiddleware provides a Json-Web-Token authentication implementation. On failure, a 401 HTTP response
 // is returned. On success, the wrapped middleware is called, and the userID is made available as
 // c.Get("userID").(string).
@@ -36,6 +40,8 @@ type Login struct {
 type AuthMiddleware struct {
 	// Duration that a jwt token is valid. Optional, defaults to one hour.
 	Timeout time.Duration
+
+	Storage storage.StorageFacade
 }
 
 // MiddlewareFunc makes GinJWTMiddleware implement the Middleware interface.
@@ -54,7 +60,7 @@ func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 		c.Set("JWT_PAYLOAD", claims)
 		c.Set("userID", userId)
 
-		if !CheckAccess(userId, c) {
+		if !mw.CheckAccess(userId, c) {
 			mw.Unauthorized(c, http.StatusForbidden, "You don't have permission to access.")
 			return
 		}
@@ -76,7 +82,7 @@ func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	userId, err := HandleLogin(&loginVals)
+	session, err := mw.HandleLogin(&loginVals)
 	if err != nil {
 		mw.Unauthorized(c, http.StatusUnauthorized, "Incorrect Username / Password")
 		return
@@ -88,14 +94,16 @@ func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
 
 	now := time.Now()
 	expire := now.Add(mw.Timeout)
-	claims["id"] = userId
+	claims["id"] = session.SessionID
 	claims["exp"] = expire.Unix()
 	claims["orig_iat"] = now.Unix()
+	claims["iss"] = "go-auth"
+	claims["aud"] = session.ClientID
 
-	tokenString, err := token.SignedString(SecretKey)
+	tokenString, err := token.SignedString([]byte(session.Secret))
 
 	if err != nil {
-		mw.Unauthorized(c, http.StatusUnauthorized, "Create JWT Token faild")
+		mw.Unauthorized(c, http.StatusUnauthorized, "Create JWT Token failed")
 		return
 	}
 
@@ -158,7 +166,16 @@ func (mw *AuthMiddleware) parseToken(c *gin.Context) (*jwt.Token, error) {
 	}
 
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return SecretKey, nil
+		claims := token.Claims.(jwt.MapClaims)
+		aud := claims["aud"].(string)
+		fmt.Printf("Inside parse token, aud = %v\n", aud)
+
+		key, err := mw.Storage.FindClient(aud)
+		if err != nil {
+			return nil, err
+		}
+
+		return []byte(key.Secret), nil
 	})
 }
 

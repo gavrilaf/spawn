@@ -13,14 +13,14 @@ func NewMemorySessionsStorage() MemorySessionStorage {
 }
 
 func (p MemorySessionStorage) StoreSession(session Session) error {
-	p.Sessions[session.Token] = session
+	p.Sessions[session.SessionID] = session
 	return nil
 }
 
-func (p MemorySessionStorage) FindSessionByToken(token string) (*Session, error) {
-	session, ok := p.Sessions[token]
+func (p MemorySessionStorage) FindSessionByID(id string) (*Session, error) {
+	session, ok := p.Sessions[id]
 	if !ok {
-		return nil, fmt.Errorf("Cant find session by token %v", token)
+		return nil, fmt.Errorf("Cant find session by id %v", id)
 	}
 	return &session, nil
 }

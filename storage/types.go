@@ -8,10 +8,11 @@ type User struct {
 }
 
 type Session struct {
-	Token     string
 	SessionID string
+	ClientID  string
 	UserID    string
 	Email     string
+	Secret    string
 }
 
 type ClientKey struct {
@@ -35,5 +36,5 @@ type UsersStorage interface {
 
 type SessionsStorage interface {
 	StoreSession(session Session) error
-	FindSessionByToken(token string) (*Session, error)
+	FindSessionByID(id string) (*Session, error)
 }

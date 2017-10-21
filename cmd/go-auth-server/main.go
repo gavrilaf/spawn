@@ -3,10 +3,10 @@ package main
 import (
 	//"net/http"
 	//"os"
-	"time"
-
 	"github.com/gavrilaf/go-auth/middleware"
+	"github.com/gavrilaf/go-auth/storage"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 func helloHandler(c *gin.Context) {
@@ -23,7 +23,12 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	authMiddleware := &middleware.AuthMiddleware{Timeout: time.Hour}
+	clientsStorage := storage.ClientsStorageMock{}
+	usersStorage := storage.UsersStorageMock{}
+	sessionsStorage := storage.NewMemorySessionsStorage()
+
+	storage := storage.StorageFacade{Clients: clientsStorage, Users: usersStorage, Sessions: sessionsStorage}
+	authMiddleware := &middleware.AuthMiddleware{Timeout: time.Hour, Storage: storage}
 
 	auth := router.Group("/auth")
 	{

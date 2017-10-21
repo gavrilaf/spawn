@@ -18,6 +18,6 @@ func (p *StorageFacade) StoreSession(session Session) error {
 	return p.Sessions.StoreSession(session)
 }
 
-func (p *StorageFacade) FindSessionByToken(token string) (*Session, error) {
-	return p.Sessions.FindSessionByToken(token)
+func (p *StorageFacade) FindSessionByID(id string) (*Session, error) {
+	return p.Sessions.FindSessionByID(id)
 }
