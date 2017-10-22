@@ -1,5 +1,10 @@
 package storage
 
+type Client struct {
+	ID     string
+	Secret string
+}
+
 type User struct {
 	ID        string
 	Email     string
@@ -8,22 +13,17 @@ type User struct {
 }
 
 type Session struct {
-	SessionID string
-	ClientID  string
-	UserID    string
-	Email     string
-	Secret    string
-}
-
-type ClientKey struct {
+	ID       string
 	ClientID string
+	UserID   string
+	Email    string
 	Secret   string
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 
 type ClientsStorage interface {
-	FindClient(clientId string) (*ClientKey, error)
+	FindClientByID(id string) (*Client, error)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

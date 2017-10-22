@@ -6,8 +6,8 @@ type StorageFacade struct {
 	Sessions SessionsStorage
 }
 
-func (p *StorageFacade) FindClient(clientId string) (*ClientKey, error) {
-	return p.Clients.FindClient(clientId)
+func (p *StorageFacade) FindClientByID(id string) (*Client, error) {
+	return p.Clients.FindClientByID(id)
 }
 
 func (p *StorageFacade) FindUserByEmail(email string) (*User, error) {

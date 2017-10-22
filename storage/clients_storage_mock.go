@@ -11,10 +11,10 @@ var DefaultClients = map[string]string{
 	"client_ios":  "d81d3e25c0f83c6ea0efcde45cad98b3501ec3f21ae01605499e95b77a4a3366",
 }
 
-func (c ClientsStorageMock) FindClient(clientId string) (*ClientKey, error) {
-	secret, ok := DefaultClients[clientId]
+func (c ClientsStorageMock) FindClientByID(id string) (*Client, error) {
+	secret, ok := DefaultClients[id]
 	if !ok {
-		return nil, fmt.Errorf("Can't find secret for clientId %v", clientId)
+		return nil, fmt.Errorf("Can't find client by id %v", id)
 	}
-	return &ClientKey{ClientID: clientId, Secret: secret}, nil
+	return &Client{ID: id, Secret: secret}, nil
 }

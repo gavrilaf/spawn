@@ -12,8 +12,9 @@ import (
 func helloHandler(c *gin.Context) {
 	claims := middleware.ExtractClaims(c)
 	c.JSON(200, gin.H{
-		"userID": claims["id"],
-		"text":   "Hello World.",
+		"sessionID": claims["session_id"],
+		"clientID":  claims["aud"],
+		"text":      "Hello World.",
 	})
 }
 

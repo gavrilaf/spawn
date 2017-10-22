@@ -30,6 +30,11 @@ type Login struct {
 	SignKey    string `json:"sign_key" binding:"required"`
 }
 
+type TokenDesc struct {
+	TokenString string
+	Expire      time.Time
+}
+
 //type
 
 // AuthMiddleware provides a Json-Web-Token authentication implementation. On failure, a 401 HTTP response
@@ -55,12 +60,12 @@ func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		userId := claims["id"].(string)
 
+		sessionId := claims["session_id"].(string)
 		c.Set("JWT_PAYLOAD", claims)
-		c.Set("userID", userId)
+		c.Set("sessionId", sessionId)
 
-		if !mw.CheckAccess(userId, c) {
+		if !mw.CheckAccess(sessionId, c) {
 			mw.Unauthorized(c, http.StatusForbidden, "You don't have permission to access.")
 			return
 		}
@@ -82,34 +87,15 @@ func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	session, err := mw.HandleLogin(&loginVals)
+	token, err := mw.HandleLogin(&loginVals)
 	if err != nil {
-		mw.Unauthorized(c, http.StatusUnauthorized, "Incorrect Username / Password")
-		return
-	}
-
-	// Create the token
-	token := jwt.New(jwt.GetSigningMethod(SigningAlgorithm))
-	claims := token.Claims.(jwt.MapClaims)
-
-	now := time.Now()
-	expire := now.Add(mw.Timeout)
-	claims["id"] = session.SessionID
-	claims["exp"] = expire.Unix()
-	claims["orig_iat"] = now.Unix()
-	claims["iss"] = "go-auth"
-	claims["aud"] = session.ClientID
-
-	tokenString, err := token.SignedString([]byte(session.Secret))
-
-	if err != nil {
-		mw.Unauthorized(c, http.StatusUnauthorized, "Create JWT Token failed")
+		mw.Unauthorized(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"auth_token": tokenString,
-		"expire":     expire.Format(time.RFC3339),
+		"auth_token": token.TokenString,
+		"expire":     token.Expire.Format(time.RFC3339),
 	})
 }
 
@@ -170,12 +156,12 @@ func (mw *AuthMiddleware) parseToken(c *gin.Context) (*jwt.Token, error) {
 		aud := claims["aud"].(string)
 		fmt.Printf("Inside parse token, aud = %v\n", aud)
 
-		key, err := mw.Storage.FindClient(aud)
+		client, err := mw.Storage.FindClientByID(aud)
 		if err != nil {
 			return nil, err
 		}
 
-		return []byte(key.Secret), nil
+		return []byte(client.Secret), nil
 	})
 }
 

@@ -13,7 +13,7 @@ func NewMemorySessionsStorage() MemorySessionStorage {
 }
 
 func (p MemorySessionStorage) StoreSession(session Session) error {
-	p.Sessions[session.SessionID] = session
+	p.Sessions[session.ID] = session
 	return nil
 }
 
