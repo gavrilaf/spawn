@@ -26,16 +26,20 @@ func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 			return
 		}
 
-		claims := token.Claims.(jwt.MapClaims)
+		claims := ClaimsFromToken(token)
+		session, err := mw.Storage.FindSessionByID(claims.SessionID())
+		if err != nil {
+			mw.Unauthorized(c, http.StatusUnauthorized, err.Error())
+			return
+		}
 
-		sessionId := claims["session_id"].(string)
-		c.Set("JWT_PAYLOAD", claims)
-		c.Set("sessionId", sessionId)
-
-		if !mw.CheckAccess(sessionId, c) {
+		if !mw.CheckAccess(session.UserID, session.ClientID, c) {
 			mw.Unauthorized(c, http.StatusForbidden, "You don't have permission to access.")
 			return
 		}
+
+		c.Set(ClientIDName, session.ClientID)
+		c.Set(UserIDName, session.UserID)
 
 		c.Next()
 	}
@@ -65,8 +69,6 @@ func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
 }
 
 // RefreshHandler can be used to refresh a token. The token still needs to be valid on refresh.
-// Shall be put under an endpoint that is using the GinJWTMiddleware.
-// Reply will be of the form {"token": "TOKEN"}.
 func (mw *AuthMiddleware) RefreshHandler(c *gin.Context) {
 	var refreshVals RefreshParcel
 
@@ -100,11 +102,8 @@ func (mw *AuthMiddleware) Unauthorized(c *gin.Context, code int, message string)
 
 func (mw *AuthMiddleware) parseToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		claims := token.Claims.(jwt.MapClaims)
-		aud := claims["aud"].(string)
-		//fmt.Printf("Inside parse token, aud = %v\n", aud)
-
-		client, err := mw.Storage.FindClientByID(aud)
+		claims := ClaimsFromToken(token)
+		client, err := mw.Storage.FindClientByID(claims.ClientID())
 		if err != nil {
 			return nil, err
 		}
@@ -126,17 +125,4 @@ func (mw *AuthMiddleware) jwtFromHeader(c *gin.Context, key string) (string, err
 	}
 
 	return parts[1], nil
-}
-
-// ExtractClaims help to extract the JWT claims
-func ExtractClaims(c *gin.Context) jwt.MapClaims {
-
-	if _, exists := c.Get("JWT_PAYLOAD"); !exists {
-		emptyClaims := make(jwt.MapClaims)
-		return emptyClaims
-	}
-
-	jwtClaims, _ := c.Get("JWT_PAYLOAD")
-
-	return jwtClaims.(jwt.MapClaims)
 }

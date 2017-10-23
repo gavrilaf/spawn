@@ -10,6 +10,10 @@ const (
 	TokenHeadName    = "Bearer"
 	SigningAlgorithm = "HS256"
 	TokenLookup      = "Authorization"
+
+	SessionIDName = "session_id"
+	ClientIDName  = "client_id"
+	UserIDName    = "user_id"
 )
 
 // AuthMiddleware provides a Json-Web-Token authentication implementation. On failure, a 401 HTTP response

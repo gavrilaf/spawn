@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"github.com/gavrilaf/go-auth/storage"
 	"github.com/gin-gonic/gin"
@@ -24,7 +26,7 @@ func (mw *AuthMiddleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	sessionId := mw.GenerateSessionID()
 	refreshToken := mw.GenerateRefreshToken(sessionId)
 
-	session := storage.Session{ID: sessionId, RefreshToken: refreshToken, ClientID: client.ID, UserID: user.ID, Email: user.Email, Secret: client.Secret}
+	session := storage.Session{ID: sessionId, RefreshToken: refreshToken, ClientID: client.ID, ClientSecret: client.Secret, UserID: user.ID}
 
 	err = mw.Storage.StoreSession(session)
 	if err != nil {
@@ -43,7 +45,7 @@ func (mw *AuthMiddleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	claims["orig_iat"] = now.Unix()
 	//claims["iss"] = "go-auth" // TODO: Fix it later
 
-	tokenString, err := token.SignedString([]byte(session.Secret))
+	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
 		return nil, err
 
@@ -84,7 +86,7 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 	expire := now.Add(mw.Timeout)
 	claims["exp"] = expire.Unix()
 
-	tokenString, err := token.SignedString([]byte(session.Secret))
+	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +96,7 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *AuthMiddleware) CheckAccess(userId string, c *gin.Context) bool {
+func (mw *AuthMiddleware) CheckAccess(userId string, clientId string, c *gin.Context) bool {
 	return true
 }
 
@@ -103,5 +105,6 @@ func (mw *AuthMiddleware) GenerateSessionID() string {
 }
 
 func (mw *AuthMiddleware) GenerateRefreshToken(sessionId string) string {
-	return sessionId
+	sum := sha256.Sum256([]byte(sessionId))
+	return hex.EncodeToString(sum[:])
 }
