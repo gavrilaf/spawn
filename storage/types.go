@@ -13,11 +13,12 @@ type User struct {
 }
 
 type Session struct {
-	ID       string
-	ClientID string
-	UserID   string
-	Email    string
-	Secret   string
+	ID           string
+	RefreshToken string
+	ClientID     string
+	UserID       string
+	Email        string
+	Secret       string
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
