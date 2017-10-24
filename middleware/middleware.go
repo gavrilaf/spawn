@@ -3,7 +3,7 @@ package middleware
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
+
 	"github.com/gavrilaf/go-auth/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
@@ -61,7 +61,7 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 	origIat := int64(claims["orig_iat"].(float64))
 
 	if origIat < time.Now().Add(-mw.MaxRefresh).Unix() {
-		return nil, fmt.Errorf("Token is expired.")
+		return nil, errTokenExpired
 	}
 
 	session, err := mw.Storage.FindSessionByID(sessionId)
@@ -70,7 +70,7 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 	}
 
 	if p.RefreshToken != session.RefreshToken {
-		return nil, fmt.Errorf("Invalid refresh token")
+		return nil, errTokenInvalid
 	}
 
 	// Create the token

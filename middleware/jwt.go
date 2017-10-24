@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"errors"
+	"github.com/gavrilaf/go-auth/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -17,24 +17,24 @@ func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := mw.jwtFromHeader(c, TokenLookup)
 		if err != nil {
-			mw.Unauthorized(c, http.StatusBadRequest, err.Error())
+			mw.HandleError(c, http.StatusBadRequest, err)
 		}
 
 		token, err := mw.parseToken(tokenStr)
 		if err != nil {
-			mw.Unauthorized(c, http.StatusUnauthorized, err.Error())
+			mw.HandleError(c, http.StatusUnauthorized, err)
 			return
 		}
 
 		claims := ClaimsFromToken(token)
 		session, err := mw.Storage.FindSessionByID(claims.SessionID())
 		if err != nil {
-			mw.Unauthorized(c, http.StatusUnauthorized, err.Error())
+			mw.HandleError(c, http.StatusUnauthorized, err)
 			return
 		}
 
 		if !mw.CheckAccess(session.UserID, session.ClientID, c) {
-			mw.Unauthorized(c, http.StatusForbidden, "You don't have permission to access.")
+			mw.HandleError(c, http.StatusForbidden, errAccessForbiden)
 			return
 		}
 
@@ -51,13 +51,13 @@ func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
 
 	err := c.ShouldBindWith(&loginVals, binding.JSON)
 	if err != nil {
-		mw.Unauthorized(c, http.StatusBadRequest, err.Error())
+		mw.HandleError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	token, err := mw.HandleLogin(&loginVals)
 	if err != nil {
-		mw.Unauthorized(c, http.StatusUnauthorized, err.Error())
+		mw.HandleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -74,13 +74,13 @@ func (mw *AuthMiddleware) RefreshHandler(c *gin.Context) {
 
 	err := c.ShouldBindWith(&refreshVals, binding.JSON)
 	if err != nil {
-		mw.Unauthorized(c, http.StatusUnauthorized, err.Error())
+		mw.HandleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
 	token, err := mw.HandleRefresh(&refreshVals)
 	if err != nil {
-		mw.Unauthorized(c, http.StatusUnauthorized, err.Error())
+		mw.HandleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -95,12 +95,12 @@ func (mw *AuthMiddleware) RegisterHandler(c *gin.Context) {
 
 	err := c.ShouldBindWith(&registerVals, binding.JSON)
 	if err != nil {
-		mw.Unauthorized(c, http.StatusBadRequest, err.Error())
+		mw.HandleError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	if err = mw.HandleRegister(&registerVals); err != nil {
-		mw.Unauthorized(c, http.StatusInternalServerError, err.Error())
+		mw.HandleError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -109,9 +109,19 @@ func (mw *AuthMiddleware) RegisterHandler(c *gin.Context) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *AuthMiddleware) Unauthorized(c *gin.Context, code int, message string) {
+func (mw *AuthMiddleware) HandleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
-	c.JSON(code, gin.H{"code": code, "message": message})
+
+	var errJson map[string]interface{}
+
+	switch err2 := err.(type) {
+	case errors.Err:
+		errJson = gin.H{"scope": err2.Scope, "reason": err2.Reason}
+	default:
+		errJson = gin.H{"scope": ErrScope, "reason": ErrReasonDefault, "message": err.Error()}
+	}
+
+	c.JSON(httpCode, gin.H{"error": errJson})
 	c.Abort()
 }
 
@@ -133,12 +143,12 @@ func (mw *AuthMiddleware) jwtFromHeader(c *gin.Context, key string) (string, err
 	authHeader := c.Request.Header.Get(key)
 
 	if authHeader == "" {
-		return "", errors.New("auth header empty")
+		return "", errInvalidRequest
 	}
 
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == TokenHeadName) {
-		return "", errors.New("invalid auth header")
+		return "", errInvalidRequest
 	}
 
 	return parts[1], nil
