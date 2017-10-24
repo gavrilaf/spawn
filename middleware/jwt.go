@@ -90,6 +90,23 @@ func (mw *AuthMiddleware) RefreshHandler(c *gin.Context) {
 	})
 }
 
+func (mw *AuthMiddleware) RegisterHandler(c *gin.Context) {
+	var registerVals RegisterParcel
+
+	err := c.ShouldBindWith(&registerVals, binding.JSON)
+	if err != nil {
+		mw.Unauthorized(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err = mw.HandleRegister(&registerVals); err != nil {
+		mw.Unauthorized(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (mw *AuthMiddleware) Unauthorized(c *gin.Context, code int, message string) {
@@ -108,7 +125,7 @@ func (mw *AuthMiddleware) parseToken(token string) (*jwt.Token, error) {
 			return nil, err
 		}
 
-		return []byte(client.Secret), nil
+		return client.Secret, nil
 	})
 }
 

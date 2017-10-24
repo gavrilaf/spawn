@@ -31,11 +31,20 @@ type AuthMiddleware struct {
 }
 
 type LoginParcel struct {
-	ClientID   string `json:"client_id" binding:"required"`
-	Username   string `json:"username" binding:"required"`
-	DeviceID   string `json:"device_id" binding:"required"`
-	SignSecret string `json:"sign_secret" binding:"required"`
-	SignKey    string `json:"sign_key" binding:"required"`
+	ClientID       string `json:"client_id" binding:"required"`
+	DeviceID       string `json:"device_id" binding:"required"`
+	Username       string `json:"username" binding:"required"`
+	SignedSecret   string `json:"signed_secret" binding:"required"`
+	SignedPassword string `json:"signed_password" binding:"required"`
+	Signature      string `json:"signature" binding:"required"`
+}
+
+type RegisterParcel struct {
+	ClientID  string `json:"client_id" binding:"required"`
+	DeviceID  string `json:"device_id" binding:"required"`
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	Signature string `json:"signature" binding:"required"`
 }
 
 type RefreshParcel struct {

@@ -10,8 +10,12 @@ func (p *StorageFacade) FindClientByID(id string) (*Client, error) {
 	return p.Clients.FindClientByID(id)
 }
 
-func (p *StorageFacade) FindUserByEmail(email string) (*User, error) {
-	return p.Users.FindUserByEmail(email)
+func (p *StorageFacade) AddUser(clientId string, deviceId string, username string, password string) error {
+	return p.Users.AddUser(clientId, deviceId, username, password)
+}
+
+func (p *StorageFacade) FindUserByUsername(username string) (*User, error) {
+	return p.Users.FindUserByUsername(username)
 }
 
 func (p *StorageFacade) StoreSession(session Session) error {

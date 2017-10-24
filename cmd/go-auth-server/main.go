@@ -34,6 +34,7 @@ func main() {
 
 	auth := router.Group("/auth")
 	{
+		auth.POST("/register", authMiddleware.RegisterHandler)
 		auth.POST("/login", authMiddleware.LoginHandler)
 		auth.POST("/refresh_token", authMiddleware.RefreshHandler)
 	}

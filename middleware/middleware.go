@@ -18,7 +18,7 @@ func (mw *AuthMiddleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 		return nil, err
 	}
 
-	user, err := mw.Storage.FindUserByEmail(p.Username)
+	user, err := mw.Storage.FindUserByUsername(p.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,6 @@ func (mw *AuthMiddleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
 		return nil, err
-
 	}
 
 	return &TokenParcel{AuthToken: tokenString, RefreshToken: refreshToken, Expire: expire}, nil
@@ -92,6 +91,13 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 	}
 
 	return &TokenParcel{AuthToken: tokenString, RefreshToken: "", Expire: expire}, nil
+}
+
+func (mw *AuthMiddleware) HandleRegister(p *RegisterParcel) error {
+
+	// Handle signature
+
+	return mw.Storage.AddUser(p.ClientID, p.DeviceID, p.Username, p.Username)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

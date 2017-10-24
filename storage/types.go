@@ -6,10 +6,10 @@ type Client struct {
 }
 
 type User struct {
-	ID        string
-	Email     string
-	Signature string
-	Devices   []string
+	ID           string
+	Username     string
+	PasswordHash string
+	Devices      []string
 }
 
 type Session struct {
@@ -29,7 +29,8 @@ type ClientsStorage interface {
 /////////////////////////////////////////////////////////////////////////////////////
 
 type UsersStorage interface {
-	FindUserByEmail(email string) (*User, error)
+	AddUser(clientId string, deviceId string, username string, password string) error
+	FindUserByUsername(username string) (*User, error)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
