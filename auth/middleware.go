@@ -1,6 +1,8 @@
-package middleware
+package auth
 
 import (
+	//"fmt"
+	"github.com/gavrilaf/go-auth/auth/cerr"
 	"github.com/gavrilaf/go-auth/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -34,7 +36,7 @@ func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 		}
 
 		if !mw.CheckAccess(session.UserID, session.ClientID, c) {
-			mw.HandleError(c, http.StatusForbidden, errAccessForbiden)
+			mw.HandleError(c, http.StatusForbidden, cerr.AccessForbiden)
 			return
 		}
 
@@ -112,15 +114,16 @@ func (mw *AuthMiddleware) RegisterHandler(c *gin.Context) {
 func (mw *AuthMiddleware) HandleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 
-	var errJson map[string]interface{}
+	var errJson map[string]string
 
 	switch err2 := err.(type) {
 	case errors.Err:
-		errJson = gin.H{"scope": err2.Scope, "reason": err2.Reason}
+		errJson = map[string]string{"scope": err2.Scope(), "reason": err2.Reason()}
 	default:
-		errJson = gin.H{"scope": ErrScope, "reason": ErrReasonDefault, "message": err.Error()}
+		errJson = map[string]string{"scope": cerr.Scope, "reason": cerr.ReasonDefault, "message": err.Error()}
 	}
 
+	//fmt.Printf("Err: %v\n", errJson)
 	c.JSON(httpCode, gin.H{"error": errJson})
 	c.Abort()
 }
@@ -143,12 +146,12 @@ func (mw *AuthMiddleware) jwtFromHeader(c *gin.Context, key string) (string, err
 	authHeader := c.Request.Header.Get(key)
 
 	if authHeader == "" {
-		return "", errInvalidRequest
+		return "", cerr.InvalidRequest
 	}
 
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == TokenHeadName) {
-		return "", errInvalidRequest
+		return "", cerr.InvalidRequest
 	}
 
 	return parts[1], nil

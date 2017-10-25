@@ -1,7 +1,7 @@
-package middleware
+package auth
 
 import (
-	"github.com/gavrilaf/go-auth/storage"
+	"github.com/gavrilaf/go-auth/auth/storage"
 	"time"
 )
 

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/gavrilaf/go-auth/auth/cerr"
 )
 
 var Counter = 3
@@ -15,7 +16,7 @@ type UsersStorageMock struct{}
 
 func (p UsersStorageMock) AddUser(clientId string, deviceId string, username string, password string) error {
 	if user, _ := p.FindUserByUsername(username); user != nil {
-		return fmt.Errorf("User %v already exists", username)
+		return cerr.UserAlreadyExist
 	}
 
 	id := fmt.Sprintf("id%d", Counter)
@@ -33,5 +34,5 @@ func (p UsersStorageMock) FindUserByUsername(username string) (*User, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("User %v not found", username)
+	return nil, cerr.UserUnknown
 }

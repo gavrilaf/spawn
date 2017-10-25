@@ -3,15 +3,15 @@ package main
 import (
 	//"net/http"
 	//"os"
-	"github.com/gavrilaf/go-auth/middleware"
-	"github.com/gavrilaf/go-auth/storage"
+	"github.com/gavrilaf/go-auth/auth"
+	"github.com/gavrilaf/go-auth/auth/storage"
 	"github.com/gin-gonic/gin"
 	"time"
 )
 
 func helloHandler(c *gin.Context) {
-	userId := c.GetString(middleware.UserIDName)
-	clientId := c.GetString(middleware.ClientIDName)
+	userId := c.GetString(auth.UserIDName)
+	clientId := c.GetString(auth.ClientIDName)
 
 	c.JSON(200, gin.H{
 		"user_id":   userId,
@@ -30,7 +30,7 @@ func main() {
 	sessionsStorage := storage.NewMemorySessionsStorage()
 
 	storage := storage.StorageFacade{Clients: clientsStorage, Users: usersStorage, Sessions: sessionsStorage}
-	authMiddleware := &middleware.AuthMiddleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
+	authMiddleware := &auth.AuthMiddleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
 
 	auth := router.Group("/auth")
 	{

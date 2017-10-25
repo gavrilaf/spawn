@@ -1,10 +1,10 @@
-package middleware
+package auth
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
-
-	"github.com/gavrilaf/go-auth/storage"
+	"github.com/gavrilaf/go-auth/auth/cerr"
+	"github.com/gavrilaf/go-auth/auth/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -61,7 +61,7 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 	origIat := int64(claims["orig_iat"].(float64))
 
 	if origIat < time.Now().Add(-mw.MaxRefresh).Unix() {
-		return nil, errTokenExpired
+		return nil, cerr.TokenExpired
 	}
 
 	session, err := mw.Storage.FindSessionByID(sessionId)
@@ -70,7 +70,7 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 	}
 
 	if p.RefreshToken != session.RefreshToken {
-		return nil, errTokenInvalid
+		return nil, cerr.TokenInvalid
 	}
 
 	// Create the token

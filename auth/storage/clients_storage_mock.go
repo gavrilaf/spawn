@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"fmt"
+	"github.com/gavrilaf/go-auth/auth/cerr"
 )
 
 type ClientsStorageMock struct{}
@@ -14,7 +14,7 @@ var DefaultClients = map[string][]byte{
 func (c ClientsStorageMock) FindClientByID(id string) (*Client, error) {
 	secret, ok := DefaultClients[id]
 	if !ok {
-		return nil, fmt.Errorf("Can't find client by id %v", id)
+		return nil, cerr.ClientUnknown
 	}
 	return &Client{ID: id, Secret: secret}, nil
 }

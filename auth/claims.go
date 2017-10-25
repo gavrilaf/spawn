@@ -1,4 +1,4 @@
-package middleware
+package auth
 
 import (
 	"gopkg.in/dgrijalva/jwt-go.v3"
