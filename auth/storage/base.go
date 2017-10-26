@@ -2,7 +2,7 @@ package storage
 
 type Client struct {
 	ID     string
-	Secret []byte
+	Secret string
 }
 
 type User struct {
@@ -16,7 +16,7 @@ type Session struct {
 	ID           string
 	RefreshToken string
 	ClientID     string
-	ClientSecret []byte
+	ClientSecret string
 	UserID       string
 }
 

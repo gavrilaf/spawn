@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+	"github.com/gavrilaf/go-auth/cryptx"
 	"time"
 )
 
@@ -44,8 +46,8 @@ type TokenParcel struct {
 
 ////////////////////////////////////////////////////////////////////////
 
-func (p *LoginParcel) CheckSignature(key []byte) bool {
-	return true
+func (p *LoginParcel) CheckSignature(key string) error {
+	return nil
 }
 
 func (p *LoginParcel) CheckPassword(password string) bool {
@@ -59,4 +61,15 @@ func (p *LoginParcel) CheckDevice(devices []string) bool {
 		}
 	}
 	return false
+}
+
+////////////////////////////////////////////////////////////////////////
+
+func (p *RegisterParcel) CheckSignature(key string) error {
+	msg := p.ClientID + p.DeviceID + p.Username
+
+	s, _ := cryptx.GenerateSignature(msg, key)
+	fmt.Printf("Signature for %v is %v\n", msg, s)
+
+	return cryptx.CheckSignature(msg, p.Signature, key)
 }

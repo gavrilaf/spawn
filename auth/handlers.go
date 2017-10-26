@@ -1,15 +1,15 @@
 package auth
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"github.com/gavrilaf/go-auth/auth/cerr"
 	"github.com/gavrilaf/go-auth/auth/storage"
+	"github.com/gavrilaf/go-auth/cryptx"
 
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	"gopkg.in/dgrijalva/jwt-go.v3"
+
+	"fmt"
 	"time"
 )
 
@@ -22,9 +22,9 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	}
 
 	// Check signature
-	if !p.CheckSignature(client.Secret) {
-		return nil, cerr.InvalidSignature
-	}
+	//if !p.CheckSignature(client.Secret) {
+	//	return nil, cerr.InvalidSignature
+	//}
 
 	// Check user
 
@@ -118,8 +118,16 @@ func (mw *Middleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) {
 }
 
 func (mw *Middleware) HandleRegister(p *RegisterParcel) error {
+	// Check client
+	client, err := mw.Storage.FindClientByID(p.ClientID)
+	if err != nil {
+		return err
+	}
 
-	// Handle signature
+	// Check signature
+	if p.CheckSignature(client.Secret) != nil {
+		return cerr.InvalidSignature
+	}
 
 	return mw.Storage.AddUser(p.ClientID, p.DeviceID, p.Username, p.Username)
 }
@@ -135,6 +143,6 @@ func (mw *Middleware) GenerateSessionID() string {
 }
 
 func (mw *Middleware) GenerateRefreshToken(sessionId string) string {
-	sum := sha256.Sum256([]byte(sessionId))
-	return hex.EncodeToString(sum[:])
+	k, _ := cryptx.GenerateSaltedKey(sessionId)
+	return k
 }
