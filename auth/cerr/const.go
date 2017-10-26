@@ -1,7 +1,7 @@
 package cerr
 
 import (
-	"github.com/gavrilaf/go-auth/errors"
+	"github.com/gavrilaf/go-auth/errx"
 )
 
 const (
@@ -9,17 +9,17 @@ const (
 	ReasonDefault = "default"
 )
 
-var ClientUnknown = errors.NewErr(Scope, "client-unknown")
-var UserUnknown = errors.NewErr(Scope, "user-unknown")
-var DeviceUnknown = errors.NewErr(Scope, "device-unknown")
+var ClientUnknown = errx.New(Scope, "client-unknown")
+var UserUnknown = errx.New(Scope, "user-unknown")
+var DeviceUnknown = errx.New(Scope, "device-unknown")
 
-var InvalidSignature = errors.NewErr(Scope, "invalid-signature")
+var InvalidSignature = errx.New(Scope, "invalid-signature")
 
-var SessionNotFound = errors.NewErr(Scope, "session-not-found")
+var SessionNotFound = errx.New(Scope, "session-not-found")
 
-var UserAlreadyExist = errors.NewErr(Scope, "user-already-exist")
+var UserAlreadyExist = errx.New(Scope, "user-already-exist")
 
-var InvalidRequest = errors.NewErr(Scope, "invalid-request")
-var TokenExpired = errors.NewErr(Scope, "token-expired")
-var TokenInvalid = errors.NewErr(Scope, "token-invalid")
-var AccessForbiden = errors.NewErr(Scope, "access-forbiden")
+var InvalidRequest = errx.New(Scope, "invalid-request")
+var TokenExpired = errx.New(Scope, "token-expired")
+var TokenInvalid = errx.New(Scope, "token-invalid")
+var AccessForbiden = errx.New(Scope, "access-forbiden")

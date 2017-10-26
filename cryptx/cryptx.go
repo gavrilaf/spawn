@@ -6,7 +6,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/gavrilaf/go-auth/errors"
+	"github.com/gavrilaf/go-auth/errx"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/pbkdf2"
 	"io"
@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	InvalidSignature = errors.NewErr(ErrScope, "invalid-signature")
+	InvalidSignature = errx.New(ErrScope, "invalid-signature")
 )
 
 /*
@@ -84,13 +84,13 @@ func CheckSignature(message string, sign string, key string) error {
  *  - password
  * Return password hash in hex
  */
-func GenerateHashedPassword(password string) ([]byte, error) {
+func GenerateHashedPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return hashedPassword, nil
+	return hex.EncodeToString(hashedPassword), nil
 }
 
 /*

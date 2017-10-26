@@ -1,7 +1,12 @@
-package errors
+package errx
 
 import (
 	"fmt"
+)
+
+const (
+	ReasonDefault = "default"
+	ReasonSystem  = "system"
 )
 
 type Err struct {
@@ -10,11 +15,11 @@ type Err struct {
 	msg    string
 }
 
-func NewErr(scope string, reason string) Err {
+func New(scope string, reason string) Err {
 	return Err{scope: scope, reason: reason, msg: ""}
 }
 
-func NewErrFormat(scope string, reason string, format string, args ...interface{}) Err {
+func NewWithFmt(scope string, reason string, format string, args ...interface{}) Err {
 	return Err{scope: scope, reason: reason, msg: fmt.Sprintf(format, args...)}
 }
 

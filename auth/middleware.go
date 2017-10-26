@@ -3,7 +3,7 @@ package auth
 import (
 	//"fmt"
 	"github.com/gavrilaf/go-auth/auth/cerr"
-	"github.com/gavrilaf/go-auth/errors"
+	"github.com/gavrilaf/go-auth/errx"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -117,7 +117,7 @@ func (mw *AuthMiddleware) HandleError(c *gin.Context, httpCode int, err error) {
 	var errJson map[string]string
 
 	switch err2 := err.(type) {
-	case errors.Err:
+	case errx.Err:
 		errJson = map[string]string{"scope": err2.Scope(), "reason": err2.Reason()}
 	default:
 		errJson = map[string]string{"scope": cerr.Scope, "reason": cerr.ReasonDefault, "message": err.Error()}

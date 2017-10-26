@@ -29,7 +29,7 @@ func TestSignatures(t *testing.T) {
 		}
 		signs = append(signs, sn)
 	}
-	fmt.Println(signs)
+	fmt.Printf("Generated signatires: %v\n", signs)
 
 	for i, s := range msgs {
 		err := CheckSignature(s, signs[i], key)
@@ -42,4 +42,31 @@ func TestSignatures(t *testing.T) {
 	if err == nil {
 		t.Fatal("Signature should be invalid")
 	}
+}
+
+func TestPasswords(t *testing.T) {
+	psws := []string{"111111", "This is a very long password", "test", ""}
+
+	var hashes []string
+	for _, s := range psws {
+		hash, err := GenerateHashedPassword(s)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		hashes = append(hashes, hash)
+	}
+	fmt.Printf("Hashed passwords: %v\n", hashes)
+
+	for i, s := range psws {
+		err := CheckPassword(s, hashes[i])
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+	}
+
+	err := CheckPassword(psws[0]+"1", hashes[0])
+	if err == nil {
+		t.Fatal("Passwords must not match")
+	}
+
 }
