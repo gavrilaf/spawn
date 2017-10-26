@@ -5,8 +5,7 @@ import (
 )
 
 const (
-	Scope         = "auth"
-	ReasonDefault = "default"
+	Scope = "auth"
 )
 
 var ClientUnknown = errx.New(Scope, "client-unknown")

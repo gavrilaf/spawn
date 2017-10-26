@@ -3,19 +3,28 @@ package auth
 import (
 	//"fmt"
 	"github.com/gavrilaf/go-auth/auth/cerr"
+	"github.com/gavrilaf/go-auth/auth/storage"
 	"github.com/gavrilaf/go-auth/errx"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/dgrijalva/jwt-go.v3"
+
 	"net/http"
 	"strings"
 	"time"
 )
 
 //type
+type Middleware struct {
+	Timeout    time.Duration
+	MaxRefresh time.Duration
+
+	Storage storage.StorageFacade
+}
 
 // MiddlewareFunc makes AuthMiddleware implement the Middleware interface.
-func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
+func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := mw.jwtFromHeader(c, TokenLookup)
 		if err != nil {
@@ -48,7 +57,7 @@ func (mw *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 }
 
 // LoginHandler can be used by clients to get a jwt token.
-func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
+func (mw *Middleware) LoginHandler(c *gin.Context) {
 	var loginVals LoginParcel
 
 	err := c.ShouldBindWith(&loginVals, binding.JSON)
@@ -71,7 +80,7 @@ func (mw *AuthMiddleware) LoginHandler(c *gin.Context) {
 }
 
 // RefreshHandler can be used to refresh a token. The token still needs to be valid on refresh.
-func (mw *AuthMiddleware) RefreshHandler(c *gin.Context) {
+func (mw *Middleware) RefreshHandler(c *gin.Context) {
 	var refreshVals RefreshParcel
 
 	err := c.ShouldBindWith(&refreshVals, binding.JSON)
@@ -92,7 +101,7 @@ func (mw *AuthMiddleware) RefreshHandler(c *gin.Context) {
 	})
 }
 
-func (mw *AuthMiddleware) RegisterHandler(c *gin.Context) {
+func (mw *Middleware) RegisterHandler(c *gin.Context) {
 	var registerVals RegisterParcel
 
 	err := c.ShouldBindWith(&registerVals, binding.JSON)
@@ -111,17 +120,10 @@ func (mw *AuthMiddleware) RegisterHandler(c *gin.Context) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *AuthMiddleware) HandleError(c *gin.Context, httpCode int, err error) {
+func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 
-	var errJson map[string]string
-
-	switch err2 := err.(type) {
-	case errx.Err:
-		errJson = map[string]string{"scope": err2.Scope(), "reason": err2.Reason()}
-	default:
-		errJson = map[string]string{"scope": cerr.Scope, "reason": cerr.ReasonDefault, "message": err.Error()}
-	}
+	errJson := errx.Error2Json(err, cerr.Scope)
 
 	//fmt.Printf("Err: %v\n", errJson)
 	c.JSON(httpCode, gin.H{"error": errJson})
@@ -130,7 +132,7 @@ func (mw *AuthMiddleware) HandleError(c *gin.Context, httpCode int, err error) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *AuthMiddleware) parseToken(token string) (*jwt.Token, error) {
+func (mw *Middleware) parseToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		claims := ClaimsFromToken(token)
 		client, err := mw.Storage.FindClientByID(claims.ClientID())
@@ -142,7 +144,7 @@ func (mw *AuthMiddleware) parseToken(token string) (*jwt.Token, error) {
 	})
 }
 
-func (mw *AuthMiddleware) jwtFromHeader(c *gin.Context, key string) (string, error) {
+func (mw *Middleware) jwtFromHeader(c *gin.Context, key string) (string, error) {
 	authHeader := c.Request.Header.Get(key)
 
 	if authHeader == "" {

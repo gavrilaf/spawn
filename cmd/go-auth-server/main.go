@@ -30,7 +30,7 @@ func main() {
 	sessionsStorage := storage.NewMemorySessionsStorage()
 
 	storage := storage.StorageFacade{Clients: clientsStorage, Users: usersStorage, Sessions: sessionsStorage}
-	authMiddleware := &auth.AuthMiddleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
+	authMiddleware := &auth.Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
 
 	auth := router.Group("/auth")
 	{

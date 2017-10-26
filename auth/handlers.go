@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (mw *AuthMiddleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
+func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 
 	// Check client
 	client, err := mw.Storage.FindClientByID(p.ClientID)
@@ -77,7 +77,7 @@ func (mw *AuthMiddleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	return &TokenParcel{AuthToken: tokenString, RefreshToken: refreshToken, Expire: expire}, nil
 }
 
-func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) {
+func (mw *Middleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) {
 	token, _ := mw.parseToken(p.AuthToken)
 	claims := token.Claims.(jwt.MapClaims)
 
@@ -117,7 +117,7 @@ func (mw *AuthMiddleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) 
 	return &TokenParcel{AuthToken: tokenString, RefreshToken: "", Expire: expire}, nil
 }
 
-func (mw *AuthMiddleware) HandleRegister(p *RegisterParcel) error {
+func (mw *Middleware) HandleRegister(p *RegisterParcel) error {
 
 	// Handle signature
 
@@ -126,15 +126,15 @@ func (mw *AuthMiddleware) HandleRegister(p *RegisterParcel) error {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *AuthMiddleware) CheckAccess(userId string, clientId string, c *gin.Context) bool {
+func (mw *Middleware) CheckAccess(userId string, clientId string, c *gin.Context) bool {
 	return true
 }
 
-func (mw *AuthMiddleware) GenerateSessionID() string {
+func (mw *Middleware) GenerateSessionID() string {
 	return uuid.NewV4().String()
 }
 
-func (mw *AuthMiddleware) GenerateRefreshToken(sessionId string) string {
+func (mw *Middleware) GenerateRefreshToken(sessionId string) string {
 	sum := sha256.Sum256([]byte(sessionId))
 	return hex.EncodeToString(sum[:])
 }
