@@ -34,7 +34,6 @@ type LoginParcel struct {
 	ClientID       string `json:"client_id" binding:"required"`
 	DeviceID       string `json:"device_id" binding:"required"`
 	Username       string `json:"username" binding:"required"`
-	SignedSecret   string `json:"signed_secret" binding:"required"`
 	SignedPassword string `json:"signed_password" binding:"required"`
 	Signature      string `json:"signature" binding:"required"`
 }
@@ -56,4 +55,23 @@ type TokenParcel struct {
 	AuthToken    string
 	RefreshToken string
 	Expire       time.Time
+}
+
+////////////////////////////////////////////////////////////////////////
+
+func (p *LoginParcel) CheckSignature(key []byte) bool {
+	return true
+}
+
+func (p *LoginParcel) CheckPassword(password string) bool {
+	return true
+}
+
+func (p *LoginParcel) CheckDevice(devices []string) bool {
+	for _, d := range devices {
+		if p.DeviceID == d {
+			return true
+		}
+	}
+	return false
 }

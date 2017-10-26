@@ -8,8 +8,8 @@ import (
 var Counter = 3
 
 var DefaultUsers = []User{
-	User{ID: "id1", Username: "id1@i.com", PasswordHash: "111111", Devices: []string{"d1, d2"}},
-	User{ID: "id2", Username: "id2@i.com", PasswordHash: "111111", Devices: []string{"d3, d4"}},
+	User{ID: "id1", Username: "id1@i.com", PasswordHash: "111111", Devices: []string{"d1", "d2"}},
+	User{ID: "id2", Username: "id2@i.com", PasswordHash: "111111", Devices: []string{"d3", "d4"}},
 }
 
 type UsersStorageMock struct{}

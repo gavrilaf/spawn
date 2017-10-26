@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"github.com/gavrilaf/go-auth/auth/cerr"
 	"github.com/gavrilaf/go-auth/auth/storage"
+
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -13,15 +15,37 @@ import (
 
 func (mw *AuthMiddleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 
+	// Check client
 	client, err := mw.Storage.FindClientByID(p.ClientID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Check signature
+	if !p.CheckSignature(client.Secret) {
+		return nil, cerr.InvalidSignature
+	}
+
+	// Check user
+
 	user, err := mw.Storage.FindUserByUsername(p.Username)
 	if err != nil {
 		return nil, err
 	}
+
+	if !p.CheckPassword(user.PasswordHash) {
+		fmt.Printf("Incorrect password for user %v\n", p.Username)
+		return nil, cerr.UserUnknown
+	}
+
+	// Check device
+	if !p.CheckDevice(user.Devices) {
+		// TODO: Send email about new device
+		fmt.Printf("Unknown device %v\n", p.DeviceID)
+		return nil, cerr.DeviceUnknown
+	}
+
+	// Generate token
 
 	sessionId := mw.GenerateSessionID()
 	refreshToken := mw.GenerateRefreshToken(sessionId)

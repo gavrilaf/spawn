@@ -11,6 +11,8 @@ const (
 
 var ClientUnknown = errors.NewErr(Scope, "client-unknown")
 var UserUnknown = errors.NewErr(Scope, "user-unknown")
+var DeviceUnknown = errors.NewErr(Scope, "device-unknown")
+
 var InvalidSignature = errors.NewErr(Scope, "invalid-signature")
 
 var SessionNotFound = errors.NewErr(Scope, "session-not-found")
