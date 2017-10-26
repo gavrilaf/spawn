@@ -1,7 +1,9 @@
 package cryptx
 
 import (
-	"fmt"
+	//"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -9,10 +11,11 @@ func TestSaltedKey(t *testing.T) {
 	seeds := []string{"12345", "This is a very long key", "", "client_test", "client_ios"}
 	for _, s := range seeds {
 		key, err := GenerateSaltedKey(s)
-		if err != nil {
-			t.Fatal(err.Error())
-		}
-		fmt.Printf("Seed = %v, key = %v\n", s, key)
+
+		require.Nil(t, err)
+		require.NotEmpty(t, key)
+
+		//fmt.Printf("Seed = %v, key = %v\n", s, key)
 	}
 }
 
@@ -24,24 +27,19 @@ func TestSignatures(t *testing.T) {
 	var signs []string
 	for _, s := range msgs {
 		sn, err := GenerateSignature(s, key)
-		if err != nil {
-			t.Fatal(err.Error())
-		}
+		require.Nil(t, err)
+
 		signs = append(signs, sn)
 	}
-	fmt.Printf("Generated signatires: %v\n", signs)
+	//fmt.Printf("Generated signatires: %v\n", signs)
 
 	for i, s := range msgs {
 		err := CheckSignature(s, signs[i], key)
-		if err != nil {
-			t.Fatal(err.Error())
-		}
+		assert.Nil(t, err)
 	}
 
 	err := CheckSignature(msgs[0]+"1", signs[0], key)
-	if err == nil {
-		t.Fatal("Signature should be invalid")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestPasswords(t *testing.T) {
@@ -50,23 +48,17 @@ func TestPasswords(t *testing.T) {
 	var hashes []string
 	for _, s := range psws {
 		hash, err := GenerateHashedPassword(s)
-		if err != nil {
-			t.Fatal(err.Error())
-		}
+		require.Nil(t, err)
+
 		hashes = append(hashes, hash)
 	}
-	fmt.Printf("Hashed passwords: %v\n", hashes)
+	//fmt.Printf("Hashed passwords: %v\n", hashes)
 
 	for i, s := range psws {
 		err := CheckPassword(s, hashes[i])
-		if err != nil {
-			t.Fatal(err.Error())
-		}
+		assert.Nil(t, err)
 	}
 
 	err := CheckPassword(psws[0]+"1", hashes[0])
-	if err == nil {
-		t.Fatal("Passwords must not match")
-	}
-
+	assert.NotNil(t, err)
 }
