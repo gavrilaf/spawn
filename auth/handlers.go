@@ -9,6 +9,7 @@ import (
 	"github.com/satori/go.uuid"
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
+	"encoding/hex"
 	"fmt"
 	"time"
 )
@@ -22,12 +23,11 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	}
 
 	// Check signature
-	//if !p.CheckSignature(client.Secret) {
-	//	return nil, cerr.InvalidSignature
-	//}
+	if err = p.CheckSignature(client.Secret()); err != nil {
+		return nil, cerr.InvalidSignature
+	}
 
 	// Check user
-
 	user, err := mw.Storage.FindUserByUsername(p.Username)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	sessionId := mw.GenerateSessionID()
 	refreshToken := mw.GenerateRefreshToken(sessionId)
 
-	session := storage.Session{ID: sessionId, RefreshToken: refreshToken, ClientID: client.ID, ClientSecret: client.Secret, UserID: user.ID}
+	session := storage.Session{ID: sessionId, RefreshToken: refreshToken, ClientID: client.ID(), ClientSecret: client.Secret(), UserID: user.ID}
 
 	err = mw.Storage.StoreSession(session)
 	if err != nil {
@@ -71,6 +71,7 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 
 	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
+		fmt.Printf("eeeeee %v\n", err)
 		return nil, err
 	}
 
@@ -125,7 +126,7 @@ func (mw *Middleware) HandleRegister(p *RegisterParcel) error {
 	}
 
 	// Check signature
-	if p.CheckSignature(client.Secret) != nil {
+	if p.CheckSignature(client.Secret()) != nil {
 		return cerr.InvalidSignature
 	}
 
@@ -144,5 +145,5 @@ func (mw *Middleware) GenerateSessionID() string {
 
 func (mw *Middleware) GenerateRefreshToken(sessionId string) string {
 	k, _ := cryptx.GenerateSaltedKey(sessionId)
-	return k
+	return hex.EncodeToString(k)
 }

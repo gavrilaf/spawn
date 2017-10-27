@@ -1,23 +1,19 @@
 package storage
 
 import (
-	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestStorageWithMock(t *testing.T) {
-	storage := StorageFacade{Clients: ClientsStorageMock{}, Users: UsersStorageMock{}, Sessions: NewMemorySessionsStorage()}
+	storage := StorageFacade{Clients: NewClientsStorageMock(), Users: NewUsersStorageMock(), Sessions: NewMemorySessionsStorage()}
 
 	client, err := storage.FindClientByID("client_test")
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	fmt.Printf("Client %v\n", client)
+	assert.Nil(t, err)
+	assert.NotNil(t, client)
 
 	user, err := storage.FindUserByUsername("id1@i.com")
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	fmt.Printf("User %v\n", user)
+	assert.Nil(t, err)
+	assert.NotNil(t, user)
 
 }

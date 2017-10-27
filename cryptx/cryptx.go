@@ -21,54 +21,43 @@ var (
 )
 
 /*
- * Generate key based on the seed and random salt. Return salted key in hex coding
+ * Generate key based on the seed and random salt.
  */
-func GenerateSaltedKey(seed string) (string, error) {
+func GenerateSaltedKey(seed string) ([]byte, error) {
 	salt := make([]byte, 16)
 	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	key := pbkdf2.Key([]byte(seed), salt, 4096, 32, sha1.New)
-	return hex.EncodeToString(key), nil
+	return pbkdf2.Key([]byte(seed), salt, 4096, 32, sha1.New), nil
 }
 
 /*
  * Generate signature for the message
  *  - message
- *  - key (string in hex coding)
+ *  - key
  * Return signature in hex coding
  */
-func GenerateSignature(message string, key string) (string, error) {
-	key2, err := hex.DecodeString(key)
-	if err != nil {
-		return "", nil
-	}
-
-	mac := hmac.New(sha256.New, key2)
+func GenerateSignature(message string, key []byte) string {
+	mac := hmac.New(sha256.New, key)
 	mac.Write([]byte(message))
-	return hex.EncodeToString(mac.Sum(nil)), nil
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 /*
  * Check message signature
  *  - message
  *  - signature (string in hex coding)
- *  - key (hex)
+ *  - key
  * Return true is signature == HMAC(message, key)
  */
-func CheckSignature(message string, sign string, key string) error {
-	sign2, err := hex.DecodeString(sign)
+func CheckSignature(message string, signature string, key []byte) error {
+	sign2, err := hex.DecodeString(signature)
 	if err != nil {
 		return err
 	}
 
-	key2, err := hex.DecodeString(key)
-	if err != nil {
-		return err
-	}
-
-	mac := hmac.New(sha256.New, key2)
+	mac := hmac.New(sha256.New, key)
 	mac.Write([]byte(message))
 	expectedSign := mac.Sum(nil)
 

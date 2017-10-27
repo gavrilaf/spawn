@@ -25,11 +25,7 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	clientsStorage := storage.ClientsStorageMock{}
-	usersStorage := storage.UsersStorageMock{}
-	sessionsStorage := storage.NewMemorySessionsStorage()
-
-	storage := storage.StorageFacade{Clients: clientsStorage, Users: usersStorage, Sessions: sessionsStorage}
+	storage := storage.StorageFacade{Clients: storage.NewClientsStorageMock(), Users: storage.NewUsersStorageMock(), Sessions: storage.NewMemorySessionsStorage()}
 	authMiddleware := &auth.Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
 
 	auth := router.Group("/auth")

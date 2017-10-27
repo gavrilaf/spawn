@@ -22,13 +22,12 @@ func TestSaltedKey(t *testing.T) {
 func TestSignatures(t *testing.T) {
 	msgs := []string{"12345", "This is a very long key", "", "client_test", "client_ios"}
 
-	key, _ := GenerateSaltedKey("key-seed")
+	key, err := GenerateSaltedKey("key-seed")
+	require.Nil(t, err)
 
 	var signs []string
 	for _, s := range msgs {
-		sn, err := GenerateSignature(s, key)
-		require.Nil(t, err)
-
+		sn := GenerateSignature(s, key)
 		signs = append(signs, sn)
 	}
 	//fmt.Printf("Generated signatires: %v\n", signs)
@@ -38,7 +37,7 @@ func TestSignatures(t *testing.T) {
 		assert.Nil(t, err)
 	}
 
-	err := CheckSignature(msgs[0]+"1", signs[0], key)
+	err = CheckSignature(msgs[0]+"1", signs[0], key)
 	assert.NotNil(t, err)
 }
 

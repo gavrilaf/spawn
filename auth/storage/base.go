@@ -1,9 +1,27 @@
 package storage
 
+import "encoding/hex"
+
 type Client struct {
-	ID     string
-	Secret string
+	id          string
+	secret      string
+	secretCache []byte
 }
+
+func (c *Client) ID() string {
+	return c.id
+}
+
+func (c *Client) Secret() []byte {
+	if c.secretCache != nil {
+		return c.secretCache
+	}
+
+	c.secretCache, _ = hex.DecodeString(c.secret)
+	return c.secretCache
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
 
 type User struct {
 	ID           string
@@ -16,7 +34,7 @@ type Session struct {
 	ID           string
 	RefreshToken string
 	ClientID     string
-	ClientSecret string
+	ClientSecret []byte
 	UserID       string
 }
 

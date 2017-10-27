@@ -5,20 +5,20 @@ import (
 )
 
 type MemorySessionStorage struct {
-	Sessions map[string]Session
+	sessions map[string]Session
 }
 
-func NewMemorySessionsStorage() MemorySessionStorage {
-	return MemorySessionStorage{Sessions: make(map[string]Session)}
+func NewMemorySessionsStorage() *MemorySessionStorage {
+	return &MemorySessionStorage{sessions: make(map[string]Session)}
 }
 
-func (p MemorySessionStorage) StoreSession(session Session) error {
-	p.Sessions[session.ID] = session
+func (p *MemorySessionStorage) StoreSession(session Session) error {
+	p.sessions[session.ID] = session
 	return nil
 }
 
-func (p MemorySessionStorage) FindSessionByID(id string) (*Session, error) {
-	session, ok := p.Sessions[id]
+func (p *MemorySessionStorage) FindSessionByID(id string) (*Session, error) {
+	session, ok := p.sessions[id]
 	if !ok {
 		return nil, cerr.SessionNotFound
 	}
