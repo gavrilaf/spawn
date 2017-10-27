@@ -40,14 +40,15 @@ func GetRegistrationParcel(t *testing.T) *RegisterParcel {
 	return &RegisterParcel{ClientID: client.ID(), DeviceID: tDeviveID, Username: tUsername, Password: tPsw, Signature: sign}
 }
 
-func GetLoginParcel(t *testing.T) *LoginParcel {
+func GetLoginParcel(t *testing.T, username string) *LoginParcel {
+	if username == "" {
+		username = tUsername
+	}
+
 	client := GetClient(t)
-	sign := cryptx.GenerateSignature(client.ID()+tDeviveID+tUsername, client.Secret())
+	sign := cryptx.GenerateSignature(client.ID()+tDeviveID+username, client.Secret())
 
-	hashedPsw, err := cryptx.GenerateHashedPassword(tPsw)
-	require.Nil(t, err)
-
-	return &LoginParcel{ClientID: client.ID(), DeviceID: tDeviveID, Username: tUsername, SignedPassword: hashedPsw, Signature: sign}
+	return &LoginParcel{ClientID: client.ID(), DeviceID: tDeviveID, AuthType: AuthTypeSimple, Username: username, Password: tPsw, Signature: sign}
 }
 
 ////////////////////////////////////////////////////////////////
@@ -77,13 +78,13 @@ func TestLogin(t *testing.T) {
 	err := middleware.HandleRegister(reg)
 	require.Nil(t, err)
 
-	login := GetLoginParcel(t)
+	login := GetLoginParcel(t, "")
 
 	token, err := middleware.HandleLogin(login)
 	require.Nil(t, err)
 	require.NotNil(t, token)
 
-	login.Username = login.Username + "12"
+	login = GetLoginParcel(t, tUsername+"12")
 	_, err = middleware.HandleLogin(login)
 	require.Equal(t, cerr.UserUnknown, err)
 }

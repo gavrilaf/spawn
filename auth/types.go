@@ -16,14 +16,18 @@ const (
 	SessionIDName = "session_id"
 	ClientIDName  = "client_id"
 	UserIDName    = "user_id"
+
+	AuthTypeSimple       = "Simple"
+	AuthTypePasswordHash = "PasswordHash"
 )
 
 type LoginParcel struct {
-	ClientID       string `json:"client_id" binding:"required"`
-	DeviceID       string `json:"device_id" binding:"required"`
-	Username       string `json:"username" binding:"required"`
-	SignedPassword string `json:"signed_password" binding:"required"`
-	Signature      string `json:"signature" binding:"required"`
+	ClientID  string `json:"client_id" binding:"required"`
+	DeviceID  string `json:"device_id" binding:"required"`
+	AuthType  string `json:"auth_type" binding:"required"`
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	Signature string `json:"signature" binding:"required"`
 }
 
 type RegisterParcel struct {
@@ -48,7 +52,8 @@ type TokenParcel struct {
 ////////////////////////////////////////////////////////////////////////
 
 func (p *LoginParcel) CheckSignature(key []byte) error {
-	return nil
+	msg := p.ClientID + p.DeviceID + p.Username
+	return cryptx.CheckSignature(msg, p.Signature, key)
 }
 
 func (p *LoginParcel) CheckPassword(password string) bool {
