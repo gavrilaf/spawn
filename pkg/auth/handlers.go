@@ -1,9 +1,7 @@
 package auth
 
 import (
-	"github.com/gavrilaf/go-auth/auth/cerr"
-	"github.com/gavrilaf/go-auth/auth/storage"
-	"github.com/gavrilaf/go-auth/cryptx"
+	"github.com/gavrilaf/go-auth/pkg/cryptx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
@@ -24,7 +22,7 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 
 	// Check signature
 	if err = p.CheckSignature(client.Secret()); err != nil {
-		return nil, cerr.InvalidSignature
+		return nil, errInvalidSignature
 	}
 
 	// Check user
@@ -35,14 +33,14 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 
 	if !p.CheckPassword(user.PasswordHash) {
 		fmt.Printf("Incorrect password for user %v\n", p.Username)
-		return nil, cerr.UserUnknown
+		return nil, errUserUnknown
 	}
 
 	// Check device
 	if !p.CheckDevice(user.Devices) {
 		// TODO: Send email about new device
 		fmt.Printf("Unknown device %v\n", p.DeviceID)
-		return nil, cerr.DeviceUnknown
+		return nil, errDeviceUnknown
 	}
 
 	// Generate token
@@ -50,7 +48,7 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	sessionId := mw.GenerateSessionID()
 	refreshToken := mw.GenerateRefreshToken(sessionId)
 
-	session := storage.Session{ID: sessionId, RefreshToken: refreshToken, ClientID: client.ID(), ClientSecret: client.Secret(), UserID: user.ID}
+	session := Session{ID: sessionId, RefreshToken: refreshToken, ClientID: client.ID(), ClientSecret: client.Secret(), UserID: user.ID}
 
 	err = mw.Storage.StoreSession(session)
 	if err != nil {
@@ -86,7 +84,7 @@ func (mw *Middleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) {
 	origIat := int64(claims["orig_iat"].(float64))
 
 	if origIat < time.Now().Add(-mw.MaxRefresh).Unix() {
-		return nil, cerr.TokenExpired
+		return nil, errTokenExpired
 	}
 
 	session, err := mw.Storage.FindSessionByID(sessionId)
@@ -95,7 +93,7 @@ func (mw *Middleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) {
 	}
 
 	if p.RefreshToken != session.RefreshToken {
-		return nil, cerr.TokenInvalid
+		return nil, errTokenInvalid
 	}
 
 	// Create the token
@@ -127,7 +125,7 @@ func (mw *Middleware) HandleRegister(p *RegisterParcel) error {
 
 	// Check signature
 	if p.CheckSignature(client.Secret()) != nil {
-		return cerr.InvalidSignature
+		return errInvalidSignature
 	}
 
 	return mw.Storage.AddUser(p.ClientID, p.DeviceID, p.Username, p.Username)

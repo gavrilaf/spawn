@@ -3,8 +3,7 @@ package main
 import (
 	//"net/http"
 	//"os"
-	"github.com/gavrilaf/go-auth/auth"
-	"github.com/gavrilaf/go-auth/auth/storage"
+	"github.com/gavrilaf/go-auth/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"time"
 )
@@ -25,7 +24,7 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	storage := storage.StorageFacade{Clients: storage.NewClientsStorageMock(), Users: storage.NewUsersStorageMock(), Sessions: storage.NewMemorySessionsStorage()}
+	storage := auth.StorageFacade{Clients: auth.NewClientsStorageMock(), Users: auth.NewUsersStorageMock(), Sessions: auth.NewMemorySessionsStorage()}
 	authMiddleware := &auth.Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
 
 	auth := router.Group("/auth")

@@ -1,4 +1,4 @@
-package storage
+package auth
 
 type StorageFacade struct {
 	Clients  ClientsStorage

@@ -2,9 +2,7 @@ package auth
 
 import (
 	//"fmt"
-	"github.com/gavrilaf/go-auth/auth/cerr"
-	"github.com/gavrilaf/go-auth/auth/storage"
-	"github.com/gavrilaf/go-auth/errx"
+	"github.com/gavrilaf/go-auth/pkg/errx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -20,7 +18,7 @@ type Middleware struct {
 	Timeout    time.Duration
 	MaxRefresh time.Duration
 
-	Storage storage.StorageFacade
+	Storage StorageFacade
 }
 
 // MiddlewareFunc makes AuthMiddleware implement the Middleware interface.
@@ -45,7 +43,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 		}
 
 		if !mw.CheckAccess(session.UserID, session.ClientID, c) {
-			mw.HandleError(c, http.StatusForbidden, cerr.AccessForbiden)
+			mw.HandleError(c, http.StatusForbidden, errAccessForbiden)
 			return
 		}
 
@@ -123,7 +121,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 
-	errJson := errx.Error2Json(err, cerr.Scope)
+	errJson := errx.Error2Json(err, errScope)
 
 	//fmt.Printf("Err: %v\n", errJson)
 	c.JSON(httpCode, gin.H{"error": errJson})
@@ -148,12 +146,12 @@ func (mw *Middleware) jwtFromHeader(c *gin.Context, key string) (string, error) 
 	authHeader := c.Request.Header.Get(key)
 
 	if authHeader == "" {
-		return "", cerr.InvalidRequest
+		return "", errInvalidRequest
 	}
 
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == TokenHeadName) {
-		return "", cerr.InvalidRequest
+		return "", errInvalidRequest
 	}
 
 	return parts[1], nil

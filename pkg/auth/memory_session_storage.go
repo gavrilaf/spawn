@@ -1,8 +1,4 @@
-package storage
-
-import (
-	"github.com/gavrilaf/go-auth/auth/cerr"
-)
+package auth
 
 type MemorySessionStorage struct {
 	sessions map[string]Session
@@ -20,7 +16,7 @@ func (p *MemorySessionStorage) StoreSession(session Session) error {
 func (p *MemorySessionStorage) FindSessionByID(id string) (*Session, error) {
 	session, ok := p.sessions[id]
 	if !ok {
-		return nil, cerr.SessionNotFound
+		return nil, errSessionNotFound
 	}
 	return &session, nil
 }

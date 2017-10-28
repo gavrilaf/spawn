@@ -8,9 +8,7 @@ import (
 	//"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gavrilaf/go-auth/auth/cerr"
-	"github.com/gavrilaf/go-auth/auth/storage"
-	"github.com/gavrilaf/go-auth/cryptx"
+	"github.com/gavrilaf/go-auth/pkg/cryptx"
 )
 
 const (
@@ -21,14 +19,14 @@ const (
 )
 
 func GetMiddleware() *Middleware {
-	storage := storage.StorageFacade{Clients: storage.NewClientsStorageMock(), Users: storage.NewUsersStorageMock(), Sessions: storage.NewMemorySessionsStorage()}
+	storage := StorageFacade{Clients: NewClientsStorageMock(), Users: NewUsersStorageMock(), Sessions: NewMemorySessionsStorage()}
 	middleware := &Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
 
 	return middleware
 }
 
-func GetClient(t *testing.T) *storage.Client {
-	clients := storage.ClientsStorageMock{}
+func GetClient(t *testing.T) *Client {
+	clients := NewClientsStorageMock()
 	p, err := clients.FindClientByID(tClientID)
 	require.Nil(t, err)
 	return p
@@ -63,12 +61,12 @@ func TestRegistration(t *testing.T) {
 
 	// Already registered
 	err = middleware.HandleRegister(p)
-	require.Equal(t, cerr.UserAlreadyExist, err)
+	require.Equal(t, errUserAlreadyExist, err)
 
 	// Invalid signature
 	p.Signature += "111"
 	err = middleware.HandleRegister(p)
-	require.Equal(t, cerr.InvalidSignature, err)
+	require.Equal(t, errInvalidSignature, err)
 }
 
 func TestLogin(t *testing.T) {
@@ -86,5 +84,5 @@ func TestLogin(t *testing.T) {
 
 	login = GetLoginParcel(t, tUsername+"12")
 	_, err = middleware.HandleLogin(login)
-	require.Equal(t, cerr.UserUnknown, err)
+	require.Equal(t, errUserUnknown, err)
 }

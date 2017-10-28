@@ -1,9 +1,35 @@
-package storage
+package auth
 
 import (
 	"fmt"
-	"github.com/gavrilaf/go-auth/auth/cerr"
 )
+
+/*
+ * Clients storage
+ */
+
+var DefaultClients = map[string]string{
+	"client_test": "9adfb490d6b7ea759f56875c89b5db6e7850b1638e193694481294d01f098575",
+	"client_ios":  "d81d3e25c0f83c6ea0efcde45cad98b3501ec3f21ae01605499e95b77a4a3366",
+}
+
+type ClientsStorageMock struct{}
+
+func NewClientsStorageMock() *ClientsStorageMock {
+	return &ClientsStorageMock{}
+}
+
+func (c *ClientsStorageMock) FindClientByID(id string) (*Client, error) {
+	secret, ok := DefaultClients[id]
+	if !ok {
+		return nil, errClientUnknown
+	}
+	return &Client{id: id, secret: secret}, nil
+}
+
+/*
+ * Users storage
+ */
 
 var DefaultUsers = []User{
 	User{ID: "id1", Username: "id1@i.com", PasswordHash: "111111", Devices: []string{"d1", "d2"}},
@@ -26,7 +52,7 @@ func NewUsersStorageMock() *UsersStorageMock {
 
 func (p *UsersStorageMock) AddUser(clientId string, deviceId string, username string, password string) error {
 	if user, _ := p.FindUserByUsername(username); user != nil {
-		return cerr.UserAlreadyExist
+		return errUserAlreadyExist
 	}
 
 	id := fmt.Sprintf("id%d", p.counter)
@@ -45,5 +71,5 @@ func (p *UsersStorageMock) FindUserByUsername(username string) (*User, error) {
 		}
 	}
 
-	return nil, cerr.UserUnknown
+	return nil, errUserUnknown
 }

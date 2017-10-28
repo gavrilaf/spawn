@@ -6,10 +6,12 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/gavrilaf/go-auth/errx"
+	"io"
+
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/pbkdf2"
-	"io"
+
+	"github.com/gavrilaf/go-auth/pkg/errx"
 )
 
 const (
