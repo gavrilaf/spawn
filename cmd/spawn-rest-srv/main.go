@@ -3,7 +3,7 @@ package main
 import (
 	//"net/http"
 	//"os"
-	"github.com/gavrilaf/go-auth/pkg/auth"
+	"github.com/gavrilaf/spawn/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"time"
 )

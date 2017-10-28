@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gavrilaf/go-auth/pkg/cryptx"
+	"github.com/gavrilaf/spawn/pkg/cryptx"
 )
 
 const (

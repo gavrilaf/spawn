@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/pbkdf2"
 
-	"github.com/gavrilaf/go-auth/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
 const (

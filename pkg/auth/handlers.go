@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/gavrilaf/go-auth/pkg/cryptx"
+	"github.com/gavrilaf/spawn/pkg/cryptx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"

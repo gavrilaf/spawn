@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/gavrilaf/go-auth/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
 const (

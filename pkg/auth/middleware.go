@@ -2,7 +2,7 @@ package auth
 
 import (
 	//"fmt"
-	"github.com/gavrilaf/go-auth/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/errx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
