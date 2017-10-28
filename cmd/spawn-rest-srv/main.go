@@ -3,9 +3,13 @@ package main
 import (
 	//"net/http"
 	//"os"
-	"github.com/gavrilaf/spawn/pkg/auth"
-	"github.com/gin-gonic/gin"
 	"time"
+
+	"github.com/gavrilaf/spawn/pkg/auth"
+	"github.com/gavrilaf/spawn/pkg/ginlog"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func helloHandler(c *gin.Context) {
@@ -20,8 +24,13 @@ func helloHandler(c *gin.Context) {
 
 func main() {
 
+	log := logrus.New()
+
+	log.Info("Spawn rest server started")
+
 	router := gin.New()
-	router.Use(gin.Logger())
+
+	router.Use(ginlog.Logger(log))
 	router.Use(gin.Recovery())
 
 	storage := auth.StorageFacade{Clients: auth.NewClientsStorageMock(), Users: auth.NewUsersStorageMock(), Sessions: auth.NewMemorySessionsStorage()}
