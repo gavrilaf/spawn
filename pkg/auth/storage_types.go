@@ -1,11 +1,8 @@
 package auth
 
-import "encoding/hex"
-
 type Client struct {
-	id          string
-	secret      string
-	secretCache []byte
+	id     string
+	secret string
 }
 
 func (c *Client) ID() string {
@@ -13,12 +10,7 @@ func (c *Client) ID() string {
 }
 
 func (c *Client) Secret() []byte {
-	if c.secretCache != nil {
-		return c.secretCache
-	}
-
-	c.secretCache, _ = hex.DecodeString(c.secret)
-	return c.secretCache
+	return []byte(c.secret)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

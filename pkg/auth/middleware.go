@@ -113,7 +113,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"user_registered": true})
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

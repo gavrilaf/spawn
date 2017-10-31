@@ -74,6 +74,6 @@ func (p *LoginParcel) CheckDevice(devices []string) bool {
 func (p *RegisterParcel) CheckSignature(key []byte) error {
 	msg := p.ClientID + p.DeviceID + p.Username
 
-	fmt.Printf("Signature for %v is %v\n", msg, cryptx.GenerateSignature(msg, key)) // Just for debug
+	fmt.Printf("Signature for %v with key %v is %v\n", msg, string(key), cryptx.GenerateSignature(msg, key)) // Just for debug
 	return cryptx.CheckSignature(msg, p.Signature, key)
 }

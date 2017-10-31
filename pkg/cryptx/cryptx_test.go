@@ -1,7 +1,7 @@
 package cryptx
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -20,24 +20,23 @@ func TestSaltedKey(t *testing.T) {
 }
 
 func TestSignatures(t *testing.T) {
-	msgs := []string{"12345", "This is a very long key", "", "client_test", "client_ios"}
+	msgs := []string{"12345", "This is a very long key", "", "client_test", "client_ios", "client_testd1test-user"}
 
-	key, err := GenerateSaltedKey("key-seed")
-	require.Nil(t, err)
+	key := []byte("client_test_key")
 
 	var signs []string
 	for _, s := range msgs {
 		sn := GenerateSignature(s, key)
 		signs = append(signs, sn)
+		fmt.Printf("Signatire for %v is %v\n", s, sn)
 	}
-	//fmt.Printf("Generated signatires: %v\n", signs)
 
 	for i, s := range msgs {
 		err := CheckSignature(s, signs[i], key)
 		assert.Nil(t, err)
 	}
 
-	err = CheckSignature(msgs[0]+"1", signs[0], key)
+	err := CheckSignature(msgs[0]+"1", signs[0], key)
 	assert.NotNil(t, err)
 }
 

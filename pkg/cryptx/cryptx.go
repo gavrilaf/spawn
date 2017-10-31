@@ -4,7 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha1"
-	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
 	"io"
 
@@ -41,7 +41,7 @@ func GenerateSaltedKey(seed string) ([]byte, error) {
  * Return signature in hex coding
  */
 func GenerateSignature(message string, key []byte) string {
-	mac := hmac.New(sha256.New, key)
+	mac := hmac.New(sha512.New, key)
 	mac.Write([]byte(message))
 	return hex.EncodeToString(mac.Sum(nil))
 }
@@ -59,7 +59,7 @@ func CheckSignature(message string, signature string, key []byte) error {
 		return err
 	}
 
-	mac := hmac.New(sha256.New, key)
+	mac := hmac.New(sha512.New, key)
 	mac.Write([]byte(message))
 	expectedSign := mac.Sum(nil)
 
