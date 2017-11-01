@@ -117,18 +117,31 @@ func (mw *Middleware) HandleRefresh(p *RefreshParcel) (*TokenParcel, error) {
 }
 
 func (mw *Middleware) HandleRegister(p *RegisterParcel) error {
+	mw.Log.Infof("auth.HandleRegister, %v", p)
+
 	// Check client
 	client, err := mw.Storage.FindClientByID(p.ClientID)
 	if err != nil {
+		mw.Log.Errorf("auth.HandleRegister, can't find client with ID = ", p.ClientID)
 		return err
 	}
 
 	// Check signature
 	if p.CheckSignature(client.Secret()) != nil {
+		mw.Log.Errorf("auth.HandleRegister, invalid signature for %v", p)
 		return errInvalidSignature
 	}
 
-	return mw.Storage.AddUser(p.ClientID, p.DeviceID, p.Username, p.Username)
+	// Validate password
+
+	pswHash, err := cryptx.GenerateHashedPassword(p.Password)
+	if err != nil {
+		mw.Log.Errorf("auth.HandleRegister, password generate error for %v", p)
+	}
+
+	p.Password = pswHash
+
+	return mw.Storage.AddUser(p.ClientID, p.DeviceID, p.Username, p.Password)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@ import (
 	"github.com/gavrilaf/spawn/pkg/errx"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
 	"net/http"
@@ -19,6 +19,8 @@ type Middleware struct {
 	MaxRefresh time.Duration
 
 	Storage StorageFacade
+
+	Log *logrus.Logger
 }
 
 // MiddlewareFunc makes AuthMiddleware implement the Middleware interface.
@@ -58,7 +60,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 func (mw *Middleware) LoginHandler(c *gin.Context) {
 	var loginVals LoginParcel
 
-	err := c.ShouldBindWith(&loginVals, binding.JSON)
+	err := c.Bind(&loginVals)
 	if err != nil {
 		mw.HandleError(c, http.StatusBadRequest, err)
 		return
@@ -81,7 +83,7 @@ func (mw *Middleware) LoginHandler(c *gin.Context) {
 func (mw *Middleware) RefreshHandler(c *gin.Context) {
 	var refreshVals RefreshParcel
 
-	err := c.ShouldBindWith(&refreshVals, binding.JSON)
+	err := c.Bind(&refreshVals)
 	if err != nil {
 		mw.HandleError(c, http.StatusUnauthorized, err)
 		return
@@ -102,7 +104,7 @@ func (mw *Middleware) RefreshHandler(c *gin.Context) {
 func (mw *Middleware) RegisterHandler(c *gin.Context) {
 	var registerVals RegisterParcel
 
-	err := c.ShouldBindWith(&registerVals, binding.JSON)
+	err := c.Bind(&registerVals)
 	if err != nil {
 		mw.HandleError(c, http.StatusBadRequest, err)
 		return
@@ -113,6 +115,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 		return
 	}
 
+	mw.Log.Infof("User %v registered", registerVals.Username)
 	c.JSON(http.StatusOK, gin.H{"user_registered": true})
 }
 
@@ -121,9 +124,10 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 
+	mw.Log.Errorf("auth.HandleError, code=%d, err=%v", httpCode, err)
+
 	errJson := errx.Error2Json(err, errScope)
 
-	//fmt.Printf("Err: %v\n", errJson)
 	c.JSON(httpCode, gin.H{"error": errJson})
 	c.Abort()
 }
