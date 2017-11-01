@@ -18,8 +18,7 @@ const (
 	ClientIDName  = "client_id"
 	UserIDName    = "user_id"
 
-	AuthTypeSimple       = "Simple"
-	AuthTypePasswordHash = "PasswordHash"
+	AuthTypeSimple = "simple"
 )
 
 type LoginParcel struct {
@@ -57,8 +56,8 @@ func (p *LoginParcel) CheckSignature(key []byte) error {
 	return cryptx.CheckSignature(msg, p.Signature, key)
 }
 
-func (p *LoginParcel) CheckPassword(password string) bool {
-	return true
+func (p *LoginParcel) CheckPassword(pswHash string) bool {
+	return cryptx.CheckPassword(p.Password, pswHash) == nil
 }
 
 func (p *LoginParcel) CheckDevice(devices []string) bool {
@@ -68,6 +67,10 @@ func (p *LoginParcel) CheckDevice(devices []string) bool {
 		}
 	}
 	return false
+}
+
+func (p *LoginParcel) String() string {
+	return fmt.Sprintf("LoginParcel(%v, %v, %v, %v, %v)", p.ClientID, p.DeviceID, p.AuthType, p.Username, p.Signature)
 }
 
 ////////////////////////////////////////////////////////////////////////

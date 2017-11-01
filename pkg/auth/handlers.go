@@ -8,11 +8,11 @@ import (
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
 	"encoding/hex"
-	"fmt"
 	"time"
 )
 
 func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
+	mw.Log.Infof("auth.HandleLogin, %v", p)
 
 	// Check client
 	client, err := mw.Storage.FindClientByID(p.ClientID)
@@ -32,14 +32,14 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 	}
 
 	if !p.CheckPassword(user.PasswordHash) {
-		fmt.Printf("Incorrect password for user %v\n", p.Username)
+		mw.Log.Errorf("Invalid password for %v", p.Username)
 		return nil, errUserUnknown
 	}
 
 	// Check device
 	if !p.CheckDevice(user.Devices) {
 		// TODO: Send email about new device
-		fmt.Printf("Unknown device %v\n", p.DeviceID)
+		mw.Log.Errorf("Unknown device for %v", p.Username)
 		return nil, errDeviceUnknown
 	}
 
@@ -69,7 +69,6 @@ func (mw *Middleware) HandleLogin(p *LoginParcel) (*TokenParcel, error) {
 
 	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
-		fmt.Printf("eeeeee %v\n", err)
 		return nil, err
 	}
 
@@ -139,9 +138,7 @@ func (mw *Middleware) HandleRegister(p *RegisterParcel) error {
 		mw.Log.Errorf("auth.HandleRegister, password generate error for %v", p)
 	}
 
-	p.Password = pswHash
-
-	return mw.Storage.AddUser(p.ClientID, p.DeviceID, p.Username, p.Password)
+	return mw.Storage.AddUser(p.ClientID, p.DeviceID, p.Username, pswHash)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
