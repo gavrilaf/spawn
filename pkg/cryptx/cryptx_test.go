@@ -41,16 +41,16 @@ func TestSignatures(t *testing.T) {
 }
 
 func TestPasswords(t *testing.T) {
-	psws := []string{"111111", "This is a very long password", "test", ""}
+	psws := []string{"111111", "This is a very long password", "test", "", "id1-password", "id2-password"}
 
 	var hashes []string
 	for _, s := range psws {
 		hash, err := GenerateHashedPassword(s)
 		require.Nil(t, err)
+		fmt.Printf("Pasword hash for %v is %v\n", s, hash)
 
 		hashes = append(hashes, hash)
 	}
-	//fmt.Printf("Hashed passwords: %v\n", hashes)
 
 	for i, s := range psws {
 		err := CheckPassword(s, hashes[i])

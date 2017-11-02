@@ -1,11 +1,11 @@
 package auth
 
 import (
-	//"fmt"
 	"testing"
 	"time"
 
 	//"github.com/stretchr/testify/assert"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
 	"github.com/gavrilaf/spawn/pkg/cryptx"
@@ -19,8 +19,9 @@ const (
 )
 
 func GetMiddleware() *Middleware {
+	log := logrus.New()
 	storage := StorageFacade{Clients: NewClientsStorageMock(), Users: NewUsersStorageMock(), Sessions: NewMemorySessionsStorage()}
-	middleware := &Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage}
+	middleware := &Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage, Log: log}
 
 	return middleware
 }

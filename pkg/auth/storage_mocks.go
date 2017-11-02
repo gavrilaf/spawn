@@ -32,8 +32,15 @@ func (c *ClientsStorageMock) FindClientByID(id string) (*Client, error) {
  */
 
 var DefaultUsers = []User{
-	User{ID: "id1", Username: "id1@i.com", PasswordHash: "111111", Devices: []string{"d1", "d2"}},
-	User{ID: "id2", Username: "id2@i.com", PasswordHash: "111111", Devices: []string{"d3", "d4"}},
+	User{ID: "id1",
+		Username:     "id1@i.com",
+		PasswordHash: "24326124313024636d636548593741794976623167777154732f502f754c4c466a4c755543784a6b696f386f6b4c344a42686a514b76494943654653",
+		Devices:      []string{"d1", "d2"}},
+
+	User{ID: "id2",
+		Username:     "id2@i.com",
+		PasswordHash: "243261243130247a6b4576684654664b4c4a5945486871766e6b51472e354771335676664a492f6a5232304c73465774354c553939314b3944766b6d",
+		Devices:      []string{"d3", "d4"}},
 }
 
 type UsersStorageMock struct {
