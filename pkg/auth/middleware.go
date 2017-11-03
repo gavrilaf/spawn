@@ -58,7 +58,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 
 // LoginHandler can be used by clients to get a jwt token.
 func (mw *Middleware) LoginHandler(c *gin.Context) {
-	var loginVals LoginParcel
+	var loginVals LoginDTO
 
 	err := c.Bind(&loginVals)
 	if err != nil {
@@ -72,16 +72,12 @@ func (mw *Middleware) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"auth_token":    token.AuthToken,
-		"refresh_token": token.RefreshToken,
-		"expire":        token.Expire.Format(time.RFC3339),
-	})
+	c.JSON(http.StatusOK, token.ToJson())
 }
 
 // RefreshHandler can be used to refresh a token. The token still needs to be valid on refresh.
 func (mw *Middleware) RefreshHandler(c *gin.Context) {
-	var refreshVals RefreshParcel
+	var refreshVals RefreshDTO
 
 	err := c.Bind(&refreshVals)
 	if err != nil {
@@ -95,14 +91,11 @@ func (mw *Middleware) RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"auth_token": token.AuthToken,
-		"expire":     token.Expire.Format(time.RFC3339),
-	})
+	c.JSON(http.StatusOK, token.ToJson())
 }
 
 func (mw *Middleware) RegisterHandler(c *gin.Context) {
-	var registerVals RegisterParcel
+	var registerVals RegisterDTO
 
 	err := c.Bind(&registerVals)
 	if err != nil {
@@ -110,13 +103,14 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	if err = mw.HandleRegister(&registerVals); err != nil {
+	registered, err := mw.HandleRegister(&registerVals)
+	if err != nil {
 		mw.HandleError(c, http.StatusInternalServerError, err)
 		return
 	}
 
 	mw.Log.Infof("User %v registered", registerVals.Username)
-	c.JSON(http.StatusOK, gin.H{"user_registered": true})
+	c.JSON(http.StatusOK, registered.ToJson())
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +119,6 @@ func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 
 	mw.Log.Errorf("auth.HandleError, code=%d, err=%v", httpCode, err)
-
 	errJson := errx.Error2Json(err, errScope)
 
 	c.JSON(httpCode, gin.H{"error": errJson})

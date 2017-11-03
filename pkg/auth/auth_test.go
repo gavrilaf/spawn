@@ -33,13 +33,13 @@ func GetClient(t *testing.T) *Client {
 	return p
 }
 
-func GetRegistrationParcel(t *testing.T) *RegisterParcel {
+func GetRegistrationDTO(t *testing.T) *RegisterDTO {
 	client := GetClient(t)
 	sign := cryptx.GenerateSignature(client.ID()+tDeviveID+tUsername, client.Secret())
-	return &RegisterParcel{ClientID: client.ID(), DeviceID: tDeviveID, Username: tUsername, Password: tPsw, Signature: sign}
+	return &RegisterDTO{ClientID: client.ID(), DeviceID: tDeviveID, Username: tUsername, Password: tPsw, Signature: sign}
 }
 
-func GetLoginParcel(t *testing.T, username string) *LoginParcel {
+func GetLoginDTO(t *testing.T, username string) *LoginDTO {
 	if username == "" {
 		username = tUsername
 	}
@@ -47,7 +47,7 @@ func GetLoginParcel(t *testing.T, username string) *LoginParcel {
 	client := GetClient(t)
 	sign := cryptx.GenerateSignature(client.ID()+tDeviveID+username, client.Secret())
 
-	return &LoginParcel{ClientID: client.ID(), DeviceID: tDeviveID, AuthType: AuthTypeSimple, Username: username, Password: tPsw, Signature: sign}
+	return &LoginDTO{ClientID: client.ID(), DeviceID: tDeviveID, AuthType: AuthTypeSimple, Username: username, Password: tPsw, Signature: sign}
 }
 
 ////////////////////////////////////////////////////////////////
@@ -55,35 +55,35 @@ func GetLoginParcel(t *testing.T, username string) *LoginParcel {
 func TestRegistration(t *testing.T) {
 	middleware := GetMiddleware()
 
-	p := GetRegistrationParcel(t)
+	p := GetRegistrationDTO(t)
 
-	err := middleware.HandleRegister(p)
+	_, err := middleware.HandleRegister(p)
 	require.Nil(t, err)
 
 	// Already registered
-	err = middleware.HandleRegister(p)
+	_, err = middleware.HandleRegister(p)
 	require.Equal(t, errUserAlreadyExist, err)
 
 	// Invalid signature
 	p.Signature += "111"
-	err = middleware.HandleRegister(p)
+	_, err = middleware.HandleRegister(p)
 	require.Equal(t, errInvalidSignature, err)
 }
 
 func TestLogin(t *testing.T) {
 	middleware := GetMiddleware()
 
-	reg := GetRegistrationParcel(t)
-	err := middleware.HandleRegister(reg)
+	reg := GetRegistrationDTO(t)
+	_, err := middleware.HandleRegister(reg)
 	require.Nil(t, err)
 
-	login := GetLoginParcel(t, "")
+	login := GetLoginDTO(t, "")
 
 	token, err := middleware.HandleLogin(login)
 	require.Nil(t, err)
 	require.NotNil(t, token)
 
-	login = GetLoginParcel(t, tUsername+"12")
+	login = GetLoginDTO(t, tUsername+"12")
 	_, err = middleware.HandleLogin(login)
 	require.Equal(t, errUserUnknown, err)
 }
