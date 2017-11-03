@@ -1,7 +1,7 @@
 package auth
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/gavrilaf/spawn/pkg/errx"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +33,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 
 		token, err := mw.parseToken(tokenStr)
 		if err != nil {
+			fmt.Printf("1 %v\n", err)
 			mw.HandleError(c, http.StatusUnauthorized, err)
 			return
 		}
@@ -40,6 +41,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 		claims := ClaimsFromToken(token)
 		session, err := mw.Storage.FindSessionByID(claims.SessionID())
 		if err != nil {
+			fmt.Printf("2 %v\n", err)
 			mw.HandleError(c, http.StatusUnauthorized, err)
 			return
 		}
@@ -135,7 +137,7 @@ func (mw *Middleware) parseToken(token string) (*jwt.Token, error) {
 			return nil, err
 		}
 
-		return client.Secret, nil
+		return client.Secret(), nil
 	})
 }
 
