@@ -17,6 +17,7 @@ const (
 	SessionIDName = "session_id"
 	ClientIDName  = "client_id"
 	UserIDName    = "user_id"
+	DeviceIDName  = "device_id"
 
 	AuthTypeSimple = "simple"
 )

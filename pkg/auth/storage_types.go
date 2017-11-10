@@ -28,4 +28,5 @@ type Session struct {
 	ClientID     string
 	ClientSecret []byte
 	UserID       string
+	DeviceID     string
 }

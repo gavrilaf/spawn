@@ -44,7 +44,7 @@ func TestUserSession(t *testing.T) {
 
 	defer cache.Close()
 
-	session := Session{"ses-1", "refresh-token", "client-id", []byte("secret"), "user-id"}
+	session := Session{"ses-1", "refresh-token", "client-id", []byte("secret"), "user-id", "device-id"}
 
 	err = cache.AddSession(session)
 	require.Nil(t, err)
@@ -58,6 +58,7 @@ func TestUserSession(t *testing.T) {
 	assert.Equal(t, session.RefreshToken, p.RefreshToken)
 	assert.Equal(t, session.ClientSecret, p.ClientSecret)
 	assert.Equal(t, session.UserID, p.UserID)
+	assert.Equal(t, session.DeviceID, p.DeviceID)
 
 	err = cache.DeleteSession(session.ID)
 	assert.Nil(t, err)
