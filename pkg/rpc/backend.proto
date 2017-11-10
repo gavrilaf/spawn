@@ -1,0 +1,18 @@
+syntax = "proto3";
+package backend;
+
+
+service Spawn {   
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+}
+
+message RegisterUserRequest {
+  string username = 1;
+  string passwordHash = 2;
+  string deviceId = 3;
+}
+
+message RegisterUserResponse {
+  string id = 1;
+  bool success = 2;
+}

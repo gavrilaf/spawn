@@ -7,6 +7,7 @@ import (
 
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/auth"
+	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/ginlog"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,14 @@ func main() {
 	router.Use(ginlog.Logger(log))
 	router.Use(gin.Recovery())
 
-	storage := auth.StorageFacade{Clients: auth.NewClientsStorageMock(), Users: auth.NewUsersStorageMock(), Sessions: auth.NewMemorySessionsStorage()}
+	environment := env.GetEnvironment("Test")
+
+	sessionsStorage := auth.NewCacheSessionsStorage(environment)
+
+	//usersStorage := auth.NewUsersStorageMock()
+	usersStorage := auth.CreateUsersBridge(environment)
+
+	storage := auth.StorageFacade{Clients: auth.NewClientsStorageMock(), Users: usersStorage, Sessions: sessionsStorage}
 	authMiddleware := &auth.Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage, Log: log}
 
 	api := &api.SpawnApi{Log: log}

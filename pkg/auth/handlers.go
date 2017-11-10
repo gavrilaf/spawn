@@ -51,7 +51,13 @@ func (mw *Middleware) HandleLogin(p *LoginDTO) (*AuthTokenDTO, error) {
 	sessionId := mw.GenerateSessionID()
 	refreshToken := mw.GenerateRefreshToken(sessionId)
 
-	session := Session{ID: sessionId, RefreshToken: refreshToken, ClientID: client.ID(), ClientSecret: client.Secret(), UserID: user.ID}
+	session := Session{
+		ID:           sessionId,
+		RefreshToken: refreshToken,
+		ClientID:     client.ID(),
+		ClientSecret: client.Secret(),
+		UserID:       user.ID,
+		DeviceID:     p.DeviceID}
 
 	err = mw.Storage.StoreSession(session)
 	if err != nil {

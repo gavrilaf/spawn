@@ -1,20 +1,29 @@
 package main
 
 import (
+	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"net"
 )
+
+func newServer() *BackendServer {
+	s := new(BackendServer)
+	return s
+}
 
 func main() {
 
 	log.Info("Spawn backend started")
 
-	log.Info("Preparing cache")
-	cache, err := BuildCache()
+	lis, err := net.Listen("tcp", "localhost:7887")
 	if err != nil {
-		log.Errorf("Build cache error: %v", err)
+		log.Fatalf("failed to listen: %v", err)
 	}
-	log.Info("Cache is ready")
+	var opts []grpc.ServerOption
 
-	cache.PrintState()
+	grpcServer := grpc.NewServer(opts...)
+	pb.RegisterSpawnServer(grpcServer, newServer())
+	grpcServer.Serve(lis)
 
 }
