@@ -28,9 +28,15 @@ func main() {
 	environment := env.GetEnvironment("Test")
 
 	sessionsStorage := auth.NewCacheSessionsStorage(environment)
+	if sessionsStorage == nil {
+		panic("Can not create sessions cache")
+	}
 
 	//usersStorage := auth.NewUsersStorageMock()
 	usersStorage := auth.CreateUsersBridge(environment)
+	if usersStorage == nil {
+		panic("Can not connect to backend")
+	}
 
 	storage := auth.StorageFacade{Clients: auth.NewClientsStorageMock(), Users: usersStorage, Sessions: sessionsStorage}
 	authMiddleware := &auth.Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage, Log: log}

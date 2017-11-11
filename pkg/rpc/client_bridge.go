@@ -2,8 +2,8 @@ package backend
 
 import (
 	"github.com/gavrilaf/spawn/pkg/env"
-	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"time"
 )
 
 type BackendBridge struct {
@@ -16,15 +16,17 @@ func (b *BackendBridge) Close() {
 }
 
 func CreateClient(en *env.Environment) (*BackendBridge, error) {
-	log.Info("1")
-	conn, err := grpc.Dial("localhost:7887", grpc.WithInsecure())
+	opts := []grpc.DialOption{
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithTimeout(time.Duration(3) * time.Second),
+	}
+
+	conn, err := grpc.Dial("localhost:7887", opts...)
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
 		return nil, err
 	}
-	log.Info("2")
 
 	client := NewSpawnClient(conn)
-	log.Info("3")
 	return &BackendBridge{client, conn}, nil
 }

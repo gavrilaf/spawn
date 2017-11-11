@@ -14,7 +14,7 @@ func NewCacheSessionsStorage(e *env.Environment) *CacheSessionStorage {
 	p, err := cache.Connect(e)
 	if err != nil {
 		log.Errorf("Can not connect to cache: %v", err)
-		panic(err)
+		return nil
 	}
 	log.Infof("Sessions Redis storage connected")
 

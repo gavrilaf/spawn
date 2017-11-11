@@ -16,7 +16,7 @@ func CreateUsersBridge(en *env.Environment) *UsersBridge {
 	rpc, err := pb.CreateClient(en)
 	if err != nil {
 		log.Errorf("Can not connect to backend: %v", err)
-		panic(err)
+		return nil
 	}
 	log.Infof("Connected to the backend")
 
