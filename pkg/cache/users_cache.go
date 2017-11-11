@@ -3,6 +3,7 @@ package cache
 import (
 	//"fmt"
 	"github.com/garyburd/redigo/redis"
+	mdl "github.com/gavrilaf/spawn/pkg/model"
 )
 
 // Client
@@ -11,17 +12,17 @@ func clientRedisId(id string) string {
 	return "client:" + id
 }
 
-func (cache *RedisCache) AddClient(client Client) error {
+func (cache *RedisCache) AddClient(client mdl.Client) error {
 	_, err := cache.conn.Do("SET", clientRedisId(client.ID), client.Secret)
 	return err
 }
 
-func (cache *RedisCache) FindClient(id string) (*Client, error) {
+func (cache *RedisCache) FindClient(id string) (*mdl.Client, error) {
 	secret, err := redis.Bytes(cache.conn.Do("GET", clientRedisId(id)))
 	if err != nil {
 		return nil, err
 	}
-	return &Client{id, secret}, nil
+	return &mdl.Client{id, secret}, nil
 }
 
 // Session
@@ -30,12 +31,12 @@ func sessionRedisId(id string) string {
 	return "session:" + id
 }
 
-func (cache *RedisCache) AddSession(session Session) error {
+func (cache *RedisCache) AddSession(session mdl.Session) error {
 	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(sessionRedisId(session.ID)).AddFlat(&session)...)
 	return err
 }
 
-func (cache *RedisCache) FindSession(id string) (*Session, error) {
+func (cache *RedisCache) FindSession(id string) (*mdl.Session, error) {
 	v, err := redis.Values(cache.conn.Do("HGETALL", sessionRedisId(id)))
 
 	if err != nil {
@@ -45,7 +46,7 @@ func (cache *RedisCache) FindSession(id string) (*Session, error) {
 		return nil, errNotFound(sessionRedisId(id))
 	}
 
-	var session Session
+	var session mdl.Session
 	if err := redis.ScanStruct(v, &session); err != nil {
 		return nil, err
 	}
@@ -67,7 +68,7 @@ func devicesRedisId(id string) string {
 	return "devices:" + id
 }
 
-func (cache *RedisCache) AddUser(profile UserProfile, devices []string) error {
+func (cache *RedisCache) AddUser(profile mdl.UserProfile, devices []string) error {
 	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(profileRedisId(profile.ID)).AddFlat(&profile)...)
 	if err != nil {
 		return err
@@ -78,7 +79,7 @@ func (cache *RedisCache) AddUser(profile UserProfile, devices []string) error {
 
 }
 
-func (cache *RedisCache) FindProfile(id string) (*UserProfile, error) {
+func (cache *RedisCache) FindProfile(id string) (*mdl.UserProfile, error) {
 	v, err := redis.Values(cache.conn.Do("HGETALL", profileRedisId(id)))
 
 	if err != nil {
@@ -88,7 +89,7 @@ func (cache *RedisCache) FindProfile(id string) (*UserProfile, error) {
 		return nil, errNotFound(profileRedisId(id))
 	}
 
-	var profile UserProfile
+	var profile mdl.UserProfile
 	if err := redis.ScanStruct(v, &profile); err != nil {
 		return nil, err
 	}

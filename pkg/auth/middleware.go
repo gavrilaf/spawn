@@ -18,8 +18,7 @@ type Middleware struct {
 	Timeout    time.Duration
 	MaxRefresh time.Duration
 
-	Storage StorageFacade
-
+	Stg Storage
 	Log *logrus.Logger
 }
 
@@ -38,7 +37,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 		}
 
 		claims := ClaimsFromToken(token)
-		session, err := mw.Storage.FindSessionByID(claims.SessionID())
+		session, err := mw.Stg.FindSession(claims.SessionID())
 		if err != nil {
 			mw.HandleError(c, http.StatusUnauthorized, err)
 			return
@@ -131,12 +130,12 @@ func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
 func (mw *Middleware) parseToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		claims := ClaimsFromToken(token)
-		client, err := mw.Storage.FindClientByID(claims.ClientID())
+		client, err := mw.Stg.FindClient(claims.ClientID())
 		if err != nil {
 			return nil, err
 		}
 
-		return client.Secret(), nil
+		return client.Secret, nil
 	})
 }
 

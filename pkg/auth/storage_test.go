@@ -1,19 +1,19 @@
 package auth
 
 import (
+	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestStorageWithMock(t *testing.T) {
-	storage := StorageFacade{Clients: NewClientsStorageMock(), Users: NewUsersStorageMock(), Sessions: NewMemorySessionsStorage()}
+func TestStorageMock(t *testing.T) {
+	storage := NewStorageMock(env.GetEnvironment("Test"))
 
-	client, err := storage.FindClientByID("client_test")
+	client, err := storage.FindClient("client_test")
 	assert.Nil(t, err)
 	assert.NotNil(t, client)
 
-	user, err := storage.FindUserByUsername("id1@i.com")
+	user, err := storage.FindUser("id1@spawn.com")
 	assert.Nil(t, err)
 	assert.NotNil(t, user)
-
 }

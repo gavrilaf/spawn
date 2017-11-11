@@ -74,7 +74,7 @@ func (p *LoginDTO) CheckDevice(devices []string) bool {
 }
 
 func (p *LoginDTO) String() string {
-	return fmt.Sprintf("LoginParcel(%v, %v, %v, %v, %v)", p.ClientID, p.DeviceID, p.AuthType, p.Username, p.Signature)
+	return fmt.Sprintf("LoginDTO(%v, %v, %v, %v, %v)", p.ClientID, p.DeviceID, p.AuthType, p.Username, p.Signature)
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ func (p *RegisterDTO) CheckSignature(key []byte) error {
 }
 
 func (p *RegisterDTO) String() string {
-	return fmt.Sprintf("RegisterParcel(%v, %v, %v, %v)", p.ClientID, p.DeviceID, p.Username, p.Signature)
+	return fmt.Sprintf("RegisterDTO(%v, %v, %v, %v)", p.ClientID, p.DeviceID, p.Username, p.Signature)
 }
 
 ////////////////////////////////////////////////////////////////////////

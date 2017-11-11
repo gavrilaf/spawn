@@ -5,49 +5,53 @@ import (
 	"time"
 
 	//"github.com/stretchr/testify/assert"
+	"github.com/gavrilaf/spawn/pkg/cryptx"
+	"github.com/gavrilaf/spawn/pkg/env"
+	mdl "github.com/gavrilaf/spawn/pkg/model"
+	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
-
-	"github.com/gavrilaf/spawn/pkg/cryptx"
 )
 
 const (
 	tClientID = "client_test"
 	tDeviveID = "device1"
-	tUsername = "user1"
 	tPsw      = "password"
 )
 
+var storageMock = NewStorageMock(env.GetEnvironment("Test"))
+
 func GetMiddleware() *Middleware {
 	log := logrus.New()
-	storage := StorageFacade{Clients: NewClientsStorageMock(), Users: NewUsersStorageMock(), Sessions: NewMemorySessionsStorage()}
-	middleware := &Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Storage: storage, Log: log}
+
+	middleware := &Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Stg: storageMock, Log: log}
 
 	return middleware
 }
 
-func GetClient(t *testing.T) *Client {
-	clients := NewClientsStorageMock()
-	p, err := clients.FindClientByID(tClientID)
+func GetClient(t *testing.T) *mdl.Client {
+	p, err := storageMock.FindClient(tClientID)
 	require.Nil(t, err)
 	return p
 }
 
 func GetRegistrationDTO(t *testing.T) *RegisterDTO {
 	client := GetClient(t)
-	sign := cryptx.GenerateSignature(client.ID()+tDeviveID+tUsername, client.Secret())
-	return &RegisterDTO{ClientID: client.ID(), DeviceID: tDeviveID, Username: tUsername, Password: tPsw, Signature: sign}
+	username := uuid.NewV4().String()
+	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
+	return &RegisterDTO{ClientID: client.ID, DeviceID: tDeviveID, Username: username, Password: tPsw, Signature: sign}
 }
 
-func GetLoginDTO(t *testing.T, username string) *LoginDTO {
-	if username == "" {
-		username = tUsername
-	}
-
+func GetLoginDTO(t *testing.T, reg *RegisterDTO) *LoginDTO {
 	client := GetClient(t)
-	sign := cryptx.GenerateSignature(client.ID()+tDeviveID+username, client.Secret())
+	sign := cryptx.GenerateSignature(client.ID+reg.DeviceID+reg.Username, client.Secret)
 
-	return &LoginDTO{ClientID: client.ID(), DeviceID: tDeviveID, AuthType: AuthTypeSimple, Username: username, Password: tPsw, Signature: sign}
+	return &LoginDTO{ClientID: client.ID,
+		DeviceID:  reg.DeviceID,
+		AuthType:  AuthTypeSimple,
+		Username:  reg.Username,
+		Password:  reg.Password,
+		Signature: sign}
 }
 
 ////////////////////////////////////////////////////////////////
@@ -77,13 +81,14 @@ func TestLogin(t *testing.T) {
 	_, err := middleware.HandleRegister(reg)
 	require.Nil(t, err)
 
-	login := GetLoginDTO(t, "")
+	login := GetLoginDTO(t, reg)
 
 	token, err := middleware.HandleLogin(login)
 	require.Nil(t, err)
 	require.NotNil(t, token)
 
-	login = GetLoginDTO(t, tUsername+"12")
+	reg.Username += "111"
+	login = GetLoginDTO(t, reg)
 	_, err = middleware.HandleLogin(login)
 	require.Equal(t, errUserUnknown, err)
 }

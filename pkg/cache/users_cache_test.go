@@ -7,6 +7,7 @@ import (
 
 	"fmt"
 	"github.com/gavrilaf/spawn/pkg/env"
+	mdl "github.com/gavrilaf/spawn/pkg/model"
 )
 
 func GetEnv() *env.Environment {
@@ -20,7 +21,7 @@ func TestClientCache(t *testing.T) {
 
 	defer cache.Close()
 
-	cl := Client{"cl-1", []byte("secret")}
+	cl := mdl.Client{"cl-1", []byte("secret")}
 
 	err = cache.AddClient(cl)
 	require.Nil(t, err)
@@ -44,7 +45,13 @@ func TestUserSession(t *testing.T) {
 
 	defer cache.Close()
 
-	session := Session{"ses-1", "refresh-token", "client-id", []byte("secret"), "user-id", "device-id"}
+	session := mdl.Session{
+		ID:           "ses-1",
+		RefreshToken: "refresh-token",
+		ClientID:     "client-id",
+		ClientSecret: []byte("secret"),
+		UserID:       "user-id",
+		DeviceID:     "device-id"}
 
 	err = cache.AddSession(session)
 	require.Nil(t, err)
@@ -76,7 +83,18 @@ func TestUserProfile(t *testing.T) {
 
 	defer cache.Close()
 
-	profile := UserProfile{"user-1", AuthInfo{"testuser@test.com", "password", false}, PersonalInfo{"FirstName", "LastName"}}
+	profile := mdl.UserProfile{
+		ID: "user-1",
+		AuthInfo: mdl.AuthInfo{
+			Username:         "testuser@test.com",
+			PasswordHash:     "password",
+			IsLocked:         false,
+			IsEmailConfirmed: false,
+			Is2FARequired:    false},
+		PersonalInfo: mdl.PersonalInfo{
+			FirstName: "FirstName",
+			LastName:  "LastName"}}
+
 	devices := []string{"device-1", "device-2"}
 
 	err = cache.AddUser(profile, devices)
@@ -99,7 +117,18 @@ func TestUserDevices(t *testing.T) {
 
 	defer cache.Close()
 
-	profile := UserProfile{"user-2", AuthInfo{"testuser@test.com", "password", false}, PersonalInfo{"FirstName", "LastName"}}
+	profile := mdl.UserProfile{
+		ID: "user-1",
+		AuthInfo: mdl.AuthInfo{
+			Username:         "testuser@test.com",
+			PasswordHash:     "password",
+			IsLocked:         false,
+			IsEmailConfirmed: false,
+			Is2FARequired:    false},
+		PersonalInfo: mdl.PersonalInfo{
+			FirstName: "FirstName",
+			LastName:  "LastName"}}
+
 	devices := []string{"d1", "d2"}
 
 	err = cache.AddUser(profile, devices)
