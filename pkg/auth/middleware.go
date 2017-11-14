@@ -48,9 +48,9 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 			return
 		}
 
-		c.Set(ClientIDName, session.ClientID)
-		c.Set(UserIDName, session.UserID)
-		c.Set(DeviceIDName, session.DeviceID)
+		c.Set("client_id", session.ClientID)
+		c.Set("user_id", session.UserID)
+		c.Set("device_id", session.DeviceID)
 
 		c.Next()
 	}
@@ -66,13 +66,13 @@ func (mw *Middleware) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := mw.HandleLogin(&loginVals)
+	token, err := mw.HandleLogin(loginVals)
 	if err != nil {
 		mw.HandleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, token.ToJson())
+	c.JSON(http.StatusOK, token.ToMap())
 }
 
 // RefreshHandler can be used to refresh a token. The token still needs to be valid on refresh.
@@ -85,13 +85,13 @@ func (mw *Middleware) RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := mw.HandleRefresh(&refreshVals)
+	token, err := mw.HandleRefresh(refreshVals)
 	if err != nil {
 		mw.HandleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, token.ToJson())
+	c.JSON(http.StatusOK, token.ToMap())
 }
 
 func (mw *Middleware) RegisterHandler(c *gin.Context) {
@@ -103,14 +103,14 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	registered, err := mw.HandleRegister(&registerVals)
+	token, err := mw.HandleRegister(registerVals)
 	if err != nil {
 		mw.HandleError(c, http.StatusInternalServerError, err)
 		return
 	}
 
 	mw.Log.Infof("User %v registered", registerVals.Username)
-	c.JSON(http.StatusOK, registered.ToJson())
+	c.JSON(http.StatusOK, token.ToMap())
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

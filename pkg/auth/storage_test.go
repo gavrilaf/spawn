@@ -9,11 +9,12 @@ import (
 func TestStorageMock(t *testing.T) {
 	storage := NewStorageMock(env.GetEnvironment("Test"))
 
-	client, err := storage.FindClient("client_test")
+	_, err := storage.FindClient("client_test")
 	assert.Nil(t, err)
-	assert.NotNil(t, client)
 
-	user, err := storage.FindUser("id1@spawn.com")
+	_, err = storage.FindUser("id1@spawn.com")
 	assert.Nil(t, err)
-	assert.NotNil(t, user)
+
+	_, err = storage.FindUser("id2@spawn.com")
+	assert.Nil(t, err)
 }

@@ -29,24 +29,24 @@ func GetMiddleware() *Middleware {
 	return middleware
 }
 
-func GetClient(t *testing.T) *mdl.Client {
+func GetClient(t *testing.T) mdl.Client {
 	p, err := storageMock.FindClient(tClientID)
 	require.Nil(t, err)
 	return p
 }
 
-func GetRegistrationDTO(t *testing.T) *RegisterDTO {
+func GetRegistrationDTO(t *testing.T) RegisterDTO {
 	client := GetClient(t)
 	username := uuid.NewV4().String()
 	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
-	return &RegisterDTO{ClientID: client.ID, DeviceID: tDeviveID, Username: username, Password: tPsw, Signature: sign}
+	return RegisterDTO{ClientID: client.ID, DeviceID: tDeviveID, Username: username, Password: tPsw, Signature: sign}
 }
 
-func GetLoginDTO(t *testing.T, reg *RegisterDTO) *LoginDTO {
+func GetLoginDTO(t *testing.T, reg RegisterDTO) LoginDTO {
 	client := GetClient(t)
 	sign := cryptx.GenerateSignature(client.ID+reg.DeviceID+reg.Username, client.Secret)
 
-	return &LoginDTO{ClientID: client.ID,
+	return LoginDTO{ClientID: client.ID,
 		DeviceID:  reg.DeviceID,
 		AuthType:  AuthTypeSimple,
 		Username:  reg.Username,

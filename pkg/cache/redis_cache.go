@@ -28,14 +28,14 @@ type UserCache interface {
 	AddClient(client mdl.Client) error
 	FindClient(id string) (*mdl.Client, error)
 
-	AddSession(session mdl.Session) error
-	FindSession(id string) (*mdl.Session, error)
+	AddSession(session Session) error
+	FindSession(id string) (*Session, error)
 	DeleteSession(id string) error
 
-	AddUser(profile mdl.UserProfile, devices []string) error
-	FindProfile(id string) (*mdl.UserProfile, error)
+	AddUserAuthInfo(profile mdl.UserProfile, devices []mdl.DeviceInfo) error
+	FindUserAuthInfo(id string) (*AuthUser, error)
 
-	AddDevice(userId string, deviceId string) error
+	AddDevice(userID string, device mdl.DeviceInfo) error
 	DeleteDevice(userId string, deviceId string) error
-	IsDeviceExists(userId string, deviceId string) (bool, error)
+	FindDevice(userId string, deviceId string) (*AuthDevice, error)
 }

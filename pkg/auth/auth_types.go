@@ -2,9 +2,10 @@ package auth
 
 import (
 	"fmt"
-	"time"
-
+	"github.com/fatih/structs"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
+	mdl "github.com/gavrilaf/spawn/pkg/model"
+	"time"
 )
 
 const (
@@ -14,29 +15,30 @@ const (
 	SigningAlgorithm = "HS256"
 	TokenLookup      = "Authorization"
 
-	SessionIDName = "session_id"
-	ClientIDName  = "client_id"
-	UserIDName    = "user_id"
-	DeviceIDName  = "device_id"
-
 	AuthTypeSimple = "simple"
 )
 
 type LoginDTO struct {
-	ClientID  string `json:"client_id" form:"client_id" binding:"required"`
-	DeviceID  string `json:"device_id" form:"device_id" binding:"required"`
-	AuthType  string `json:"auth_type" form:"auth_type" binding:"required"`
-	Username  string `json:"username" form:"username" binding:"required"`
-	Password  string `json:"password" form:"password" binding:"required"`
-	Signature string `json:"signature" form:"signature" binding:"required"`
+	ClientID   string `json:"client_id" form:"client_id" binding:"required"`
+	DeviceID   string `json:"device_id" form:"device_id" binding:"required"`
+	DeviceName string `json:"device_name" form:"device_name" binding:"required"`
+	AuthType   string `json:"auth_type" form:"auth_type" binding:"required"`
+	Username   string `json:"username" form:"username" binding:"required"`
+	Password   string `json:"password" form:"password" binding:"required"`
+	Locale     string `json:"locale" form:"locale" binding:"required"`
+	Lang       string `json:"lang" form:"lang" binding:"required"`
+	Signature  string `json:"signature" form:"signature" binding:"required"`
 }
 
 type RegisterDTO struct {
-	ClientID  string `json:"client_id" form:"client_id" binding:"required"`
-	DeviceID  string `json:"device_id" form:"device_id" binding:"required"`
-	Username  string `json:"username" form:"username" binding:"required"`
-	Password  string `json:"password" form:"password" binding:"required,ascii,min=8"`
-	Signature string `json:"signature" form:"signature" binding:"required"`
+	ClientID   string `json:"client_id" form:"client_id" binding:"required"`
+	DeviceID   string `json:"device_id" form:"device_id" binding:"required"`
+	DeviceName string `json:"device_name" form:"device_name" binding:"required"`
+	Username   string `json:"username" form:"username" binding:"required"`
+	Password   string `json:"password" form:"password" binding:"required,ascii,min=8"`
+	Locale     string `json:"locale" form:"locale" binding:"required"`
+	Lang       string `json:"lang" form:"lang" binding:"required"`
+	Signature  string `json:"signature" form:"signature" binding:"required"`
 }
 
 type RefreshDTO struct {
@@ -44,13 +46,19 @@ type RefreshDTO struct {
 	RefreshToken string `json:"refresh_token" form:"refresh_token" binding:"required"`
 }
 
-type AuthTokenDTO struct {
-	AuthToken    string
-	RefreshToken string
-	Expire       time.Time
+type PermissionsDTO struct {
+	IsDeviceConfirmed bool  `structs:"is_device_confirmed"`
+	IsEmailConfirmed  bool  `structs:"is_email_confirmed"`
+	Is2FARequired     bool  `structs:"is_2fa_reqired"`
+	IsLocked          bool  `structs:"is_locked"`
+	Scopes            int64 `structs:"scopes"`
 }
 
-type UserRegisteredDTO struct {
+type AuthTokenDTO struct {
+	AuthToken    string         `structs:"auth_token"`
+	RefreshToken string         `structs:"refresh_token"`
+	Expire       time.Time      `structs:"expire"`
+	Permissions  PermissionsDTO `structs:"permissions"`
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -77,6 +85,16 @@ func (p *LoginDTO) String() string {
 	return fmt.Sprintf("LoginDTO(%v, %v, %v, %v, %v)", p.ClientID, p.DeviceID, p.AuthType, p.Username, p.Signature)
 }
 
+func (p *LoginDTO) CreateDevice() mdl.DeviceInfo {
+	return mdl.DeviceInfo{
+		ID:        p.DeviceID,
+		Name:      p.DeviceName,
+		LoginTime: time.Now(),
+		Locale:    p.Locale,
+		Lang:      p.Lang,
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 
 func (p *RegisterDTO) CheckSignature(key []byte) error {
@@ -88,18 +106,18 @@ func (p *RegisterDTO) String() string {
 	return fmt.Sprintf("RegisterDTO(%v, %v, %v, %v)", p.ClientID, p.DeviceID, p.Username, p.Signature)
 }
 
-////////////////////////////////////////////////////////////////////////
-
-func (p *AuthTokenDTO) ToJson() map[string]interface{} {
-	return map[string]interface{}{
-		"auth_token":    p.AuthToken,
-		"refresh_token": p.RefreshToken,
-		"expire":        p.Expire.Format(time.RFC3339),
+func (p *RegisterDTO) CreateDevice() mdl.DeviceInfo {
+	return mdl.DeviceInfo{
+		ID:        p.DeviceID,
+		Name:      p.DeviceName,
+		LoginTime: time.Now(),
+		Locale:    p.Locale,
+		Lang:      p.Lang,
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-func (p *UserRegisteredDTO) ToJson() map[string]interface{} {
-	return map[string]interface{}{"user_registered": true}
+func (p *AuthTokenDTO) ToMap() map[string]interface{} {
+	return structs.Map(*p)
 }

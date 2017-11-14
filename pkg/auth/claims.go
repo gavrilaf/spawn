@@ -13,7 +13,7 @@ func ClaimsFromToken(token *jwt.Token) Claims {
 }
 
 func (c Claims) SessionID() string {
-	return c.claims[SessionIDName].(string)
+	return c.claims["session_id"].(string)
 }
 
 func (c Claims) ClientID() string {
