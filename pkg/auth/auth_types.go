@@ -25,8 +25,8 @@ type LoginDTO struct {
 	AuthType   string `json:"auth_type" form:"auth_type" binding:"required"`
 	Username   string `json:"username" form:"username" binding:"required"`
 	Password   string `json:"password" form:"password" binding:"required"`
-	Locale     string `json:"locale" form:"locale" binding:"required"`
-	Lang       string `json:"lang" form:"lang" binding:"required"`
+	Locale     string `json:"locale" form:"locale"`
+	Lang       string `json:"lang" form:"lang"`
 	Signature  string `json:"signature" form:"signature" binding:"required"`
 }
 
@@ -36,8 +36,8 @@ type RegisterDTO struct {
 	DeviceName string `json:"device_name" form:"device_name" binding:"required"`
 	Username   string `json:"username" form:"username" binding:"required"`
 	Password   string `json:"password" form:"password" binding:"required,ascii,min=8"`
-	Locale     string `json:"locale" form:"locale" binding:"required"`
-	Lang       string `json:"lang" form:"lang" binding:"required"`
+	Locale     string `json:"locale" form:"locale"`
+	Lang       string `json:"lang" form:"lang"`
 	Signature  string `json:"signature" form:"signature" binding:"required"`
 }
 
@@ -62,6 +62,21 @@ type AuthTokenDTO struct {
 }
 
 ////////////////////////////////////////////////////////////////////////
+
+func (p *LoginDTO) FixLocale() {
+	if len(p.Locale) == 0 {
+		p.Locale = "en"
+	}
+
+	if len(p.Lang) == 0 {
+		p.Lang = "en"
+	}
+}
+
+func (p *LoginDTO) GetSignature(key []byte) string {
+	msg := p.ClientID + p.DeviceID + p.Username
+	return cryptx.GenerateSignature(msg, key)
+}
 
 func (p *LoginDTO) CheckSignature(key []byte) error {
 	msg := p.ClientID + p.DeviceID + p.Username
@@ -97,6 +112,21 @@ func (p *LoginDTO) CreateDevice() mdl.DeviceInfo {
 
 ////////////////////////////////////////////////////////////////////////
 
+func (p *RegisterDTO) FixLocale() {
+	if len(p.Locale) == 0 {
+		p.Locale = "en"
+	}
+
+	if len(p.Lang) == 0 {
+		p.Lang = "en"
+	}
+}
+
+func (p *RegisterDTO) GetSignature(key []byte) string {
+	msg := p.ClientID + p.DeviceID + p.Username
+	return cryptx.GenerateSignature(msg, key)
+}
+
 func (p *RegisterDTO) CheckSignature(key []byte) error {
 	msg := p.ClientID + p.DeviceID + p.Username
 	return cryptx.CheckSignature(msg, p.Signature, key)
@@ -119,5 +149,7 @@ func (p *RegisterDTO) CreateDevice() mdl.DeviceInfo {
 ////////////////////////////////////////////////////////////////////////
 
 func (p *AuthTokenDTO) ToMap() map[string]interface{} {
-	return structs.Map(*p)
+	pm := structs.Map(*p)
+	pm["expire"] = p.Expire.Format(time.RFC3339) // Fixed time format
+	return pm
 }

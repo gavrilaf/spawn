@@ -1,4 +1,4 @@
-package db
+package dbx
 
 import (
 	//"fmt"
@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-func GetBridge(t *testing.T) *DBBridge {
-	db, _ := NewDBBridge(env.GetEnvironment("Test"))
+func GetBridge(t *testing.T) *Bridge {
+	db, _ := Connect(env.GetEnvironment("Test"))
 	require.NotNil(t, db)
 	require.NotNil(t, db.Db)
 

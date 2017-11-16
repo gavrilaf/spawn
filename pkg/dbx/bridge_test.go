@@ -1,4 +1,4 @@
-package db
+package dbx
 
 import (
 	"github.com/gavrilaf/spawn/pkg/env"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestCreateBridge(t *testing.T) {
-	db, err := NewDBBridge(env.GetEnvironment("Test"))
+	db, err := Connect(env.GetEnvironment("Test"))
 
 	require.Nil(t, err)
 	require.NotNil(t, db)

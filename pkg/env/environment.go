@@ -11,3 +11,7 @@ func GetEnvironment(path string) *Environment {
 func (e *Environment) Cache() *CacheOptions {
 	return nil
 }
+
+func (e *Environment) GetName() string {
+	return "Test"
+}

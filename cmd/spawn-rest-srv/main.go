@@ -27,7 +27,8 @@ func main() {
 
 	environment := env.GetEnvironment("Test")
 
-	storage := auth.NewStorageMock(environment)
+	//storage := auth.NewStorageMock(environment)
+	storage := auth.NewBridgeStorage(environment)
 	if storage == nil {
 		panic("Can not create storage")
 	}

@@ -16,6 +16,8 @@ import (
 func (mw *Middleware) HandleLogin(p LoginDTO) (AuthTokenDTO, error) {
 	mw.Log.Infof("auth.HandleLogin, %v", p)
 
+	p.FixLocale()
+
 	// Check client
 	client, err := mw.Stg.FindClient(p.ClientID)
 	if err != nil {
@@ -25,7 +27,7 @@ func (mw *Middleware) HandleLogin(p LoginDTO) (AuthTokenDTO, error) {
 
 	// Check signature
 	if err = p.CheckSignature(client.Secret); err != nil {
-		mw.Log.Errorf("auth.HandleLogin, invalid signature for %v", p)
+		mw.Log.Errorf("auth.HandleLogin, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
 		return AuthTokenDTO{}, errInvalidSignature
 	}
 
@@ -64,6 +66,8 @@ func (mw *Middleware) HandleLogin(p LoginDTO) (AuthTokenDTO, error) {
 			mw.Log.Errorf("auth.HandleLogin, add device: (%v, %v), (%v)", user.ID, p.DeviceID, err)
 			return AuthTokenDTO{}, err
 		}
+	} else {
+		// Update device locale if needed
 	}
 
 	return mw.makeLogin(client, *user, *device)
@@ -71,6 +75,8 @@ func (mw *Middleware) HandleLogin(p LoginDTO) (AuthTokenDTO, error) {
 
 func (mw *Middleware) HandleRegister(p RegisterDTO) (AuthTokenDTO, error) {
 	mw.Log.Infof("auth.HandleRegister, %v", p)
+
+	p.FixLocale()
 
 	// Check client
 	client, err := mw.Stg.FindClient(p.ClientID)
@@ -81,8 +87,15 @@ func (mw *Middleware) HandleRegister(p RegisterDTO) (AuthTokenDTO, error) {
 
 	// Check signature
 	if p.CheckSignature(client.Secret) != nil {
-		mw.Log.Errorf("auth.HandleRegister, invalid signature for %v", p)
+		mw.Log.Errorf("auth.HandleRegister, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
 		return AuthTokenDTO{}, errInvalidSignature
+	}
+
+	// Check user already registered
+	alredyExist, _ := mw.Stg.FindUser(p.Username)
+	if alredyExist != nil {
+		mw.Log.Errorf("auth.HandleRegister, user %v already exists", p.Username)
+		return AuthTokenDTO{}, errUserAlreadyExist
 	}
 
 	// Create password hash

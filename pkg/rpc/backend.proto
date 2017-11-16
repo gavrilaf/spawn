@@ -1,18 +1,44 @@
 syntax = "proto3";
 package backend;
+import "google/protobuf/timestamp.proto";
 
 
 service Spawn {   
-  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+  	rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+	rpc AddDevice(AddDeviceRequest) returns(Empty) {}
+	rpc RegisterLogin(LoginRequest) returns(Empty) {}
 }
 
-message RegisterUserRequest {
+message Empty {}
+
+message Device {
+  string id = 1;
+  string name = 2;
+  string locale = 3;
+  string lang = 4;
+}
+
+message CreateUserRequest {
   string username = 1;
   string passwordHash = 2;
-  string deviceId = 3;
+  Device device = 3;
 }
 
-message RegisterUserResponse {
-  string id = 1;
-  bool success = 2;
+message CreateUserResponse {
+  string userId = 1;
+ }
+
+message AddDeviceRequest {
+	string userId = 1;
+	Device device = 2;
 }
+
+message LoginRequest {
+	string userId = 1;
+	Device device = 2;
+	google.protobuf.Timestamp loginTime = 3;
+	string loginIP = 4;
+	string loginRegion = 5;
+}
+
+

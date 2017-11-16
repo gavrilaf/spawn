@@ -1,4 +1,4 @@
-package db
+package dbx
 
 import (
 	//"database/sql"
@@ -24,7 +24,7 @@ const (
 		WHERE device_id = $1 AND user_id = $2`
 )
 
-func (db *DBBridge) RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error) {
+func (db *Bridge) RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error) {
 
 	// generate id
 	userId := uuid.NewV4().String()
@@ -51,15 +51,15 @@ func (db *DBBridge) RegisterUser(username string, password string, device mdl.De
 	return db.GetUserProfile(userId)
 }
 
-func (db *DBBridge) UpdatePermissions(id string, permissons *mdl.Permissions) error {
+func (db *Bridge) UpdatePermissions(id string, permissons *mdl.Permissions) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (db *DBBridge) UpdatePersonalInfo(id string, info *mdl.PersonalInfo) error {
+func (db *Bridge) UpdatePersonalInfo(id string, info *mdl.PersonalInfo) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (db *DBBridge) GetUserProfile(id string) (*mdl.UserProfile, error) {
+func (db *Bridge) GetUserProfile(id string) (*mdl.UserProfile, error) {
 	var profile mdl.UserProfile
 	if err := db.Db.Get(&profile, `select * from public."Users" where id = $1`, id); err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (db *DBBridge) GetUserProfile(id string) (*mdl.UserProfile, error) {
 	return &profile, nil
 }
 
-func (db *DBBridge) FindUserProfile(username string) (*mdl.UserProfile, error) {
+func (db *Bridge) FindUserProfile(username string) (*mdl.UserProfile, error) {
 	var profile mdl.UserProfile
 	if err := db.Db.Get(&profile, `select * from public."Users" where username = $1`, username); err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (db *DBBridge) FindUserProfile(username string) (*mdl.UserProfile, error) {
 	return &profile, nil
 }
 
-func (db *DBBridge) AddDevice(userId string, device mdl.DeviceInfo) error {
+func (db *Bridge) AddDevice(userId string, device mdl.DeviceInfo) error {
 	_, err := db.Db.Exec(addDeviceQuery,
 		device.ID,
 		userId,
@@ -93,17 +93,17 @@ func (db *DBBridge) AddDevice(userId string, device mdl.DeviceInfo) error {
 	return err
 }
 
-func (db *DBBridge) ConfirmDevice(userId string, deviceId string) error {
+func (db *Bridge) ConfirmDevice(userId string, deviceId string) error {
 	_, err := db.Db.Exec(confirmDeviceQuery, deviceId, userId)
 	return err
 }
 
-func (db *DBBridge) RemoveDevice(userId string, deviceId string) error {
+func (db *Bridge) RemoveDevice(userId string, deviceId string) error {
 	_, err := db.Db.Exec(deleteDeviceQuery, deviceId, userId)
 	return err
 }
 
-func (db *DBBridge) GetDevices(userId string) ([]mdl.DeviceInfo, error) {
+func (db *Bridge) GetDevices(userId string) ([]mdl.DeviceInfo, error) {
 	var devices []mdl.DeviceInfo
 
 	if err := db.Db.Select(&devices, `select * from public."Devices" where user_id = $1`, userId); err != nil {

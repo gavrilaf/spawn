@@ -58,10 +58,10 @@ func NewStorageMock(en *env.Environment) *StorageMock {
 
 	for _, v := range DefaultUsers {
 		users[v.Username] = v
+		devices[v.ID] = make(map[string]cache.AuthDevice)
 	}
 
 	for _, d := range DefaultDevices {
-		devices[d.UserID] = make(map[string]cache.AuthDevice)
 		devices[d.UserID][d.DeviceID] = d
 	}
 

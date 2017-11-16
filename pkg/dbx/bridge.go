@@ -1,4 +1,4 @@
-package db
+package dbx
 
 import (
 	"github.com/jmoiron/sqlx"
@@ -9,20 +9,20 @@ import (
 	mdl "github.com/gavrilaf/spawn/pkg/model"
 )
 
-type DBBridge struct {
+type Bridge struct {
 	Db *sqlx.DB
 }
 
-func NewDBBridge(en *env.Environment) (*DBBridge, error) {
+func Connect(en *env.Environment) (*Bridge, error) {
 	db, err := sqlx.Connect("postgres", "dbname=spawn host=localhost port=5432 user=postgres sslmode=disable")
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't connect to postgre database: %v", err)
 	}
 
-	return &DBBridge{db}, nil
+	return &Bridge{db}, nil
 }
 
-func (db *DBBridge) Close() {
+func (db *Bridge) Close() {
 	if db.Db == nil {
 		return
 	}
@@ -32,7 +32,7 @@ func (db *DBBridge) Close() {
 
 ///////////////////////////////////
 
-type DBStorage interface {
+type Database interface {
 	RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error)
 
 	UpdatePermissions(id string, permissons *mdl.Permissions) error

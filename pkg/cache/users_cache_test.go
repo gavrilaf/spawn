@@ -109,7 +109,7 @@ func TestAuthUser(t *testing.T) {
 	err = cache.AddUserAuthInfo(profile, devices)
 	require.Nil(t, err)
 
-	p1, err := cache.FindUserAuthInfo(profile.ID)
+	p1, err := cache.FindUserAuthInfo(profile.Username)
 	require.Nil(t, err)
 	require.NotNil(t, p1)
 
