@@ -1,16 +1,18 @@
 package main
 
 import (
+	"net"
+
+	"github.com/gavrilaf/spawn/pkg/backend"
 	"github.com/gavrilaf/spawn/pkg/env"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"net"
 )
 
-func newBackend() *BackendServer {
+func newBackend() *backend.Server {
 	en := env.GetEnvironment("Test")
-	srv := CreateBackendServer(en)
+	srv := backend.CreateServer(en)
 
 	if srv == nil {
 		panic("Can not create server")

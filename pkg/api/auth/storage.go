@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/cache"
 	mdl "github.com/gavrilaf/spawn/pkg/model"
 )
@@ -17,4 +18,8 @@ type Storage interface {
 
 	StoreSession(session cache.Session) error
 	FindSession(id string) (*cache.Session, error)
+}
+
+type StorageImpl struct {
+	*api.StorageBridge
 }

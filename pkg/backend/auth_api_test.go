@@ -1,10 +1,11 @@
-package main
+package backend
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gavrilaf/spawn/pkg/env"
-	"testing"
 	//mdl "github.com/gavrilaf/spawn/pkg/model"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -14,9 +15,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-func createBackend(t *testing.T) *BackendServer {
+func createBackend(t *testing.T) *Server {
 	en := env.GetEnvironment("Test")
-	srv := CreateBackendServer(en)
+	srv := CreateServer(en)
 	require.NotNil(t, srv)
 	return srv
 }

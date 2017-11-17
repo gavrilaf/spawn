@@ -32,10 +32,14 @@ type UserCache interface {
 	FindSession(id string) (*Session, error)
 	DeleteSession(id string) error
 
-	AddUserAuthInfo(profile mdl.UserProfile, devices []mdl.DeviceInfo) error
+	SetUserAuthInfo(profile mdl.UserProfile, devices []mdl.DeviceInfo) error
 	FindUserAuthInfo(username string) (*AuthUser, error)
 
-	AddDevice(userID string, device mdl.DeviceInfo) error
+	SetDevice(userID string, device mdl.DeviceInfo) error
 	DeleteDevice(userId string, deviceId string) error
 	FindDevice(userId string, deviceId string) (*AuthDevice, error)
+
+	AddConfirmCode(kind string, id string, code string) error
+	GetConfirmCode(kind string, id string) (string, error)
+	DeleteConfirmCode(kind string, id string) error
 }

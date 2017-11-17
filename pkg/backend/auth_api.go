@@ -1,4 +1,4 @@
-package main
+package backend
 
 import (
 	//"fmt"
@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (srv *BackendServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+func (srv *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	log.Infof("CreateUser, %v", spew.Sdump(req))
 
 	// Add user to the DB
@@ -28,7 +28,7 @@ func (srv *BackendServer) CreateUser(ctx context.Context, req *pb.CreateUserRequ
 	}
 
 	// Update Redis cache
-	err = srv.Cache.AddUserAuthInfo(*profile, []mdl.DeviceInfo{device})
+	err = srv.Cache.SetUserAuthInfo(*profile, []mdl.DeviceInfo{device})
 	if err != nil {
 		log.Errorf("Could not add user to the cache, %v", err)
 		return nil, err
@@ -41,28 +41,29 @@ func (srv *BackendServer) CreateUser(ctx context.Context, req *pb.CreateUserRequ
 	return &pb.CreateUserResponse{UserId: profile.ID}, nil
 }
 
-func (srv *BackendServer) AddDevice(ctx context.Context, req *pb.AddDeviceRequest) (*pb.Empty, error) {
+func (srv *Server) AddDevice(ctx context.Context, req *pb.AddDeviceRequest) (*pb.Empty, error) {
 	log.Infof("AddDevice, %v", spew.Sdump(req))
 
 	device := mdl.DeviceInfo{
-		ID:     req.Device.Id,
-		Name:   req.Device.Name,
-		Locale: req.Device.Locale,
-		Lang:   req.Device.Lang,
+		ID:          req.Device.Id,
+		Name:        req.Device.Name,
+		IsConfirmed: false,
+		Locale:      req.Device.Locale,
+		Lang:        req.Device.Lang,
 	}
 
 	if err := srv.Db.AddDevice(req.UserId, device); err != nil {
 		log.Errorf("Could not add device to the db, %v", err)
 	}
 
-	if err := srv.Cache.AddDevice(req.UserId, device); err != nil {
+	if err := srv.Cache.SetDevice(req.UserId, device); err != nil {
 		log.Errorf("Could not add device to the cache, %v", err)
 	}
 
 	return &pb.Empty{}, nil
 }
 
-func (srv *BackendServer) RegisterLogin(ctx context.Context, req *pb.LoginRequest) (*pb.Empty, error) {
+func (srv *Server) RegisterLogin(ctx context.Context, req *pb.LoginRequest) (*pb.Empty, error) {
 	log.Infof("RegisterLogin, %v", spew.Sdump(req))
 
 	return &pb.Empty{}, nil

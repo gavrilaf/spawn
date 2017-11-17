@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/auth"
+	"github.com/gavrilaf/spawn/pkg/api/auth"
+	"github.com/gavrilaf/spawn/pkg/api/profile"
 	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/ginlog"
 
@@ -28,14 +29,18 @@ func main() {
 	environment := env.GetEnvironment("Test")
 
 	//storage := auth.NewStorageMock(environment)
-	storage := auth.NewBridgeStorage(environment)
+	storage := api.NewBridge(environment)
 	if storage == nil {
 		panic("Can not create storage")
 	}
 
-	authMiddleware := &auth.Middleware{Timeout: time.Minute, MaxRefresh: time.Hour, Stg: storage, Log: log}
+	authMiddleware := &auth.Middleware{
+		Timeout:    time.Minute,
+		MaxRefresh: time.Hour,
+		Stg:        auth.StorageImpl{StorageBridge: storage},
+		Log:        log}
 
-	api := &api.SpawnApi{Log: log}
+	profileAPI := profile.ProfileApiImpl{StorageBridge: storage}
 
 	auth := router.Group("/auth")
 	{
@@ -44,11 +49,18 @@ func main() {
 		auth.POST("/refresh_token", authMiddleware.RefreshHandler)
 	}
 
-	utils := router.Group("/service")
-	utils.Use(authMiddleware.MiddlewareFunc())
+	profile := router.Group("profile")
+	profile.Use(authMiddleware.MiddlewareFunc())
 	{
-		utils.GET("/whoami", api.WhoAmI)
+		profile.GET("/whoami", profileAPI.WhoAmI)
+		profile.POST("/confirm_device", profileAPI.ConfirmDevice)
 	}
+
+	//service := router.Group("/service")
+	//utils.Use(authMiddleware.MiddlewareFunc())
+	//{
+	//utils.GET("/whoami", api.WhoAmI)
+	//}
 
 	router.Run()
 }

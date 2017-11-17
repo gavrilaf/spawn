@@ -2,11 +2,12 @@ package cache
 
 import (
 	//"fmt"
+	"testing"
+
 	"github.com/gavrilaf/spawn/pkg/env"
 	mdl "github.com/gavrilaf/spawn/pkg/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func GetEnv() *env.Environment {
@@ -106,7 +107,7 @@ func TestAuthUser(t *testing.T) {
 		mdl.DeviceInfo{ID: "id2", Fingerprint: []byte("fingerpring")},
 	}
 
-	err = cache.AddUserAuthInfo(profile, devices)
+	err = cache.SetUserAuthInfo(profile, devices)
 	require.Nil(t, err)
 
 	p1, err := cache.FindUserAuthInfo(profile.Username)
@@ -123,8 +124,6 @@ func TestAuthUser(t *testing.T) {
 func TestUserDevices(t *testing.T) {
 	cache, err := Connect(GetEnv())
 	require.Nil(t, err)
-	require.NotNil(t, cache)
-
 	defer cache.Close()
 
 	profile := mdl.UserProfile{
@@ -145,7 +144,7 @@ func TestUserDevices(t *testing.T) {
 		mdl.DeviceInfo{ID: "d2", IsConfirmed: true, Fingerprint: []byte("fingerprint"), Locale: "en", Lang: "en"},
 	}
 
-	err = cache.AddUserAuthInfo(profile, devices)
+	err = cache.SetUserAuthInfo(profile, devices)
 	require.Nil(t, err)
 
 	d1, err := cache.FindDevice("user-1", "d1")
@@ -166,7 +165,7 @@ func TestUserDevices(t *testing.T) {
 	dd1, _ := cache.FindDevice(profile.ID, "d1")
 	assert.Nil(t, dd1)
 
-	err = cache.AddDevice(profile.ID, mdl.DeviceInfo{ID: "d3"})
+	err = cache.SetDevice(profile.ID, mdl.DeviceInfo{ID: "d3"})
 	assert.Nil(t, err)
 
 	d3, _ := cache.FindDevice(profile.ID, "d3")
@@ -176,4 +175,23 @@ func TestUserDevices(t *testing.T) {
 	assert.Nil(t, cache.DeleteDevice(profile.ID, "d1"))
 	assert.Nil(t, cache.DeleteDevice(profile.ID, "d2"))
 	assert.Nil(t, cache.DeleteDevice(profile.ID, "d2"))
+}
+
+func TestConfirmCodes(t *testing.T) {
+	cache, err := Connect(GetEnv())
+	require.Nil(t, err)
+	defer cache.Close()
+
+	err = cache.AddConfirmCode("device", "d-id-1", "123456")
+	assert.Nil(t, err)
+
+	code, err := cache.GetConfirmCode("device", "d-id-1")
+	assert.Nil(t, err)
+	assert.Equal(t, "123456", code)
+
+	err = cache.DeleteConfirmCode("device", "d-id-1")
+	assert.Nil(t, err)
+
+	code, _ = cache.GetConfirmCode("device", "d-id-1")
+	assert.Equal(t, "", code)
 }

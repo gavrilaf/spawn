@@ -2,9 +2,10 @@ package cryptx
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSaltedKey(t *testing.T) {
@@ -59,4 +60,14 @@ func TestPasswords(t *testing.T) {
 
 	err := CheckPassword(psws[0]+"1", hashes[0])
 	assert.NotNil(t, err)
+}
+
+func TestGenerateConfirm(t *testing.T) {
+	s1 := GenerateConfimCode()
+	s2 := GenerateConfimCode()
+	s3 := GenerateConfimCode()
+
+	assert.Equal(t, ConfirmCodeLength, len(s1))
+	assert.Equal(t, ConfirmCodeLength, len(s2))
+	assert.Equal(t, ConfirmCodeLength, len(s3))
 }

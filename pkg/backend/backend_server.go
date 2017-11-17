@@ -1,4 +1,4 @@
-package main
+package backend
 
 import (
 	"github.com/gavrilaf/spawn/pkg/cache"
@@ -7,12 +7,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type BackendServer struct {
+type Server struct {
 	Db    *dbx.Bridge
 	Cache *cache.Cache
 }
 
-func CreateBackendServer(en *env.Environment) *BackendServer {
+func CreateServer(en *env.Environment) *Server {
 	log.Infof("Starting backend with environment: %v", en.GetName())
 
 	db, err := dbx.Connect(en)
@@ -29,5 +29,5 @@ func CreateBackendServer(en *env.Environment) *BackendServer {
 	}
 	log.Infof("Cache connection, ok")
 
-	return &BackendServer{Db: db, Cache: cache}
+	return &Server{Db: db, Cache: cache}
 }

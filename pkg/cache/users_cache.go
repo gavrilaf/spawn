@@ -2,8 +2,13 @@ package cache
 
 import (
 	//"fmt"
+
 	"github.com/garyburd/redigo/redis"
 	mdl "github.com/gavrilaf/spawn/pkg/model"
+)
+
+const (
+	confirmExpiration = 30 * 60 // 30 minutes
 )
 
 // Client
@@ -64,11 +69,7 @@ func authUserId(username string) string {
 	return "user:" + username
 }
 
-func authDeviceId(userId string, deviceId string) string {
-	return "device:" + userId + deviceId
-}
-
-func (cache *Cache) AddUserAuthInfo(profile mdl.UserProfile, devices []mdl.DeviceInfo) error {
+func (cache *Cache) SetUserAuthInfo(profile mdl.UserProfile, devices []mdl.DeviceInfo) error {
 	authUser := CreateAuthUserFromProfile(profile)
 
 	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(authUserId(profile.Username)).AddFlat(&authUser)...)
@@ -77,7 +78,7 @@ func (cache *Cache) AddUserAuthInfo(profile mdl.UserProfile, devices []mdl.Devic
 	}
 
 	for _, d := range devices {
-		err = cache.AddDevice(profile.ID, d)
+		err = cache.SetDevice(profile.ID, d)
 		if err != nil {
 			return err
 		}
@@ -107,7 +108,11 @@ func (cache *Cache) FindUserAuthInfo(username string) (*AuthUser, error) {
 
 // Devices
 
-func (cache *Cache) AddDevice(userID string, device mdl.DeviceInfo) error {
+func authDeviceId(userId string, deviceId string) string {
+	return "device:" + userId + deviceId
+}
+
+func (cache *Cache) SetDevice(userID string, device mdl.DeviceInfo) error {
 	device.UserID = userID
 	ad := CreateAuthDeviceFromDevice(device)
 	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(authDeviceId(userID, ad.DeviceID)).AddFlat(&ad)...)
@@ -135,4 +140,22 @@ func (cache *Cache) FindDevice(userId string, deviceId string) (*AuthDevice, err
 	}
 
 	return &d, nil
+}
+
+// Confirm code
+func (cache *Cache) AddConfirmCode(kind string, id string, code string) error {
+	key := "confirm:" + kind + id
+	_, err := cache.conn.Do("SETEX", key, confirmExpiration, code)
+	return err
+}
+
+func (cache *Cache) GetConfirmCode(kind string, id string) (string, error) {
+	key := "confirm:" + kind + id
+	return redis.String(cache.conn.Do("GET", key))
+}
+
+func (cache *Cache) DeleteConfirmCode(kind string, id string) error {
+	key := "confirm:" + kind + id
+	_, err := cache.conn.Do("DEL", key)
+	return err
 }
