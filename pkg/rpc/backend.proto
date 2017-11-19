@@ -3,10 +3,11 @@ package backend;
 import "google/protobuf/timestamp.proto";
 
 
-service Spawn {   
-  	rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+service Spawn {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
 	rpc AddDevice(AddDeviceRequest) returns(Empty) {}
-	rpc RegisterLogin(LoginRequest) returns(Empty) {}
+	rpc HandleLogin(LoginRequest) returns(Empty) {}
+  rpc DoConfirm(ConfirmRequest) returns(Empty) {}
 }
 
 message Empty {}
@@ -34,11 +35,18 @@ message AddDeviceRequest {
 }
 
 message LoginRequest {
-	string userId = 1;
-	Device device = 2;
-	google.protobuf.Timestamp loginTime = 3;
-	string loginIP = 4;
-	string loginRegion = 5;
+  string sessionId = 1;
+  string userId = 2;
+  Device device = 3;
+	google.protobuf.Timestamp loginTime = 4;
+	string loginIP = 5;
+	string loginRegion = 6;
 }
 
-
+message ConfirmRequest {
+  string kind = 1;
+  string sessionId = 2;
+  string userId = 3;
+  string deviceId = 4;
+  string code = 5;
+}

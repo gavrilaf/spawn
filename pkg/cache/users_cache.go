@@ -4,7 +4,7 @@ import (
 	//"fmt"
 
 	"github.com/garyburd/redigo/redis"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 )
 
 const (

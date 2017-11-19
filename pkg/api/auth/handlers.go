@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/gavrilaf/spawn/pkg/cache"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"

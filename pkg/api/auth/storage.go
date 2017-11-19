@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/cache"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 )
 
 type Storage interface {

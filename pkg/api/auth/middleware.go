@@ -1,7 +1,6 @@
 package auth
 
 import (
-	//"fmt"
 	"github.com/gavrilaf/spawn/pkg/errx"
 
 	"github.com/gin-gonic/gin"
@@ -17,9 +16,8 @@ import (
 type Middleware struct {
 	Timeout    time.Duration
 	MaxRefresh time.Duration
-
-	Stg Storage
-	Log *logrus.Logger
+	Stg        Storage
+	Log        *logrus.Logger
 }
 
 // MiddlewareFunc makes AuthMiddleware implement the Middleware interface.
@@ -48,6 +46,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 			return
 		}
 
+		c.Set("session_id", session.ID)
 		c.Set("client_id", session.ClientID)
 		c.Set("user_id", session.UserID)
 		c.Set("device_id", session.DeviceID)

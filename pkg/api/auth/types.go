@@ -2,10 +2,11 @@ package auth
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/fatih/structs"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
-	"time"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 )
 
 const (
@@ -102,11 +103,10 @@ func (p *LoginDTO) String() string {
 
 func (p *LoginDTO) CreateDevice() mdl.DeviceInfo {
 	return mdl.DeviceInfo{
-		ID:        p.DeviceID,
-		Name:      p.DeviceName,
-		LoginTime: time.Now(),
-		Locale:    p.Locale,
-		Lang:      p.Lang,
+		ID:     p.DeviceID,
+		Name:   p.DeviceName,
+		Locale: p.Locale,
+		Lang:   p.Lang,
 	}
 }
 
@@ -138,11 +138,10 @@ func (p *RegisterDTO) String() string {
 
 func (p *RegisterDTO) CreateDevice() mdl.DeviceInfo {
 	return mdl.DeviceInfo{
-		ID:        p.DeviceID,
-		Name:      p.DeviceName,
-		LoginTime: time.Now(),
-		Locale:    p.Locale,
-		Lang:      p.Lang,
+		ID:     p.DeviceID,
+		Name:   p.DeviceName,
+		Locale: p.Locale,
+		Lang:   p.Lang,
 	}
 }
 

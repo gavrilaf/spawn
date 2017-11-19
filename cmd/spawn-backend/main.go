@@ -32,7 +32,11 @@ func main() {
 	var opts []grpc.ServerOption
 
 	grpcServer := grpc.NewServer(opts...)
+
 	backServer := newBackend()
+
+	//loader = backend.CacheLoader{backServer}
+	//loader.
 
 	pb.RegisterSpawnServer(grpcServer, backServer)
 

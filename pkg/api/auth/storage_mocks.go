@@ -2,9 +2,10 @@ package auth
 
 import (
 	"fmt"
+
 	"github.com/gavrilaf/spawn/pkg/cache"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 	"github.com/gavrilaf/spawn/pkg/env"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
 )
 
 /*

@@ -4,8 +4,8 @@ import (
 	//"fmt"
 	"testing"
 
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 	"github.com/gavrilaf/spawn/pkg/env"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

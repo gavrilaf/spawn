@@ -6,8 +6,8 @@ import (
 
 	//"github.com/stretchr/testify/assert"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 	"github.com/gavrilaf/spawn/pkg/env"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"

@@ -2,8 +2,8 @@ package cache
 
 import (
 	"github.com/garyburd/redigo/redis"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 	"github.com/gavrilaf/spawn/pkg/env"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
 )
 
 type Cache struct {

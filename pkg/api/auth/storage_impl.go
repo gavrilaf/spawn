@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gavrilaf/spawn/pkg/cache"
-	mdl "github.com/gavrilaf/spawn/pkg/model"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	log "github.com/sirupsen/logrus"
 )

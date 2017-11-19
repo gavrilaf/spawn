@@ -1,7 +1,6 @@
 package api
 
 import (
-	//"fmt"
 	"github.com/gavrilaf/spawn/pkg/cache"
 	"github.com/gavrilaf/spawn/pkg/env"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
