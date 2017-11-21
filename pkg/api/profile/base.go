@@ -2,7 +2,7 @@ package profile
 
 import (
 	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/cache"
+	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -28,7 +28,7 @@ func (api ProfileApiImpl) handleError(c *gin.Context, httpCode int, err error) {
 	c.Abort()
 }
 
-func (api ProfileApiImpl) getSession(c *gin.Context) (*cache.Session, error) {
+func (api ProfileApiImpl) getSession(c *gin.Context) (*mdl.Session, error) {
 	return api.Cache.FindSession(c.GetString("session_id"))
 }
 

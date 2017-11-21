@@ -4,26 +4,28 @@ import (
 	//"fmt"
 	"testing"
 
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/model"
 	"github.com/gavrilaf/spawn/pkg/env"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func GetEnv() *env.Environment {
-	return env.GetEnvironment("Test")
+func getAuthCache(t *testing.T) Cache {
+	cache, err := Connect(env.GetEnvironment("Test"))
+	require.Nil(t, err)
+	require.NotNil(t, cache)
+	return cache
 }
 
 func TestClientCache(t *testing.T) {
-	cache, err := Connect(GetEnv())
-	require.Nil(t, err)
-	require.NotNil(t, cache)
-
+	cache := getAuthCache(t)
 	defer cache.Close()
 
-	cl := mdl.Client{"cl-1", []byte("secret")}
+	cl := db.Client{"cl-1", []byte("secret")}
 
-	err = cache.AddClient(cl)
+	err := cache.AddClient(cl)
 	require.Nil(t, err)
 
 	p, err := cache.FindClient(cl.ID)
@@ -39,13 +41,10 @@ func TestClientCache(t *testing.T) {
 }
 
 func TestUserSession(t *testing.T) {
-	cache, err := Connect(GetEnv())
-	require.Nil(t, err)
-	require.NotNil(t, cache)
-
+	cache := getAuthCache(t)
 	defer cache.Close()
 
-	session := Session{
+	session := mdl.Session{
 		ID:                "ses-1",
 		RefreshToken:      "refresh-token",
 		ClientID:          "client-id",
@@ -56,7 +55,7 @@ func TestUserSession(t *testing.T) {
 		Locale:            "en",
 		Lang:              "en"}
 
-	err = cache.AddSession(session)
+	err := cache.AddSession(session)
 	require.Nil(t, err)
 
 	p, err := cache.FindSession(session.ID)
@@ -83,31 +82,28 @@ func TestUserSession(t *testing.T) {
 }
 
 func TestAuthUser(t *testing.T) {
-	cache, err := Connect(GetEnv())
-	require.Nil(t, err)
-	require.NotNil(t, cache)
-
+	cache := getAuthCache(t)
 	defer cache.Close()
 
-	profile := mdl.UserProfile{
+	profile := db.UserProfile{
 		ID: "user-1",
-		AuthInfo: mdl.AuthInfo{
+		AuthInfo: db.AuthInfo{
 			Username:     "testuser@test.com",
 			PasswordHash: "password",
-			Permissions: mdl.Permissions{
+			Permissions: db.Permissions{
 				IsLocked:         true,
 				IsEmailConfirmed: true,
 				Is2FARequired:    true}},
-		PersonalInfo: mdl.PersonalInfo{
+		PersonalInfo: db.PersonalInfo{
 			FirstName: "FirstName",
 			LastName:  "LastName"}}
 
-	devices := []mdl.DeviceInfo{
-		mdl.DeviceInfo{ID: "d1"},
-		mdl.DeviceInfo{ID: "id2", Fingerprint: []byte("fingerpring")},
+	devices := []db.DeviceInfo{
+		db.DeviceInfo{ID: "d1"},
+		db.DeviceInfo{ID: "id2", Fingerprint: []byte("fingerpring")},
 	}
 
-	err = cache.SetUserAuthInfo(profile, devices)
+	err := cache.SetUserAuthInfo(profile, devices)
 	require.Nil(t, err)
 
 	p1, err := cache.FindUserAuthInfo(profile.Username)
@@ -122,29 +118,25 @@ func TestAuthUser(t *testing.T) {
 }
 
 func TestUserDevices(t *testing.T) {
-	cache, err := Connect(GetEnv())
-	require.Nil(t, err)
+	cache := getAuthCache(t)
 	defer cache.Close()
 
-	profile := mdl.UserProfile{
+	profile := db.UserProfile{
 		ID: "user-1",
-		AuthInfo: mdl.AuthInfo{
+		AuthInfo: db.AuthInfo{
 			Username:     "testuser@test.com",
 			PasswordHash: "password",
-			Permissions: mdl.Permissions{
+			Permissions: db.Permissions{
 				IsLocked:         false,
 				IsEmailConfirmed: false,
-				Is2FARequired:    false}},
-		PersonalInfo: mdl.PersonalInfo{
-			FirstName: "FirstName",
-			LastName:  "LastName"}}
+				Is2FARequired:    false}}}
 
-	devices := []mdl.DeviceInfo{
-		mdl.DeviceInfo{ID: "d1", IsConfirmed: false, Locale: "ru", Lang: "ru"},
-		mdl.DeviceInfo{ID: "d2", IsConfirmed: true, Fingerprint: []byte("fingerprint"), Locale: "en", Lang: "en"},
+	devices := []db.DeviceInfo{
+		db.DeviceInfo{ID: "d1", IsConfirmed: false, Locale: "ru", Lang: "ru"},
+		db.DeviceInfo{ID: "d2", IsConfirmed: true, Fingerprint: []byte("fingerprint"), Locale: "en", Lang: "en"},
 	}
 
-	err = cache.SetUserAuthInfo(profile, devices)
+	err := cache.SetUserAuthInfo(profile, devices)
 	require.Nil(t, err)
 
 	d1, err := cache.FindDevice("user-1", "d1")
@@ -165,7 +157,7 @@ func TestUserDevices(t *testing.T) {
 	dd1, _ := cache.FindDevice(profile.ID, "d1")
 	assert.Nil(t, dd1)
 
-	err = cache.SetDevice(profile.ID, mdl.DeviceInfo{ID: "d3"})
+	err = cache.SetDevice(profile.ID, db.DeviceInfo{ID: "d3"})
 	assert.Nil(t, err)
 
 	d3, _ := cache.FindDevice(profile.ID, "d3")
@@ -178,11 +170,10 @@ func TestUserDevices(t *testing.T) {
 }
 
 func TestConfirmCodes(t *testing.T) {
-	cache, err := Connect(GetEnv())
-	require.Nil(t, err)
+	cache := getAuthCache(t)
 	defer cache.Close()
 
-	err = cache.AddConfirmCode("device", "d-id-1", "123456")
+	err := cache.AddConfirmCode("device", "d-id-1", "123456")
 	assert.Nil(t, err)
 
 	code, err := cache.GetConfirmCode("device", "d-id-1")

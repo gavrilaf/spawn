@@ -8,13 +8,6 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-func EmptyBirthDate() time.Time {
-	t1, _ := time.Parse(time.RFC3339, "1900-01-01T00:00:00+00:00")
-	return t1
-}
-
-//time.Date(1900, time.January, 0, 0, 0, 0, 0, time.UTC)
-
 const (
 	addUser = `INSERT INTO
 		public."Users"(id, username, password)
@@ -90,7 +83,7 @@ const (
 func (db *Bridge) RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error) {
 	userID := uuid.NewV4().String()
 
-	tx := db.Db.MustBegin()
+	tx := db.conn.MustBegin()
 	tx.MustExec(addUser, userID, username, password)
 	tx.MustExec(addDevice,
 		device.ID,
@@ -109,7 +102,7 @@ func (db *Bridge) RegisterUser(username string, password string, device mdl.Devi
 
 func (db *Bridge) GetUserProfile(id string) (*mdl.UserProfile, error) {
 	var profile mdl.UserProfile
-	if err := db.Db.Get(&profile, getUserByID, id); err != nil {
+	if err := db.conn.Get(&profile, getUserByID, id); err != nil {
 		return nil, err
 	}
 
@@ -118,7 +111,7 @@ func (db *Bridge) GetUserProfile(id string) (*mdl.UserProfile, error) {
 
 func (db *Bridge) FindUserProfile(username string) (*mdl.UserProfile, error) {
 	var profile mdl.UserProfile
-	if err := db.Db.Get(&profile, getUserByName, username); err != nil {
+	if err := db.conn.Get(&profile, getUserByName, username); err != nil {
 		return nil, err
 	}
 
@@ -126,7 +119,7 @@ func (db *Bridge) FindUserProfile(username string) (*mdl.UserProfile, error) {
 }
 
 func (db *Bridge) UpdateUserPermissions(id string, permissions mdl.Permissions) error {
-	_, err := db.Db.Exec(updatePermission,
+	_, err := db.conn.Exec(updatePermission,
 		permissions.IsLocked,
 		permissions.IsEmailConfirmed,
 		permissions.Is2FARequired,
@@ -137,7 +130,7 @@ func (db *Bridge) UpdateUserPermissions(id string, permissions mdl.Permissions) 
 }
 
 func (db *Bridge) UpdateUserPersonalInfo(id string, info mdl.PersonalInfo) error {
-	_, err := db.Db.Exec(updatePersonal,
+	_, err := db.conn.Exec(updatePersonal,
 		info.FirstName,
 		info.LastName,
 		info.BirthDate,
@@ -147,12 +140,12 @@ func (db *Bridge) UpdateUserPersonalInfo(id string, info mdl.PersonalInfo) error
 }
 
 func (db *Bridge) UpdateUserCountry(id string, country string) error {
-	_, err := db.Db.Exec(updateCountry, country, id)
+	_, err := db.conn.Exec(updateCountry, country, id)
 	return err
 }
 
 func (db *Bridge) UpdateUserPhoneNumber(id string, phone mdl.PhoneNumber) error {
-	_, err := db.Db.Exec(updatePhone,
+	_, err := db.conn.Exec(updatePhone,
 		phone.CountryCode,
 		phone.Number,
 		phone.IsConfirmed,
@@ -168,7 +161,7 @@ func (db *Bridge) ReadAllUserProfiles() (<-chan *mdl.UserProfile, <-chan error) 
 	go func() {
 		profile := mdl.UserProfile{}
 
-		rows, err := db.Db.Queryx(getAllUsers)
+		rows, err := db.conn.Queryx(getAllUsers)
 		if err != nil {
 			errors <- err
 			return
@@ -192,7 +185,7 @@ func (db *Bridge) ReadAllUserProfiles() (<-chan *mdl.UserProfile, <-chan error) 
 // Devices
 
 func (db *Bridge) AddDevice(userId string, device mdl.DeviceInfo) error {
-	_, err := db.Db.Exec(addDevice,
+	_, err := db.conn.Exec(addDevice,
 		device.ID,
 		userId,
 		device.Name,
@@ -204,23 +197,23 @@ func (db *Bridge) AddDevice(userId string, device mdl.DeviceInfo) error {
 }
 
 func (db *Bridge) ConfirmDevice(userId string, deviceId string) error {
-	_, err := db.Db.Exec(confirmDevice, deviceId, userId)
+	_, err := db.conn.Exec(confirmDevice, deviceId, userId)
 	return err
 }
 
 func (db *Bridge) RemoveDevice(userId string, deviceId string) error {
-	_, err := db.Db.Exec(deleteDevice, deviceId, userId)
+	_, err := db.conn.Exec(deleteDevice, deviceId, userId)
 	return err
 }
 
 func (db *Bridge) SetDeviceFingerprint(userID string, deviceID string, fingerprint []byte) error {
-	_, err := db.Db.Exec(setFingerprint, deviceID, userID, fingerprint)
+	_, err := db.conn.Exec(setFingerprint, deviceID, userID, fingerprint)
 	return err
 }
 
 func (db *Bridge) GetUserDevice(userID string, deviceID string) (*mdl.DeviceInfo, error) {
 	var device mdl.DeviceInfo
-	if err := db.Db.Get(&device, getUserDevice, userID, deviceID); err != nil {
+	if err := db.conn.Get(&device, getUserDevice, userID, deviceID); err != nil {
 		return nil, err
 	}
 	return &device, nil
@@ -228,7 +221,7 @@ func (db *Bridge) GetUserDevice(userID string, deviceID string) (*mdl.DeviceInfo
 
 func (db *Bridge) GetUserDevices(userID string) ([]mdl.DeviceInfo, error) {
 	var devices []mdl.DeviceInfo
-	if err := db.Db.Select(&devices, getUserDevices, userID); err != nil {
+	if err := db.conn.Select(&devices, getUserDevices, userID); err != nil {
 		return nil, err
 	}
 	return devices, nil
@@ -236,7 +229,7 @@ func (db *Bridge) GetUserDevices(userID string) ([]mdl.DeviceInfo, error) {
 
 func (db *Bridge) GetUserDevicesEx(userID string) ([]mdl.DeviceInfoEx, error) {
 	var devices []mdl.DeviceInfoEx
-	if err := db.Db.Select(&devices, getUserDevicesEx, userID); err != nil {
+	if err := db.conn.Select(&devices, getUserDevicesEx, userID); err != nil {
 		return nil, err
 	}
 	return devices, nil
@@ -249,6 +242,6 @@ func (db *Bridge) LogUserLogin(userID string, deviceID string, ip string, region
 	if device == nil {
 		return fmt.Errorf("Device (%v, %v) not found", userID, deviceID)
 	}
-	_, err = db.Db.Exec(registerLogin, userID, deviceID, device.Name, time.Now(), ip, region)
+	_, err = db.conn.Exec(registerLogin, userID, deviceID, device.Name, time.Now(), ip, region)
 	return err
 }

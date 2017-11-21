@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"github.com/gavrilaf/spawn/pkg/cache"
+	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
@@ -190,11 +190,11 @@ func (mw *Middleware) CheckAccess(userId string, clientId string, c *gin.Context
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *Middleware) makeLogin(client mdl.Client, user cache.AuthUser, device cache.AuthDevice) (AuthTokenDTO, error) {
+func (mw *Middleware) makeLogin(client db.Client, user mdl.AuthUser, device mdl.AuthDevice) (AuthTokenDTO, error) {
 	sessionId := generateSessionID()
 	refreshToken := generateRefreshToken(sessionId)
 
-	session := cache.Session{
+	session := mdl.Session{
 		ID:                sessionId,
 		RefreshToken:      refreshToken,
 		ClientID:          client.ID,

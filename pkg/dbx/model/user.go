@@ -2,10 +2,29 @@ package model
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
 )
+
+func emptyBirthDate() time.Time {
+	t, _ := time.Parse(time.RFC3339, "1900-01-01T00:00:00+00:00")
+	return t.UTC()
+}
+
+func BirthdayDate(year int, month int, day int) time.Time {
+	t, _ := time.Parse(time.RFC3339, fmt.Sprintf("%d-%02d-%02dT00:00:00+00:00", year, month, day))
+	return t.UTC()
+}
+
+func BirthdayDateFromTime(t time.Time) time.Time {
+	return t.Truncate(24 * time.Hour).UTC()
+}
+
+var EmptyBirthDate = emptyBirthDate()
+
+///
 
 type Client struct {
 	ID     string
@@ -85,6 +104,10 @@ type UserProfile struct {
 	PhoneNumber
 	AuthInfo
 	PersonalInfo
+}
+
+func (p *UserProfile) GetBirthdayDate() time.Time {
+	return BirthdayDateFromTime(p.BirthDate)
 }
 
 // User logs

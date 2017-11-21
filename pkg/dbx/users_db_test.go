@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func GetBridge(t *testing.T) *Bridge {
-	db, _ := Connect(env.GetEnvironment("Test"))
+func GetBridge(t *testing.T) Database {
+	db, err := Connect(env.GetEnvironment("Test"))
 	require.NotNil(t, db)
-	require.NotNil(t, db.Db)
+	require.Nil(t, err)
 
 	return db
 }
@@ -168,7 +168,7 @@ func TestEditUserProfile(t *testing.T) {
 	personal := profile.PersonalInfo
 	assert.Empty(t, personal.FirstName)
 	assert.Empty(t, personal.LastName)
-	assert.Equal(t, EmptyBirthDate(), personal.BirthDate)
+	assert.Equal(t, mdl.EmptyBirthDate, profile.GetBirthdayDate())
 
 	err = db.UpdateUserCountry(profile.ID, "en")
 	assert.Nil(t, err)
@@ -183,6 +183,7 @@ func TestEditUserProfile(t *testing.T) {
 
 	personal.FirstName = "FirstName"
 	personal.LastName = "LastName"
+	personal.BirthDate = mdl.BirthdayDate(1961, 10, 2)
 
 	err = db.UpdateUserPersonalInfo(profile.ID, personal)
 	assert.Nil(t, err)
@@ -201,6 +202,7 @@ func TestEditUserProfile(t *testing.T) {
 
 	assert.Equal(t, "FirstName", pr1.FirstName)
 	assert.Equal(t, "LastName", pr1.LastName)
+	assert.Equal(t, mdl.BirthdayDate(1961, 10, 2), pr1.GetBirthdayDate())
 }
 
 func TestLoginLog(t *testing.T) {

@@ -3,18 +3,18 @@ package auth
 import (
 	"context"
 
-	"github.com/gavrilaf/spawn/pkg/cache"
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/model"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	log "github.com/sirupsen/logrus"
 )
 
-func (sb StorageImpl) FindClient(id string) (mdl.Client, error) {
+func (sb StorageImpl) FindClient(id string) (db.Client, error) {
 	var storageMock = NewStorageMock(nil)
 	return storageMock.FindClient(id)
 }
 
-func (sb StorageImpl) RegisterUser(username string, password string, device mdl.DeviceInfo) error {
+func (sb StorageImpl) RegisterUser(username string, password string, device db.DeviceInfo) error {
 
 	req := pb.CreateUserRequest{
 		Username:     username,
@@ -34,15 +34,15 @@ func (sb StorageImpl) RegisterUser(username string, password string, device mdl.
 	return err
 }
 
-func (sb StorageImpl) FindUser(username string) (*cache.AuthUser, error) {
+func (sb StorageImpl) FindUser(username string) (*mdl.AuthUser, error) {
 	return sb.Cache.FindUserAuthInfo(username)
 }
 
-func (sb StorageImpl) FindDevice(userId string, deviceId string) (*cache.AuthDevice, error) {
+func (sb StorageImpl) FindDevice(userId string, deviceId string) (*mdl.AuthDevice, error) {
 	return sb.Cache.FindDevice(userId, deviceId)
 }
 
-func (sb StorageImpl) AddDevice(userId string, device mdl.DeviceInfo) (*cache.AuthDevice, error) {
+func (sb StorageImpl) AddDevice(userId string, device db.DeviceInfo) (*mdl.AuthDevice, error) {
 
 	req := pb.AddDeviceRequest{
 		UserId: userId,
@@ -61,11 +61,11 @@ func (sb StorageImpl) AddDevice(userId string, device mdl.DeviceInfo) (*cache.Au
 	return sb.FindDevice(userId, device.ID)
 }
 
-func (sb StorageImpl) StoreSession(session cache.Session) error {
+func (sb StorageImpl) StoreSession(session mdl.Session) error {
 	return sb.Cache.AddSession(session)
 }
 
-func (sb StorageImpl) FindSession(id string) (*cache.Session, error) {
+func (sb StorageImpl) FindSession(id string) (*mdl.Session, error) {
 	session, err := sb.Cache.FindSession(id)
 	if err != nil {
 		log.Errorf("Can't find session with id %v, error: %v", id, err)

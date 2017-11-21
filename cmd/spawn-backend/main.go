@@ -15,7 +15,13 @@ func newBackend() *backend.Server {
 	srv := backend.CreateServer(en)
 
 	if srv == nil {
-		panic("Can not create server")
+		panic("Could not create server")
+	}
+
+	srv.StartServer()
+
+	if srv.GetServerState() != backend.StateOk {
+		panic("Could not start server")
 	}
 
 	return srv
@@ -34,9 +40,6 @@ func main() {
 	grpcServer := grpc.NewServer(opts...)
 
 	backServer := newBackend()
-
-	//loader = backend.CacheLoader{backServer}
-	//loader.
 
 	pb.RegisterSpawnServer(grpcServer, backServer)
 

@@ -11,10 +11,10 @@ import (
 )
 
 type Bridge struct {
-	Db *sqlx.DB
+	conn *sqlx.DB
 }
 
-func Connect(en *env.Environment) (*Bridge, error) {
+func Connect(en *env.Environment) (Database, error) {
 	db, err := sqlx.Connect("postgres", "dbname=spawn host=localhost port=5432 user=postgres sslmode=disable")
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't connect to postgre database: %v", err)
@@ -23,18 +23,10 @@ func Connect(en *env.Environment) (*Bridge, error) {
 	return &Bridge{db}, nil
 }
 
-func (db *Bridge) Close() {
-	if db.Db == nil {
-		return
-	}
-
-	db.Db.Close()
-}
-
-///////////////////////////////////
-
 // Database is an interface to the Spawn storage
 type Database interface {
+	Close()
+
 	RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error)
 
 	GetUserProfile(id string) (*mdl.UserProfile, error)
@@ -58,5 +50,15 @@ type Database interface {
 	GetUserDevices(userID string) ([]mdl.DeviceInfo, error)
 	GetUserDevicesEx(userID string) ([]mdl.DeviceInfoEx, error)
 
-	LogUserLogin(userID string, deviceID string, ip string, region string)
+	LogUserLogin(userID string, deviceID string, ip string, region string) error
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+func (db *Bridge) Close() {
+	if db.conn == nil {
+		return
+	}
+
+	db.conn.Close()
 }

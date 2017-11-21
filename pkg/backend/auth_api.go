@@ -22,14 +22,14 @@ func (srv *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*
 		Lang:        req.Device.Lang,
 	}
 
-	profile, err := srv.Db.RegisterUser(req.Username, req.PasswordHash, device)
+	profile, err := srv.db.RegisterUser(req.Username, req.PasswordHash, device)
 	if err != nil {
 		log.Errorf("Could not add user to the db, %v", err)
 		return nil, err
 	}
 
 	// Update Redis cache
-	err = srv.Cache.SetUserAuthInfo(*profile, []mdl.DeviceInfo{device})
+	err = srv.cache.SetUserAuthInfo(*profile, []mdl.DeviceInfo{device})
 	if err != nil {
 		log.Errorf("Could not add user to the cache, %v", err)
 		return nil, err
@@ -53,19 +53,19 @@ func (srv *Server) AddDevice(ctx context.Context, req *pb.AddDeviceRequest) (*pb
 		Lang:        req.Device.Lang,
 	}
 
-	if err := srv.Db.AddDevice(req.UserId, device); err != nil {
+	if err := srv.db.AddDevice(req.UserId, device); err != nil {
 		log.Errorf("Could not add device to the db, %v", err)
 		return nil, err
 	}
 
-	if err := srv.Cache.SetDevice(req.UserId, device); err != nil {
+	if err := srv.cache.SetDevice(req.UserId, device); err != nil {
 		log.Errorf("Could not add device to the cache, %v", err)
 		return nil, err
 	}
 
 	// Generate confirm code
 	code := cryptx.GenerateConfimCode()
-	if err := srv.Cache.AddConfirmCode("device", req.UserId+req.Device.Id, code); err != nil {
+	if err := srv.cache.AddConfirmCode("device", req.UserId+req.Device.Id, code); err != nil {
 		log.Errorf("Storing confirm code error, %v", err)
 		return nil, err
 	}
@@ -85,6 +85,10 @@ func (srv *Server) HandleLogin(ctx context.Context, req *pb.LoginRequest) (*pb.E
 
 func (srv *Server) DoConfirm(ctx context.Context, req *pb.ConfirmRequest) (*pb.Empty, error) {
 	log.Infof("DoConfirm, %v", spew.Sdump(req))
+
+	switch req.Kind {
+
+	}
 
 	return &pb.Empty{}, nil
 }

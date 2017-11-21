@@ -8,7 +8,7 @@ import (
 )
 
 type StorageBridge struct {
-	Cache   *cache.Cache
+	Cache   cache.Cache
 	Backend *pb.BackendBridge
 }
 

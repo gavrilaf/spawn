@@ -1,7 +1,7 @@
-package cache
+package model
 
 import (
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/model"
 )
 
 type Session struct {
@@ -14,12 +14,12 @@ type Session struct {
 	IsDeviceConfirmed bool
 	Locale            string
 	Lang              string
-	mdl.Permissions
+	db.Permissions
 }
 
 type AuthUser struct {
 	ID string
-	mdl.AuthInfo
+	db.AuthInfo
 }
 
 type AuthDevice struct {
@@ -31,10 +31,18 @@ type AuthDevice struct {
 	Lang        string
 }
 
-func CreateAuthUserFromProfile(p mdl.UserProfile) AuthUser {
-	return AuthUser{ID: p.ID, AuthInfo: p.AuthInfo}
+func CreateAuthUserFromProfile(p db.UserProfile) AuthUser {
+	return AuthUser{
+		ID:       p.ID,
+		AuthInfo: p.AuthInfo}
 }
 
-func CreateAuthDeviceFromDevice(d mdl.DeviceInfo) AuthDevice {
-	return AuthDevice{DeviceID: d.ID, UserID: d.UserID, IsConfirmed: d.IsConfirmed, Fingerpring: d.Fingerprint, Locale: d.Locale, Lang: d.Lang}
+func CreateAuthDeviceFromDevice(d db.DeviceInfo) AuthDevice {
+	return AuthDevice{
+		DeviceID:    d.ID,
+		UserID:      d.UserID,
+		IsConfirmed: d.IsConfirmed,
+		Fingerpring: d.Fingerprint,
+		Locale:      d.Locale,
+		Lang:        d.Lang}
 }

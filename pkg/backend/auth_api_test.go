@@ -41,13 +41,13 @@ func TestRegisterUser(t *testing.T) {
 
 	fmt.Printf("Registered user: %v\n", spew.Sdump(res))
 
-	dbUser, err := srv.Db.GetUserProfile(res.UserId)
+	dbUser, err := srv.db.GetUserProfile(res.UserId)
 	assert.Nil(t, err)
 	assert.NotNil(t, dbUser)
 
 	fmt.Printf("Db user: %v\n", spew.Sdump(dbUser))
 
-	dbDevices, err := srv.Db.GetUserDevices(res.UserId)
+	dbDevices, err := srv.db.GetUserDevices(res.UserId)
 	assert.Nil(t, err)
 
 	assert.Equal(t, 1, len(dbDevices))
@@ -55,13 +55,13 @@ func TestRegisterUser(t *testing.T) {
 
 	fmt.Printf("Db devices: %v\n", spew.Sdump(dbDevices))
 
-	cacheUser, err := srv.Cache.FindUserAuthInfo(username)
+	cacheUser, err := srv.cache.FindUserAuthInfo(username)
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheUser)
 
 	fmt.Printf("Cache user: %v\n", spew.Sdump(cacheUser))
 
-	cacheDevice, err := srv.Cache.FindDevice(res.UserId, "device-1")
+	cacheDevice, err := srv.cache.FindDevice(res.UserId, "device-1")
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheDevice)
 
@@ -95,17 +95,17 @@ func TestAddDeviceUser(t *testing.T) {
 		Device: &device})
 	assert.Nil(t, err)
 
-	code, err := srv.Cache.GetConfirmCode("device", res.UserId+device.Id)
+	code, err := srv.cache.GetConfirmCode("device", res.UserId+device.Id)
 	assert.NotEmpty(t, code)
 	assert.Nil(t, err)
 
 	fmt.Printf("Confirmation code is %v\n", code)
 
-	dbDevices, err := srv.Db.GetUserDevices(res.UserId)
+	dbDevices, err := srv.db.GetUserDevices(res.UserId)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(dbDevices))
 
-	cacheDevice, err := srv.Cache.FindDevice(res.UserId, "d2")
+	cacheDevice, err := srv.cache.FindDevice(res.UserId, "d2")
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheDevice)
 	assert.Equal(t, false, cacheDevice.IsConfirmed)

@@ -1,9 +1,11 @@
 package profile
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gavrilaf/spawn/pkg/api"
+	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	"github.com/gin-gonic/gin"
 	//"github.com/sirupsen/logrus"
 )
@@ -42,14 +44,12 @@ func (pi ProfileApiImpl) ConfirmDevice(c *gin.Context) {
 		return
 	}
 
-	code, err := pi.Cache.GetConfirmCode("device", session.UserID+session.DeviceID)
+	_, err = pi.Backend.Client.DoConfirm(context.Background(), &pb.ConfirmRequest{
+		Code: req.Code,
+		Kind: "device"})
+
 	if err != nil {
 		pi.handleError(c, http.StatusInternalServerError, err)
-		return
-	}
-
-	if code != req.Code {
-		pi.handleError(c, http.StatusInternalServerError, errInvalidConfirm)
 		return
 	}
 
