@@ -1,10 +1,11 @@
 package auth
 
 import (
+	"github.com/gavrilaf/spawn/pkg/api"
+	db "github.com/gavrilaf/spawn/pkg/dbx/model"
 	"github.com/gavrilaf/spawn/pkg/errx"
-
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
 	"net/http"
@@ -14,10 +15,29 @@ import (
 
 //type
 type Middleware struct {
-	Timeout    time.Duration
-	MaxRefresh time.Duration
-	Stg        Storage
-	Log        *logrus.Logger
+	timeout    time.Duration
+	maxRefresh time.Duration
+	storage    Storage
+}
+
+func CreateMiddleware(bridge *api.Bridge) *Middleware {
+	return &Middleware{
+		timeout:    time.Minute,
+		maxRefresh: time.Hour,
+		storage:    StorageImpl{Bridge: bridge}}
+}
+
+func CreateMockMiddleware() *Middleware {
+	return &Middleware{
+		timeout:    time.Minute,
+		maxRefresh: time.Hour,
+		storage:    storageMock}
+}
+
+func (mw *Middleware) Close() {
+	if mw.storage != nil {
+		mw.storage.Close()
+	}
 }
 
 // MiddlewareFunc makes AuthMiddleware implement the Middleware interface.
@@ -35,7 +55,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 		}
 
 		claims := ClaimsFromToken(token)
-		session, err := mw.Stg.FindSession(claims.SessionID())
+		session, err := mw.storage.FindSession(claims.SessionID())
 		if err != nil {
 			mw.HandleError(c, http.StatusUnauthorized, err)
 			return
@@ -108,7 +128,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	mw.Log.Infof("User %v registered", registerVals.Username)
+	log.Infof("User %v registered", registerVals.Username)
 	c.JSON(http.StatusOK, token.ToMap())
 }
 
@@ -117,7 +137,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 
-	mw.Log.Errorf("auth.HandleError, code=%d, err=%v", httpCode, err)
+	log.Errorf("auth error, code=%d, err=%v", httpCode, err)
 	errJson := errx.Error2Json(err, errScope)
 
 	c.JSON(httpCode, gin.H{"error": errJson})
@@ -129,7 +149,7 @@ func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
 func (mw *Middleware) parseToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		claims := ClaimsFromToken(token)
-		client, err := mw.Stg.FindClient(claims.ClientID())
+		client, err := mw.storage.FindClient(claims.ClientID())
 		if err != nil {
 			return nil, err
 		}
@@ -151,4 +171,9 @@ func (mw *Middleware) jwtFromHeader(c *gin.Context, key string) (string, error) 
 	}
 
 	return parts[1], nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+func (mw *Middleware) getClient(id string) (*db.Client, error) {
+	return mw.storage.FindClient(id)
 }

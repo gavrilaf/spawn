@@ -7,12 +7,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type StorageBridge struct {
+type Bridge struct {
 	Cache   cache.Cache
 	Backend *pb.BackendBridge
 }
 
-func NewBridge(en *env.Environment) *StorageBridge {
+func CreateBridge(en *env.Environment) *Bridge {
 	log.Infof("Starting storage with environment: %v", en.GetName())
 
 	cache, err := cache.Connect(en)
@@ -29,5 +29,15 @@ func NewBridge(en *env.Environment) *StorageBridge {
 	}
 	log.Infof("Backend connection, ok")
 
-	return &StorageBridge{Cache: cache, Backend: backend}
+	return &Bridge{Cache: cache, Backend: backend}
+}
+
+func (p *Bridge) Close() {
+	if p.Cache != nil {
+		p.Cache.Close()
+	}
+
+	if p.Backend != nil {
+		p.Backend.Close()
+	}
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/gavrilaf/spawn/pkg/env"
 )
 
+var storageMock = NewStorageMock(env.GetEnvironment("Test"))
+
 /*
  * Clients storage
  */
@@ -70,13 +72,14 @@ func NewStorageMock(en *env.Environment) *StorageMock {
 }
 
 ///////
+func (c *StorageMock) Close() {}
 
-func (c *StorageMock) FindClient(id string) (db.Client, error) {
+func (c *StorageMock) FindClient(id string) (*db.Client, error) {
 	secret, ok := DefaultClients[id]
 	if !ok {
-		return db.Client{}, errClientUnknown
+		return nil, errClientUnknown
 	}
-	return db.Client{ID: id, Secret: secret}, nil
+	return &db.Client{ID: id, Secret: secret}, nil
 }
 
 func (c *StorageMock) RegisterUser(username string, password string, device db.DeviceInfo) error {

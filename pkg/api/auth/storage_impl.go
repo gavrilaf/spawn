@@ -9,7 +9,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (sb StorageImpl) FindClient(id string) (db.Client, error) {
+func (sb StorageImpl) Close() {
+	if sb.Bridge != nil {
+		sb.Bridge.Close()
+	}
+}
+
+func (sb StorageImpl) FindClient(id string) (*db.Client, error) {
 	var storageMock = NewStorageMock(nil)
 	return storageMock.FindClient(id)
 }

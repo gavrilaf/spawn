@@ -4,6 +4,7 @@ import (
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
 	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
@@ -14,44 +15,44 @@ import (
 )
 
 func (mw *Middleware) HandleLogin(p LoginDTO) (AuthTokenDTO, error) {
-	mw.Log.Infof("auth.HandleLogin, %v", p)
+	log.Infof("auth.HandleLogin, %v", p)
 
 	p.FixLocale()
 
 	// Check client
-	client, err := mw.Stg.FindClient(p.ClientID)
+	client, err := mw.storage.FindClient(p.ClientID)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleLogin, can't find client with ID = %v: (%v)", p.ClientID, err)
+		log.Errorf("auth.HandleLogin, can't find client with ID = %v: (%v)", p.ClientID, err)
 		return AuthTokenDTO{}, err
 	}
 
 	// Check signature
 	if err = p.CheckSignature(client.Secret); err != nil {
-		mw.Log.Errorf("auth.HandleLogin, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
+		log.Errorf("auth.HandleLogin, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
 		return AuthTokenDTO{}, errInvalidSignature
 	}
 
 	// Check user
-	user, err := mw.Stg.FindUser(p.Username)
+	user, err := mw.storage.FindUser(p.Username)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleLogin, find user error: (%v)", err)
+		log.Errorf("auth.HandleLogin, find user error: (%v)", err)
 		return AuthTokenDTO{}, err
 	}
 
 	if user == nil {
-		mw.Log.Errorf("auth.HandleLogin, unknown user: (%v)", p.Username)
+		log.Errorf("auth.HandleLogin, unknown user: (%v)", p.Username)
 		return AuthTokenDTO{}, errUserUnknown
 	}
 
 	if !p.CheckPassword(user.PasswordHash) {
-		mw.Log.Errorf("auth.HandleLogin, invalid password for %v", p.Username)
+		log.Errorf("auth.HandleLogin, invalid password for %v", p.Username)
 		return AuthTokenDTO{}, errUserUnknown
 	}
 
 	// Check device
-	device, err := mw.Stg.FindDevice(user.ID, p.DeviceID)
+	device, err := mw.storage.FindDevice(user.ID, p.DeviceID)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleLogin, check device error: (%v)", err)
+		log.Errorf("auth.HandleLogin, check device error: (%v)", err)
 		return AuthTokenDTO{}, err
 	}
 
@@ -61,92 +62,92 @@ func (mw *Middleware) HandleLogin(p LoginDTO) (AuthTokenDTO, error) {
 		newDevice.UserID = user.ID
 		newDevice.IsConfirmed = false
 
-		device, err = mw.Stg.AddDevice(user.ID, newDevice)
+		device, err = mw.storage.AddDevice(user.ID, newDevice)
 		if err != nil {
-			mw.Log.Errorf("auth.HandleLogin, add device: (%v, %v), (%v)", user.ID, p.DeviceID, err)
+			log.Errorf("auth.HandleLogin, add device: (%v, %v), (%v)", user.ID, p.DeviceID, err)
 			return AuthTokenDTO{}, err
 		}
 	} else {
 		// Update device locale if needed
 	}
 
-	return mw.makeLogin(client, *user, *device)
+	return mw.makeLogin(client, user, device)
 }
 
 func (mw *Middleware) HandleRegister(p RegisterDTO) (AuthTokenDTO, error) {
-	mw.Log.Infof("auth.HandleRegister, %v", p)
+	log.Infof("auth.HandleRegister, %v", p)
 
 	p.FixLocale()
 
 	// Check client
-	client, err := mw.Stg.FindClient(p.ClientID)
+	client, err := mw.storage.FindClient(p.ClientID)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleRegister, can't find client with ID = %v: (%v)", p.ClientID, err)
+		log.Errorf("auth.HandleRegister, can't find client with ID = %v: (%v)", p.ClientID, err)
 		return AuthTokenDTO{}, err
 	}
 
 	// Check signature
 	if p.CheckSignature(client.Secret) != nil {
-		mw.Log.Errorf("auth.HandleRegister, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
+		log.Errorf("auth.HandleRegister, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
 		return AuthTokenDTO{}, errInvalidSignature
 	}
 
 	// Check user already registered
-	alredyExist, _ := mw.Stg.FindUser(p.Username)
+	alredyExist, _ := mw.storage.FindUser(p.Username)
 	if alredyExist != nil {
-		mw.Log.Errorf("auth.HandleRegister, user %v already exists", p.Username)
+		log.Errorf("auth.HandleRegister, user %v already exists", p.Username)
 		return AuthTokenDTO{}, errUserAlreadyExist
 	}
 
 	// Create password hash
 	pswHash, err := cryptx.GenerateHashedPassword(p.Password)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleRegister, password generate error %v: (%v)", p.Username, err)
+		log.Errorf("auth.HandleRegister, password generate error %v: (%v)", p.Username, err)
 		return AuthTokenDTO{}, err
 	}
 
-	err = mw.Stg.RegisterUser(p.Username, pswHash, p.CreateDevice())
+	err = mw.storage.RegisterUser(p.Username, pswHash, p.CreateDevice())
 	if err != nil {
-		mw.Log.Errorf("auth.HandleRegister, add to storage error %v: (%v)", p.Username, err)
+		log.Errorf("auth.HandleRegister, add to storage error %v: (%v)", p.Username, err)
 		return AuthTokenDTO{}, err
 	}
 
-	user, err := mw.Stg.FindUser(p.Username)
+	user, err := mw.storage.FindUser(p.Username)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleRegister, find registered user error %v: (%v)", p.Username, err)
+		log.Errorf("auth.HandleRegister, find registered user error %v: (%v)", p.Username, err)
 		return AuthTokenDTO{}, err
 	}
 
-	device, err := mw.Stg.FindDevice(user.ID, p.DeviceID)
+	device, err := mw.storage.FindDevice(user.ID, p.DeviceID)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleRegister, find device error %v: (%v)", p.Username, err)
+		log.Errorf("auth.HandleRegister, find device error %v: (%v)", p.Username, err)
 		return AuthTokenDTO{}, err
 	}
 
-	return mw.makeLogin(client, *user, *device)
+	return mw.makeLogin(client, user, device)
 }
 
 func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	token, _ := mw.parseToken(p.AuthToken)
 	claims := token.Claims.(jwt.MapClaims)
 
-	sessionId := claims["session_id"].(string)
+	sessionID := claims["session_id"].(string)
 	origIat := int64(claims["orig_iat"].(float64))
 
-	mw.Log.Infof("auth.HandleRefresh, sesson = %v, iat = %v", sessionId, origIat)
+	log.Infof("auth.HandleRefresh, sesson = %v, iat = %v", sessionID, origIat)
 
-	if origIat < time.Now().Add(-mw.MaxRefresh).Unix() {
+	if origIat < time.Now().Add(-mw.maxRefresh).Unix() {
 		return AuthTokenDTO{}, errTokenExpired
 	}
 
-	session, err := mw.Stg.FindSession(sessionId)
+	session, err := mw.storage.FindSession(sessionID)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleRefresh, can't find session: (%v)", err)
+		log.Errorf("auth.HandleRefresh, can't find session: (%v)", err)
 		return AuthTokenDTO{}, err
 	}
 
 	if p.RefreshToken != session.RefreshToken {
-		mw.Log.Errorf("auth.HandleRefresh, invalid refresh token!!!")
+		log.Errorf("auth.HandleRefresh, invalid refresh token!!!")
 		return AuthTokenDTO{}, errTokenInvalid
 	}
 
@@ -160,12 +161,12 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	}
 
 	now := time.Now()
-	expire := now.Add(mw.Timeout)
+	expire := now.Add(mw.timeout)
 	claims["exp"] = expire.Unix()
 
 	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
-		mw.Log.Errorf("auth.HandleRefresh, can't create signature %v: (%v)", sessionId, err)
+		log.Errorf("auth.HandleRefresh, can't create signature %v: (%v)", sessionID, err)
 		return AuthTokenDTO{}, err
 	}
 
@@ -190,12 +191,12 @@ func (mw *Middleware) CheckAccess(userId string, clientId string, c *gin.Context
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *Middleware) makeLogin(client db.Client, user mdl.AuthUser, device mdl.AuthDevice) (AuthTokenDTO, error) {
-	sessionId := generateSessionID()
-	refreshToken := generateRefreshToken(sessionId)
+func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *mdl.AuthDevice) (AuthTokenDTO, error) {
+	sessionID := generateSessionID()
+	refreshToken := generateRefreshToken(sessionID)
 
 	session := mdl.Session{
-		ID:                sessionId,
+		ID:                sessionID,
 		RefreshToken:      refreshToken,
 		ClientID:          client.ID,
 		ClientSecret:      client.Secret,
@@ -207,9 +208,9 @@ func (mw *Middleware) makeLogin(client db.Client, user mdl.AuthUser, device mdl.
 		Permissions:       user.Permissions,
 	}
 
-	err := mw.Stg.StoreSession(session)
+	err := mw.storage.StoreSession(session)
 	if err != nil {
-		mw.Log.Errorf("auth.makeLogin, add to storage error (%v), (%v)", session, err)
+		log.Errorf("auth.makeLogin, add to storage error (%v), (%v)", session, err)
 		return AuthTokenDTO{}, err
 	}
 
@@ -218,7 +219,7 @@ func (mw *Middleware) makeLogin(client db.Client, user mdl.AuthUser, device mdl.
 	claims := token.Claims.(jwt.MapClaims)
 
 	now := time.Now()
-	expire := now.Add(mw.Timeout)
+	expire := now.Add(mw.timeout)
 	claims["session_id"] = session.ID
 	claims["aud"] = session.ClientID
 	claims["exp"] = expire.Unix()
@@ -229,7 +230,7 @@ func (mw *Middleware) makeLogin(client db.Client, user mdl.AuthUser, device mdl.
 
 	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
-		mw.Log.Errorf("auth.makeLogin, can't create signature: (%v)", err)
+		log.Errorf("auth.makeLogin, can't create signature: (%v)", err)
 		return AuthTokenDTO{}, err
 	}
 
@@ -252,7 +253,7 @@ func generateSessionID() string {
 	return uuid.NewV4().String()
 }
 
-func generateRefreshToken(sessionId string) string {
-	k, _ := cryptx.GenerateSaltedKey(sessionId)
+func generateRefreshToken(sessionID string) string {
+	k, _ := cryptx.GenerateSaltedKey(sessionID)
 	return hex.EncodeToString(k)
 }

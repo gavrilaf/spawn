@@ -3,7 +3,6 @@ package main
 import (
 	//"net/http"
 	//"os"
-	"time"
 
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
@@ -29,18 +28,14 @@ func main() {
 	environment := env.GetEnvironment("Test")
 
 	//storage := auth.NewStorageMock(environment)
-	storage := api.NewBridge(environment)
-	if storage == nil {
+	apiBridge := api.CreateBridge(environment)
+	if apiBridge == nil {
 		panic("Can not create storage")
 	}
 
-	authMiddleware := &auth.Middleware{
-		Timeout:    time.Minute,
-		MaxRefresh: time.Hour,
-		Stg:        auth.StorageImpl{StorageBridge: storage},
-		Log:        log}
+	authMiddleware := auth.CreateMiddleware(apiBridge)
 
-	profileAPI := profile.ProfileApiImpl{StorageBridge: storage}
+	profileAPI := profile.CreateApi(apiBridge)
 
 	auth := router.Group("/auth")
 	{

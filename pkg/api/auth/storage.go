@@ -7,7 +7,9 @@ import (
 )
 
 type Storage interface {
-	FindClient(id string) (db.Client, error)
+	Close()
+
+	FindClient(id string) (*db.Client, error)
 
 	RegisterUser(username string, password string, device db.DeviceInfo) error
 
@@ -21,5 +23,5 @@ type Storage interface {
 }
 
 type StorageImpl struct {
-	*api.StorageBridge
+	*api.Bridge
 }
