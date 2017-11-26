@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testOnRealEnvironment = true
+
 const (
 	tClientID = "client_test"
 	tDeviveID = "device1"
@@ -59,39 +61,37 @@ func GetLoginDTO(t *testing.T, reg RegisterDTO, mw *Middleware) LoginDTO {
 func DoTestRegistration(t *testing.T, mw *Middleware) {
 	p := GetRegistrationDTO(t, mw)
 
-	_, err := mw.HandleRegister(p)
+	_, err := mw.HandleRegister(p, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	require.Nil(t, err)
 
 	// Already registered
-	_, err = mw.HandleRegister(p)
+	_, err = mw.HandleRegister(p, LoginContext{})
 	require.Equal(t, errUserAlreadyExist, err)
 
 	// Invalid signature
 	p.Signature += "111"
-	_, err = mw.HandleRegister(p)
+	_, err = mw.HandleRegister(p, LoginContext{})
 	require.Equal(t, errInvalidSignature, err)
 }
 
 func DoTestLogin(t *testing.T, mw *Middleware) {
 	reg := GetRegistrationDTO(t, mw)
-	_, err := mw.HandleRegister(reg)
+	_, err := mw.HandleRegister(reg, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	require.Nil(t, err)
 
 	login := GetLoginDTO(t, reg, mw)
 
-	token, err := mw.HandleLogin(login)
+	token, err := mw.HandleLogin(login, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	assert.Nil(t, err)
 	assert.NotNil(t, token)
 
 	reg.Username += "111"
 	login = GetLoginDTO(t, reg, mw)
-	_, err = mw.HandleLogin(login)
+	_, err = mw.HandleLogin(login, LoginContext{})
 	assert.Equal(t, errUserUnknown, err)
 }
 
 ////////////////////////////////////////////////////////////////
-
-var testOnRealEnvironment = false
 
 func TestRegistration(t *testing.T) {
 	DoTestRegistration(t, GetMockMiddleware())

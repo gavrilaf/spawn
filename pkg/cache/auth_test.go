@@ -2,6 +2,7 @@ package cache
 
 import (
 	//"fmt"
+
 	"testing"
 
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
@@ -115,6 +116,12 @@ func TestAuthUser(t *testing.T) {
 	assert.Equal(t, profile.IsLocked, p1.IsLocked)
 	assert.Equal(t, profile.IsEmailConfirmed, p1.IsEmailConfirmed)
 	assert.Equal(t, profile.Is2FARequired, p1.Is2FARequired)
+
+	p2, err := cache.FindUserAuthInfo("unknown-user-name@@@")
+	require.NotNil(t, err)
+	require.Nil(t, p2)
+
+	//fmt.Printf("Error: %v", err)
 }
 
 func TestUserDevices(t *testing.T) {
@@ -157,7 +164,7 @@ func TestUserDevices(t *testing.T) {
 	dd1, _ := cache.FindDevice(profile.ID, "d1")
 	assert.Nil(t, dd1)
 
-	err = cache.SetDevice(profile.ID, db.DeviceInfo{ID: "d3"})
+	err = cache.SetDevice(db.DeviceInfo{ID: "d3", UserID: profile.ID})
 	assert.Nil(t, err)
 
 	d3, _ := cache.FindDevice(profile.ID, "d3")

@@ -30,7 +30,7 @@ func TestRegisterUser(t *testing.T) {
 		Username:     username,
 		PasswordHash: "123456",
 		Device: &pb.Device{
-			Id:     "device-1",
+			ID:     "device-1",
 			Name:   "Test device",
 			Locale: "ru",
 			Lang:   "ru"},
@@ -41,13 +41,13 @@ func TestRegisterUser(t *testing.T) {
 
 	fmt.Printf("Registered user: %v\n", spew.Sdump(res))
 
-	dbUser, err := srv.db.GetUserProfile(res.UserId)
+	dbUser, err := srv.db.GetUserProfile(res.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, dbUser)
 
 	fmt.Printf("Db user: %v\n", spew.Sdump(dbUser))
 
-	dbDevices, err := srv.db.GetUserDevices(res.UserId)
+	dbDevices, err := srv.db.GetUserDevices(res.ID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, 1, len(dbDevices))
@@ -61,7 +61,7 @@ func TestRegisterUser(t *testing.T) {
 
 	fmt.Printf("Cache user: %v\n", spew.Sdump(cacheUser))
 
-	cacheDevice, err := srv.cache.FindDevice(res.UserId, "device-1")
+	cacheDevice, err := srv.cache.FindDevice(res.ID, "device-1")
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheDevice)
 
@@ -75,7 +75,7 @@ func TestAddDeviceUser(t *testing.T) {
 	username := uuid.NewV4().String() + "@spawn.com"
 
 	device := pb.Device{
-		Id:     "d1",
+		ID:     "d1",
 		Name:   "Test device",
 		Locale: "ru",
 		Lang:   "ru"}
@@ -89,23 +89,23 @@ func TestAddDeviceUser(t *testing.T) {
 	res, err := srv.CreateUser(context.Background(), &req)
 	assert.Nil(t, err)
 
-	device.Id = "d2"
+	device.ID = "d2"
 	_, err = srv.AddDevice(context.Background(), &pb.AddDeviceRequest{
-		UserId: res.UserId,
+		UserID: res.ID,
 		Device: &device})
 	assert.Nil(t, err)
 
-	code, err := srv.cache.GetConfirmCode("device", res.UserId+device.Id)
+	code, err := srv.cache.GetConfirmCode("device", res.ID+device.ID)
 	assert.NotEmpty(t, code)
 	assert.Nil(t, err)
 
 	fmt.Printf("Confirmation code is %v\n", code)
 
-	dbDevices, err := srv.db.GetUserDevices(res.UserId)
+	dbDevices, err := srv.db.GetUserDevices(res.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(dbDevices))
 
-	cacheDevice, err := srv.cache.FindDevice(res.UserId, "d2")
+	cacheDevice, err := srv.cache.FindDevice(res.ID, "d2")
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheDevice)
 	assert.Equal(t, false, cacheDevice.IsConfirmed)

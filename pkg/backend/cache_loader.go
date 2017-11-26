@@ -42,6 +42,23 @@ readLoop:
 	srv.wg.Done()
 }
 
-func (srv *Server) LoadProfile(id string) {
+func (srv *Server) UpProfileToCache(id string) {
+	log.Infof("Adding profile to the cache, %v", id)
 
+	profile, err := srv.db.GetUserProfile(id)
+	if err != nil {
+		log.Errorf("Error reading profile: %v", err)
+		return
+	}
+
+	if profile == nil {
+		log.Errorf("Could not find profile: %v", id)
+		return
+	}
+
+	err = srv.cache.SetUserProfile(*profile)
+	if err != nil {
+		log.Errorf("Could not add user profile to the cache: %v", err)
+		return
+	}
 }

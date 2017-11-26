@@ -40,7 +40,8 @@ type Database interface {
 
 	ReadAllUserProfiles() (<-chan *mdl.UserProfile, <-chan error)
 
-	AddDevice(userID string, device mdl.DeviceInfo) error
+	AddDevice(device mdl.DeviceInfo) error
+	UpdateDevice(device mdl.DeviceInfo) error
 	RemoveDevice(userID string, deviceID string) error
 
 	ConfirmDevice(userID string, deviceID string) error
@@ -50,7 +51,7 @@ type Database interface {
 	GetUserDevices(userID string) ([]mdl.DeviceInfo, error)
 	GetUserDevicesEx(userID string) ([]mdl.DeviceInfoEx, error)
 
-	LogUserLogin(userID string, deviceID string, ip string, region string) error
+	LogUserLogin(userID string, deviceID string, userAgent string, ip string, region string) error
 }
 
 //////////////////////////////////////////////////////////////////////////////

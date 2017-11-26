@@ -4,16 +4,22 @@ import "google/protobuf/timestamp.proto";
 
 
 service Spawn {
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+  rpc CreateUser(CreateUserRequest) returns (IDResponse) {}
 	rpc AddDevice(AddDeviceRequest) returns(Empty) {}
 	rpc HandleLogin(LoginRequest) returns(Empty) {}
   rpc DoConfirm(ConfirmRequest) returns(Empty) {}
+  rpc UpdateUserPersonalInfo(UserPersonalInfoRequest) returns(Empty) {}
+  rpc UpdateUserCountry(UserPersonalInfoRequest) returns(Empty) {}
 }
 
 message Empty {}
 
+message IDResponse {
+  string ID = 1;
+}
+
 message Device {
-  string id = 1;
+  string ID = 1;
   string name = 2;
   string locale = 3;
   string lang = 4;
@@ -25,20 +31,17 @@ message CreateUserRequest {
   Device device = 3;
 }
 
-message CreateUserResponse {
-  string userId = 1;
- }
 
 message AddDeviceRequest {
-	string userId = 1;
+	string userID = 1;
 	Device device = 2;
 }
 
 message LoginRequest {
-  string sessionId = 1;
-  string userId = 2;
+  string sessionID = 1;
+  string userID = 2;
   Device device = 3;
-	google.protobuf.Timestamp loginTime = 4;
+  string userAgent = 4;
 	string loginIP = 5;
 	string loginRegion = 6;
 }
@@ -49,4 +52,16 @@ message ConfirmRequest {
   string userId = 3;
   string deviceId = 4;
   string code = 5;
+}
+
+message UserPersonalInfoRequest {
+  string userID = 1;
+  string firstName = 2;
+  string lastName = 3;
+  google.protobuf.Timestamp birthDate = 4;
+}
+
+message UserCountryRequest {
+  string userID = 1;
+  string country = 2;
 }

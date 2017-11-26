@@ -36,7 +36,7 @@ type Cache interface {
 	SetUserAuthInfo(profile db.UserProfile, devices []db.DeviceInfo) error
 	FindUserAuthInfo(username string) (*mdl.AuthUser, error)
 
-	SetDevice(userID string, device db.DeviceInfo) error
+	SetDevice(device db.DeviceInfo) error
 	DeleteDevice(userId string, deviceId string) error
 	FindDevice(userId string, deviceId string) (*mdl.AuthDevice, error)
 

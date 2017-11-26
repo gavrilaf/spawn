@@ -91,23 +91,51 @@ func TestDeviceManagement(t *testing.T) {
 
 	username := uuid.NewV4().String()
 
-	d1 := mdl.DeviceInfo{ID: "d1", Name: "d1-name", IsConfirmed: true}
-	d2 := mdl.DeviceInfo{ID: "d2", Name: "d2-name", IsConfirmed: false}
-	d3 := mdl.DeviceInfo{ID: "d3", Name: "d3-name", IsConfirmed: false}
+	d1 := mdl.DeviceInfo{ID: "d1", Name: "d1-name", IsConfirmed: true, Lang: "ru", Locale: "es"}
 
 	profile, err := db.RegisterUser(username, "password", d1)
 	require.Nil(t, err)
+
+	d2 := mdl.DeviceInfo{ID: "d2", UserID: profile.ID, Name: "d2-name", IsConfirmed: false}
+	d3 := mdl.DeviceInfo{ID: "d3", UserID: profile.ID, Name: "d3-name", IsConfirmed: false}
 
 	devices, err := db.GetUserDevices(profile.ID)
 	require.Nil(t, err)
 
 	assert.Equal(t, 1, len(devices))
-	assert.Equal(t, devices[0].IsConfirmed, true)
+	assert.Equal(t, true, devices[0].IsConfirmed)
+	assert.Equal(t, "d1-name", devices[0].Name)
+	assert.Equal(t, "ru", devices[0].Lang)
+	assert.Equal(t, "es", devices[0].Locale)
 
-	err = db.AddDevice(profile.ID, d2)
+	d1.UserID = profile.ID
+	d1.Name = "d1-new-name"
+	d1.Lang = "it"
+	d1.Locale = "en"
+
+	assert.Equal(t, []byte(nil), d1.Fingerprint)
+
+	err = db.SetDeviceFingerprint(profile.ID, "d1", []byte("fingerprint"))
+	assert.Nil(t, err)
+
+	err = db.UpdateDevice(d1)
+	assert.Nil(t, err)
+
+	dd1, err := db.GetUserDevice(profile.ID, "d1")
+	assert.Nil(t, err)
+	require.NotNil(t, dd1)
+
+	assert.Equal(t, true, dd1.IsConfirmed)
+	assert.Equal(t, "d1-new-name", dd1.Name)
+	assert.Equal(t, "it", dd1.Lang)
+	assert.Equal(t, "en", dd1.Locale)
+
+	assert.Equal(t, []byte("fingerprint"), dd1.Fingerprint)
+
+	err = db.AddDevice(d2)
 	require.Nil(t, err)
 
-	err = db.AddDevice(profile.ID, d3)
+	err = db.AddDevice(d3)
 	require.Nil(t, err)
 
 	devices, _ = db.GetUserDevices(profile.ID)
@@ -140,6 +168,7 @@ func TestDeviceManagement(t *testing.T) {
 	assert.Equal(t, "d3", devices[0].ID)
 
 	db.RemoveDevice(profile.ID, "d3")
+
 	devices, _ = db.GetUserDevices(profile.ID)
 	assert.Equal(t, 0, len(devices))
 }
@@ -158,6 +187,11 @@ func TestEditUserProfile(t *testing.T) {
 	fmt.Printf("Before ****\n%v\n", spew.Sdump(profile))
 
 	assert.Empty(t, profile.Country)
+
+	phoneNumber := profile.PhoneNumber
+	assert.Equal(t, 0, phoneNumber.CountryCode)
+	assert.Equal(t, "", phoneNumber.Number)
+	assert.Equal(t, false, phoneNumber.IsConfirmed)
 
 	permissions := profile.Permissions
 	assert.False(t, permissions.Is2FARequired)
@@ -188,6 +222,12 @@ func TestEditUserProfile(t *testing.T) {
 	err = db.UpdateUserPersonalInfo(profile.ID, personal)
 	assert.Nil(t, err)
 
+	phoneNumber.CountryCode = 38
+	phoneNumber.Number = "97822345"
+
+	err = db.UpdateUserPhoneNumber(profile.ID, phoneNumber)
+	assert.Nil(t, err)
+
 	pr1, err := db.GetUserProfile(profile.ID)
 	require.Nil(t, err)
 
@@ -203,6 +243,10 @@ func TestEditUserProfile(t *testing.T) {
 	assert.Equal(t, "FirstName", pr1.FirstName)
 	assert.Equal(t, "LastName", pr1.LastName)
 	assert.Equal(t, mdl.BirthdayDate(1961, 10, 2), pr1.GetBirthdayDate())
+
+	phoneNumber = pr1.PhoneNumber
+	assert.Equal(t, 38, phoneNumber.CountryCode)
+	assert.Equal(t, "97822345", phoneNumber.Number)
 }
 
 func TestLoginLog(t *testing.T) {
@@ -227,12 +271,12 @@ func TestLoginLog(t *testing.T) {
 	assert.Equal(t, device.ID, dex[0].ID)
 	assert.Empty(t, dex[0].GetLoginIP())
 
-	err = db.LogUserLogin(profile.ID, "device", "127.0.0.1", "")
+	err = db.LogUserLogin(profile.ID, "device", "user-agent", "127.0.0.1", "")
 	assert.Nil(t, err)
 
 	time.Sleep(time.Second)
 
-	err = db.LogUserLogin(profile.ID, "device", "127.0.0.1", "")
+	err = db.LogUserLogin(profile.ID, "device", "user-agent", "127.0.0.1", "")
 	assert.Nil(t, err)
 
 	dex, err = db.GetUserDevicesEx(profile.ID)

@@ -20,6 +20,8 @@ type Storage interface {
 
 	StoreSession(session mdl.Session) error
 	FindSession(id string) (*mdl.Session, error)
+
+	HandlerLogin(session mdl.Session, ctx LoginContext) error
 }
 
 type StorageImpl struct {

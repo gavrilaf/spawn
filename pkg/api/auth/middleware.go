@@ -22,8 +22,8 @@ type Middleware struct {
 
 func CreateMiddleware(bridge *api.Bridge) *Middleware {
 	return &Middleware{
-		timeout:    time.Minute,
-		maxRefresh: time.Hour,
+		timeout:    time.Hour,
+		maxRefresh: time.Hour * 24,
 		storage:    StorageImpl{Bridge: bridge}}
 }
 
@@ -45,24 +45,24 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := mw.jwtFromHeader(c, TokenLookup)
 		if err != nil {
-			mw.HandleError(c, http.StatusBadRequest, err)
+			mw.handleError(c, http.StatusBadRequest, err)
 		}
 
 		token, err := mw.parseToken(tokenStr)
 		if err != nil {
-			mw.HandleError(c, http.StatusUnauthorized, err)
+			mw.handleError(c, http.StatusUnauthorized, err)
 			return
 		}
 
 		claims := ClaimsFromToken(token)
 		session, err := mw.storage.FindSession(claims.SessionID())
 		if err != nil {
-			mw.HandleError(c, http.StatusUnauthorized, err)
+			mw.handleError(c, http.StatusUnauthorized, err)
 			return
 		}
 
 		if !mw.CheckAccess(session.UserID, session.ClientID, c) {
-			mw.HandleError(c, http.StatusForbidden, errAccessForbiden)
+			mw.handleError(c, http.StatusForbidden, errAccessForbiden)
 			return
 		}
 
@@ -81,13 +81,13 @@ func (mw *Middleware) LoginHandler(c *gin.Context) {
 
 	err := c.Bind(&loginVals)
 	if err != nil {
-		mw.HandleError(c, http.StatusBadRequest, err)
+		mw.handleError(c, http.StatusBadRequest, err)
 		return
 	}
 
-	token, err := mw.HandleLogin(loginVals)
+	token, err := mw.HandleLogin(loginVals, createLoginContext(c))
 	if err != nil {
-		mw.HandleError(c, http.StatusUnauthorized, err)
+		mw.handleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -100,47 +100,44 @@ func (mw *Middleware) RefreshHandler(c *gin.Context) {
 
 	err := c.Bind(&refreshVals)
 	if err != nil {
-		mw.HandleError(c, http.StatusUnauthorized, err)
+		mw.handleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
 	token, err := mw.HandleRefresh(refreshVals)
 	if err != nil {
-		mw.HandleError(c, http.StatusUnauthorized, err)
+		mw.handleError(c, http.StatusUnauthorized, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, token.ToMap())
 }
 
+// RegisterHandler can be used by clients to register and get a jwt token.
 func (mw *Middleware) RegisterHandler(c *gin.Context) {
 	var registerVals RegisterDTO
 
 	err := c.Bind(&registerVals)
 	if err != nil {
-		mw.HandleError(c, http.StatusBadRequest, err)
+		mw.handleError(c, http.StatusBadRequest, err)
 		return
 	}
 
-	token, err := mw.HandleRegister(registerVals)
+	token, err := mw.HandleRegister(registerVals, createLoginContext(c))
 	if err != nil {
-		mw.HandleError(c, http.StatusInternalServerError, err)
+		mw.handleError(c, http.StatusInternalServerError, err)
 		return
 	}
 
-	log.Infof("User %v registered", registerVals.Username)
 	c.JSON(http.StatusOK, token.ToMap())
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (mw *Middleware) HandleError(c *gin.Context, httpCode int, err error) {
+func (mw *Middleware) handleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
-
 	log.Errorf("auth error, code=%d, err=%v", httpCode, err)
-	errJson := errx.Error2Json(err, errScope)
-
-	c.JSON(httpCode, gin.H{"error": errJson})
+	c.JSON(httpCode, gin.H{"error": errx.Error2Json(err, errScope)})
 	c.Abort()
 }
 
@@ -176,4 +173,11 @@ func (mw *Middleware) jwtFromHeader(c *gin.Context, key string) (string, error) 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 func (mw *Middleware) getClient(id string) (*db.Client, error) {
 	return mw.storage.FindClient(id)
+}
+
+func createLoginContext(c *gin.Context) LoginContext {
+	return LoginContext{
+		IP:        c.ClientIP(),
+		UserAgent: c.Request.Header.Get("User-Agent"),
+	}
 }

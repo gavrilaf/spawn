@@ -47,8 +47,8 @@ func main() {
 	profile := router.Group("profile")
 	profile.Use(authMiddleware.MiddlewareFunc())
 	{
-		profile.GET("/whoami", profileAPI.WhoAmI)
 		profile.POST("/confirm_device", profileAPI.ConfirmDevice)
+		profile.GET("/", profileAPI.GetUserProfile)
 	}
 
 	//service := router.Group("/service")

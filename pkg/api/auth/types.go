@@ -62,6 +62,13 @@ type AuthTokenDTO struct {
 	Permissions  PermissionsDTO `structs:"permissions"`
 }
 
+type LoginContext struct {
+	UserAgent  string
+	IP         string
+	Region     string
+	DeviceName string
+}
+
 ////////////////////////////////////////////////////////////////////////
 
 func (p *LoginDTO) FixLocale() {

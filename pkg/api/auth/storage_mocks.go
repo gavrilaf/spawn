@@ -118,7 +118,7 @@ func (c *StorageMock) AddDevice(userId string, device db.DeviceInfo) (*mdl.AuthD
 func (c *StorageMock) FindUser(username string) (*mdl.AuthUser, error) {
 	user, ok := c.users[username]
 	if !ok {
-		return nil, nil
+		return nil, errUserUnknown
 	}
 
 	return &user, nil
@@ -127,7 +127,7 @@ func (c *StorageMock) FindUser(username string) (*mdl.AuthUser, error) {
 func (c *StorageMock) FindDevice(userId string, deviceId string) (*mdl.AuthDevice, error) {
 	devices, ok := c.devices[userId]
 	if !ok {
-		return nil, nil
+		return nil, errDeviceUnknown
 	}
 
 	d, ok := devices[deviceId]
@@ -149,4 +149,8 @@ func (c *StorageMock) FindSession(id string) (*mdl.Session, error) {
 		return nil, errSessionNotFound
 	}
 	return &session, nil
+}
+
+func (c *StorageMock) HandlerLogin(session mdl.Session, ctx LoginContext) error {
+	return nil
 }

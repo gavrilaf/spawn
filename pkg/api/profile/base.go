@@ -9,8 +9,10 @@ import (
 )
 
 type ProfileApi interface {
-	WhoAmI(c *gin.Context)
 	ConfirmDevice(c *gin.Context)
+	GetUserProfile(c *gin.Context)
+	UpdateUserCountry(c *gin.Context)
+	UpdateUserPersonalInfo(c *gin.Context)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,7 +22,7 @@ type ProfileApiImpl struct {
 }
 
 func CreateApi(bridge *api.Bridge) ProfileApi {
-	return ProfileApiImpl{bridge}
+	return ProfileApiImpl{Bridge: bridge}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
