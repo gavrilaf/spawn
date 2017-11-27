@@ -49,6 +49,8 @@ func main() {
 	{
 		profile.POST("/confirm_device", profileAPI.ConfirmDevice)
 		profile.GET("/", profileAPI.GetUserProfile)
+
+		profile.PUT("/country", profileAPI.UpdateUserCountry)
 	}
 
 	//service := router.Group("/service")

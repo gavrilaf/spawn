@@ -58,7 +58,6 @@ func (p UserProfile) ToMap() map[string]interface{} {
 			m["birth_date"] = p.GetBirthDate().Format(time.RFC3339)
 			pm["personal_info"] = m
 		}
-
 	}
 
 	return pm

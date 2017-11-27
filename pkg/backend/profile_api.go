@@ -24,6 +24,26 @@ func (srv *Server) UpdateUserPersonalInfo(ctx context.Context, req *pb.UserPerso
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (srv *Server) UpdateUserCountry(ctx context.Context, eq *pb.UserPersonalInfoRequest) (*pb.Empty, error) {
-	return nil, fmt.Errorf("not implemented")
+func (srv *Server) UpdateUserCountry(ctx context.Context, req *pb.UserCountryRequest) (*pb.Empty, error) {
+	go func() {
+		log.Infof("UpdateUserCountry: %v", spew.Sdump(req))
+		err := srv.db.UpdateUserCountry(req.UserID, req.Country)
+		if err != nil {
+			log.Errorf("Could not update country in db: %v", err)
+			return
+		}
+
+		profile, err := srv.db.GetUserProfile(req.UserID)
+		if err != nil {
+			log.Errorf("Could not read profile from db: %v", err)
+			return
+		}
+
+		err = srv.cache.SetUserProfile(*profile)
+		if err != nil {
+			log.Errorf("Could not read profile in cache: %v", err)
+		}
+	}()
+
+	return &pb.Empty{}, nil
 }

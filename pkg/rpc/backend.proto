@@ -8,8 +8,8 @@ service Spawn {
 	rpc AddDevice(AddDeviceRequest) returns(Empty) {}
 	rpc HandleLogin(LoginRequest) returns(Empty) {}
   rpc DoConfirm(ConfirmRequest) returns(Empty) {}
+  rpc UpdateUserCountry(UserCountryRequest) returns(Empty) {}
   rpc UpdateUserPersonalInfo(UserPersonalInfoRequest) returns(Empty) {}
-  rpc UpdateUserCountry(UserPersonalInfoRequest) returns(Empty) {}
 }
 
 message Empty {}

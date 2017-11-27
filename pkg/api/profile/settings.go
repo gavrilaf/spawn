@@ -45,7 +45,7 @@ func (p ProfileApiImpl) ConfirmDevice(c *gin.Context) {
 		return
 	}
 
-	log.Errorf("ProfileApi.ConfirmDevice, device (%v, %v) is confirmed", session.UserID, session.DeviceID)
+	log.Infof("ProfileApi.ConfirmDevice, device (%v, %v) is confirmed", session.UserID, session.DeviceID)
 
 	c.JSON(200, api.EmptySuccessResponse)
 }
