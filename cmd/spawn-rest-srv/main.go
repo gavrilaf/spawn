@@ -51,13 +51,8 @@ func main() {
 		profile.GET("/", profileAPI.GetUserProfile)
 
 		profile.PUT("/country", profileAPI.UpdateUserCountry)
+		profile.PUT("/personal", profileAPI.UpdateUserPersonalInfo)
 	}
-
-	//service := router.Group("/service")
-	//utils.Use(authMiddleware.MiddlewareFunc())
-	//{
-	//utils.GET("/whoami", api.WhoAmI)
-	//}
 
 	router.Run()
 }
