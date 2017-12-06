@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/gavrilaf/spawn/pkg/api"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -137,7 +137,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 func (mw *Middleware) handleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 	log.Errorf("auth error, code=%d, err=%v", httpCode, err)
-	c.JSON(httpCode, gin.H{"error": errx.Error2Json(err, errScope)})
+	c.JSON(httpCode, gin.H{"error": errx.Error2Map(err, errScope)})
 	c.Abort()
 }
 

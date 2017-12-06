@@ -2,27 +2,22 @@ package cache
 
 import (
 	//"fmt"
-	"fmt"
+
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
-	"github.com/gavrilaf/spawn/pkg/env"
-	"github.com/gavrilaf/spawn/pkg/errx"
+	//"github.com/davecgh/go-spew/spew"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	//"github.com/gavrilaf/spawn/pkg/env"
+	//"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/utils"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	//"github.com/stretchr/testify/require"
+	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
-func getUserProfileCache(t *testing.T) Cache {
-	cache, err := Connect(env.GetEnvironment("Test"))
-	require.Nil(t, err)
-	require.NotNil(t, cache)
-	return cache
-}
-
-func TestUserProfile(t *testing.T) {
-	cache := getUserProfileCache(t)
+func TestBridge_UserProfile(t *testing.T) {
+	cache := getCache(t)
 	defer cache.Close()
 
 	id := uuid.NewV4().String()
@@ -45,7 +40,7 @@ func TestUserProfile(t *testing.T) {
 		PersonalInfo: db.PersonalInfo{
 			FirstName: "FirstName",
 			LastName:  "LastName",
-			BirthDate: db.BirthdayDate(1966, 4, 21)}}
+			BirthDate: utils.CreateDate(1966, 4, 21)}}
 
 	err := cache.SetUserProfile(profile)
 	assert.Nil(t, err)
@@ -59,27 +54,23 @@ func TestUserProfile(t *testing.T) {
 	assert.Equal(t, "FirstName", pr1.FirstName)
 	assert.Equal(t, "067876123", pr1.PhoneNumber.Number)
 
-	fmt.Printf("DB profile: %v\n", spew.Sdump(profile))
-	fmt.Printf("Cache profile: %v\n", spew.Sdump(pr1))
+	//fmt.Printf("DB profile: %v\n", spew.Sdump(profile))
+	//fmt.Printf("Cache profile: %v\n", spew.Sdump(pr1))
 
 	assert.Equal(t, profile.BirthDate, pr1.GetBirthDate())
 }
 
 func TestUserProfileNotFound(t *testing.T) {
-	cache := getUserProfileCache(t)
+	cache := getCache(t)
 	defer cache.Close()
 
 	id := uuid.NewV4().String() + "-not-found"
 
-	pr1, err := cache.GetUserProfile(id)
-	assert.Nil(t, pr1)
+	p, err := cache.GetUserProfile(id)
+	assert.Nil(t, p)
 	assert.NotNil(t, err)
 
-	switch e2 := err.(type) {
-	case errx.Err:
-		assert.Equal(t, reasonNotFound, e2.Reason())
-	default:
-		assert.False(t, true)
-	}
-
+	scope, reason := errx.GetErrorReason(err)
+	assert.Equal(t, Scope, scope)
+	assert.Equal(t, errx.ReasonNotFound, reason)
 }

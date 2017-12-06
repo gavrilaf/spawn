@@ -3,14 +3,17 @@ package cache
 import (
 	"github.com/garyburd/redigo/redis"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/env"
 )
 
-type Bridge struct {
-	conn redis.Conn
-}
+const (
+	Scope = "read-model"
+)
 
+// TODO: Rename package to rmd (read model)
+
+// Connect to the spawn read model
 func Connect(en *env.Environment) (Cache, error) {
 
 	//redis://[:password@]host[:port][/db-number][?option=value]
@@ -50,6 +53,16 @@ type Cache interface {
 	GetUserProfile(userID string) (*mdl.UserProfile, error)
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+type Bridge struct {
+	conn redis.Conn
+}
+
 func (cache *Bridge) Close() error {
+	if cache == nil || cache.conn == nil {
+		return nil
+	}
+
 	return cache.conn.Close()
 }

@@ -3,7 +3,8 @@ package cache
 import (
 	"github.com/garyburd/redigo/redis"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
 const (
@@ -17,16 +18,26 @@ func clientRedisID(id string) string {
 }
 
 func (cache *Bridge) AddClient(client db.Client) error {
-	_, err := cache.conn.Do("SET", clientRedisID(client.ID), client.Secret)
+	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(clientRedisID(client.ID)).AddFlat(&client)...)
 	return err
 }
 
 func (cache *Bridge) FindClient(id string) (*db.Client, error) {
-	secret, err := redis.Bytes(cache.conn.Do("GET", clientRedisID(id)))
+	v, err := redis.Values(cache.conn.Do("HGETALL", clientRedisID(id)))
+
 	if err != nil {
 		return nil, err
 	}
-	return &db.Client{id, secret}, nil
+	if len(v) == 0 {
+		return nil, errx.ErrKeyNotFound(Scope, sessionRedisID(id))
+	}
+
+	var client db.Client
+	if err := redis.ScanStruct(v, &client); err != nil {
+		return nil, err
+	}
+
+	return &client, nil
 }
 
 // Session
@@ -41,13 +52,14 @@ func (cache *Bridge) AddSession(session mdl.Session) error {
 }
 
 func (cache *Bridge) FindSession(id string) (*mdl.Session, error) {
-	v, err := redis.Values(cache.conn.Do("HGETALL", sessionRedisID(id)))
+	key := sessionRedisID(id)
+	v, err := redis.Values(cache.conn.Do("HGETALL", key))
 
 	if err != nil {
 		return nil, err
 	}
 	if len(v) == 0 {
-		return nil, errNotFound(sessionRedisID(id))
+		return nil, errx.ErrKeyNotFound(Scope, key)
 	}
 
 	var session mdl.Session
@@ -88,14 +100,14 @@ func (cache *Bridge) SetUserAuthInfo(profile db.UserProfile, devices []db.Device
 }
 
 func (cache *Bridge) FindUserAuthInfo(username string) (*mdl.AuthUser, error) {
-	v, err := redis.Values(cache.conn.Do("HGETALL", authUserID(username)))
+	key := authUserID(username)
+	v, err := redis.Values(cache.conn.Do("HGETALL", key))
 
 	if err != nil {
 		return nil, err
 	}
-
 	if len(v) == 0 {
-		return nil, errNotFound(authUserID(username))
+		return nil, errx.ErrKeyNotFound(Scope, key)
 	}
 
 	var user mdl.AuthUser
@@ -126,12 +138,12 @@ func (cache *Bridge) DeleteDevice(userID string, deviceID string) error {
 func (cache *Bridge) FindDevice(userID string, deviceID string) (*mdl.AuthDevice, error) {
 	key := authDeviceID(userID, deviceID)
 	v, err := redis.Values(cache.conn.Do("HGETALL", key))
+
 	if err != nil {
 		return nil, err
 	}
-
 	if len(v) == 0 {
-		return nil, errNotFound(key)
+		return nil, errx.ErrKeyNotFound(Scope, key)
 	}
 
 	var d mdl.AuthDevice

@@ -4,7 +4,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
@@ -195,7 +195,7 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 			IsEmailConfirmed:  session.IsEmailConfirmed,
 			Is2FARequired:     session.Is2FARequired,
 			IsLocked:          session.IsLocked,
-			Scopes:            session.Scopes,
+			Scopes:            session.Scope,
 		}}, nil
 }
 
@@ -265,7 +265,7 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 			IsEmailConfirmed:  user.IsEmailConfirmed,
 			Is2FARequired:     user.Is2FARequired,
 			IsLocked:          user.IsLocked,
-			Scopes:            user.Scopes,
+			Scopes:            user.Scope,
 		}}, nil
 }
 

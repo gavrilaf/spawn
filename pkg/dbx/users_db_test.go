@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	//"github.com/davecgh/go-spew/spew"
+	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/utils"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +23,44 @@ func GetBridge(t *testing.T) Database {
 	return db
 }
 
-func TestRegisterProfile(t *testing.T) {
+func TestBridge_GetClients(t *testing.T) {
+	db := GetBridge(t)
+	defer db.Close()
+
+	clients, err := db.GetClients()
+	assert.Nil(t, err)
+	assert.NotEmpty(t, clients)
+}
+
+func TestBridge_NotFound(t *testing.T) {
+	db := GetBridge(t)
+	defer db.Close()
+
+	new_id := uuid.NewV4().String()
+
+	check := func(e error) {
+		scope, reason := errx.GetErrorReason(e)
+		assert.Equal(t, Scope, scope)
+		assert.Equal(t, errx.ReasonNotFound, reason)
+	}
+
+	p, err := db.GetUserProfile(new_id)
+	assert.Nil(t, p)
+	require.NotNil(t, err)
+	check(err)
+
+	p, err = db.FindUserProfile(new_id)
+	assert.Nil(t, p)
+	require.NotNil(t, err)
+	check(err)
+
+	pd, err := db.GetUserDevice(new_id, new_id)
+	assert.Nil(t, pd)
+	require.NotNil(t, err)
+	check(err)
+}
+
+func TestBridge_RegisterProfile(t *testing.T) {
 	db := GetBridge(t)
 	defer db.Close()
 
@@ -184,7 +223,7 @@ func TestEditUserProfile(t *testing.T) {
 	profile, err := db.RegisterUser(username, "password", device)
 	require.Nil(t, err)
 
-	fmt.Printf("Before ****\n%v\n", spew.Sdump(profile))
+	//fmt.Printf("Before ****\n%v\n", spew.Sdump(profile))
 
 	assert.Empty(t, profile.Country)
 
@@ -197,12 +236,12 @@ func TestEditUserProfile(t *testing.T) {
 	assert.False(t, permissions.Is2FARequired)
 	assert.False(t, permissions.IsLocked)
 	assert.False(t, permissions.IsEmailConfirmed)
-	assert.Equal(t, int64(0), permissions.Scopes)
+	assert.Equal(t, int64(0), permissions.Scope)
 
 	personal := profile.PersonalInfo
 	assert.Empty(t, personal.FirstName)
 	assert.Empty(t, personal.LastName)
-	assert.Equal(t, mdl.EmptyBirthDate, profile.GetBirthdayDate())
+	assert.Equal(t, utils.EmptyBirthdayDate, personal.BirthDate)
 
 	err = db.UpdateUserCountry(profile.ID, "en")
 	assert.Nil(t, err)
@@ -210,14 +249,14 @@ func TestEditUserProfile(t *testing.T) {
 	permissions.Is2FARequired = true
 	permissions.IsLocked = true
 	permissions.IsEmailConfirmed = true
-	permissions.Scopes = 2
+	permissions.Scope = 2
 
 	err = db.UpdateUserPermissions(profile.ID, permissions)
 	assert.Nil(t, err)
 
 	personal.FirstName = "FirstName"
 	personal.LastName = "LastName"
-	personal.BirthDate = mdl.BirthdayDate(1961, 10, 2)
+	personal.BirthDate = utils.CreateDate(1961, 10, 2)
 
 	err = db.UpdateUserPersonalInfo(profile.ID, personal)
 	assert.Nil(t, err)
@@ -231,18 +270,18 @@ func TestEditUserProfile(t *testing.T) {
 	pr1, err := db.GetUserProfile(profile.ID)
 	require.Nil(t, err)
 
-	fmt.Printf("After ****\n%v\n", spew.Sdump(pr1))
+	//fmt.Printf("After ****\n%v\n", spew.Sdump(pr1))
 
 	assert.Equal(t, "en", pr1.Country)
 
 	assert.True(t, pr1.Is2FARequired)
 	assert.True(t, pr1.IsLocked)
 	assert.True(t, pr1.IsEmailConfirmed)
-	assert.Equal(t, int64(2), pr1.Scopes)
+	assert.Equal(t, int64(2), pr1.Scope)
 
 	assert.Equal(t, "FirstName", pr1.FirstName)
 	assert.Equal(t, "LastName", pr1.LastName)
-	assert.Equal(t, mdl.BirthdayDate(1961, 10, 2), pr1.GetBirthdayDate())
+	assert.Equal(t, utils.CreateDate(1961, 10, 2), pr1.BirthDate)
 
 	phoneNumber = pr1.PhoneNumber
 	assert.Equal(t, 38, phoneNumber.CountryCode)
@@ -264,7 +303,7 @@ func TestLoginLog(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, dex)
 
-	fmt.Printf("Devices ex\n%v\n", spew.Sdump(dex))
+	//fmt.Printf("Devices ex\n%v\n", spew.Sdump(dex))
 
 	assert.Equal(t, 1, len(dex))
 	assert.Equal(t, profile.ID, dex[0].UserID)
@@ -283,11 +322,10 @@ func TestLoginLog(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, dex)
 
-	fmt.Printf("Devices ex\n%v\n", spew.Sdump(dex))
+	//fmt.Printf("Devices ex\n%v\n", spew.Sdump(dex))
 
 	assert.Equal(t, 1, len(dex))
 	assert.Equal(t, profile.ID, dex[0].UserID)
 	assert.Equal(t, device.ID, dex[0].ID)
 	assert.Equal(t, "127.0.0.1", dex[0].GetLoginIP())
-
 }

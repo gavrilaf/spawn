@@ -7,13 +7,13 @@ import (
 	"github.com/gavrilaf/spawn/pkg/env"
 	//"github.com/stretchr/testify/assert"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var testOnRealEnvironment = true
+var testOnRealEnvironment = false
 
 const (
 	tClientID = "client_test"

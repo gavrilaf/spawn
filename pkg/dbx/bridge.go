@@ -4,20 +4,20 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // postgres driver module
 
-	"fmt"
-
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
-type Bridge struct {
-	conn *sqlx.DB
-}
+const (
+	Scope = "dbx"
+)
 
+// Connect - connect to spawn database
 func Connect(en *env.Environment) (Database, error) {
 	db, err := sqlx.Connect("postgres", "dbname=spawn host=localhost port=5432 user=postgres sslmode=disable")
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't connect to postgre database: %v", err)
+		return nil, errx.ErrEnvironment(Scope, "Couldn't connect to postgre database: %v", err)
 	}
 
 	return &Bridge{db}, nil
@@ -25,7 +25,9 @@ func Connect(en *env.Environment) (Database, error) {
 
 // Database is an interface to the Spawn storage
 type Database interface {
-	Close()
+	Close() error
+
+	GetClients() ([]mdl.Client, error)
 
 	RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error)
 
@@ -56,10 +58,14 @@ type Database interface {
 
 //////////////////////////////////////////////////////////////////////////////
 
-func (db *Bridge) Close() {
-	if db.conn == nil {
-		return
+type Bridge struct {
+	conn *sqlx.DB
+}
+
+func (db *Bridge) Close() error {
+	if db == nil || db.conn == nil {
+		return nil
 	}
 
-	db.conn.Close()
+	return db.conn.Close()
 }

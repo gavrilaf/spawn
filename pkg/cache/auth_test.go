@@ -6,25 +6,27 @@ import (
 	"testing"
 
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/env"
 
+	"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func getAuthCache(t *testing.T) Cache {
+func getCache(t *testing.T) Cache {
 	cache, err := Connect(env.GetEnvironment("Test"))
 	require.Nil(t, err)
 	require.NotNil(t, cache)
 	return cache
 }
 
-func TestClientCache(t *testing.T) {
-	cache := getAuthCache(t)
+func TestBridge_AddClient(t *testing.T) {
+	cache := getCache(t)
 	defer cache.Close()
 
-	cl := db.Client{"cl-1", []byte("secret")}
+	cl := db.Client{"cl-1", []byte("secret"), true, "desc", 0}
 
 	err := cache.AddClient(cl)
 	require.Nil(t, err)
@@ -33,16 +35,11 @@ func TestClientCache(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, p)
 
-	assert.Equal(t, cl.ID, p.ID)
-	assert.Equal(t, cl.Secret, p.Secret)
-
-	p, err = cache.FindClient("unexisting-client-id-")
-	assert.NotNil(t, err)
-	assert.Nil(t, p)
+	assert.Equal(t, cl, *p)
 }
 
-func TestUserSession(t *testing.T) {
-	cache := getAuthCache(t)
+func TestBridge_AddSession(t *testing.T) {
+	cache := getCache(t)
 	defer cache.Close()
 
 	session := mdl.Session{
@@ -82,8 +79,8 @@ func TestUserSession(t *testing.T) {
 	require.Nil(t, p)
 }
 
-func TestAuthUser(t *testing.T) {
-	cache := getAuthCache(t)
+func TestBridge_SetUserAuthInfo(t *testing.T) {
+	cache := getCache(t)
 	defer cache.Close()
 
 	profile := db.UserProfile{
@@ -124,8 +121,8 @@ func TestAuthUser(t *testing.T) {
 	//fmt.Printf("Error: %v", err)
 }
 
-func TestUserDevices(t *testing.T) {
-	cache := getAuthCache(t)
+func TestBridge_SetDevice(t *testing.T) {
+	cache := getCache(t)
 	defer cache.Close()
 
 	profile := db.UserProfile{
@@ -176,8 +173,8 @@ func TestUserDevices(t *testing.T) {
 	assert.Nil(t, cache.DeleteDevice(profile.ID, "d2"))
 }
 
-func TestConfirmCodes(t *testing.T) {
-	cache := getAuthCache(t)
+func TestBridge_ConfirmCode(t *testing.T) {
+	cache := getCache(t)
 	defer cache.Close()
 
 	err := cache.AddConfirmCode("device", "d-id-1", "123456")
@@ -192,4 +189,42 @@ func TestConfirmCodes(t *testing.T) {
 
 	code, _ = cache.GetConfirmCode("device", "d-id-1")
 	assert.Equal(t, "", code)
+}
+
+func TestBridge_NotFound(t *testing.T) {
+	cache := getCache(t)
+	defer cache.Close()
+
+	new_id := uuid.NewV4().String() + "-not-found"
+
+	check := func(e error) {
+		scope, reason := errx.GetErrorReason(e)
+		assert.Equal(t, Scope, scope)
+		assert.Equal(t, errx.ReasonNotFound, reason)
+	}
+
+	p, err := cache.FindClient(new_id)
+	assert.Nil(t, p)
+	require.NotNil(t, err)
+	check(err)
+
+	p1, err := cache.FindSession(new_id)
+	assert.Nil(t, p1)
+	require.NotNil(t, err)
+	check(err)
+
+	p2, err := cache.FindUserAuthInfo(new_id)
+	assert.Nil(t, p2)
+	require.NotNil(t, err)
+	check(err)
+
+	p3, err := cache.FindDevice(new_id, new_id)
+	assert.Nil(t, p3)
+	require.NotNil(t, err)
+	check(err)
+
+	p4, err := cache.GetUserProfile(new_id)
+	assert.Nil(t, p4)
+	require.NotNil(t, err)
+	check(err)
 }

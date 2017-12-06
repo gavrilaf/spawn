@@ -1,11 +1,11 @@
-package backend
+package utils
 
 import (
 	"sync"
 	"time"
 )
 
-func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
+func WaitWithTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 	c := make(chan struct{})
 	go func() {
 		defer close(c)

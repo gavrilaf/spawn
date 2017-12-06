@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/env"
 )
 

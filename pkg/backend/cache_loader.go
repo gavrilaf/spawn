@@ -6,10 +6,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (srv *Server) LoadAuthCache() {
+func (srv *Server) loadAuthCache() {
 	log.Infof("Loading users auth cache")
 	profiles, errs := srv.db.ReadAllUserProfiles()
 	counter := 0
+
 readLoop:
 	for {
 		select {
@@ -38,27 +39,25 @@ readLoop:
 			break readLoop
 		}
 	}
+
 	log.Infof("Auth cache init ok, loaded %d users", counter)
 	srv.wg.Done()
 }
 
-func (srv *Server) UpProfileToCache(id string) {
-	log.Infof("Adding profile to the cache, %v", id)
-
+func (srv *Server) updateCachedUserProfile(id string) error {
 	profile, err := srv.db.GetUserProfile(id)
 	if err != nil {
-		log.Errorf("Error reading profile: %v", err)
-		return
-	}
-
-	if profile == nil {
-		log.Errorf("Could not find profile: %v", id)
-		return
+		log.Errorf("Could not read profile from db: %v", err)
+		return err
 	}
 
 	err = srv.cache.SetUserProfile(*profile)
 	if err != nil {
-		log.Errorf("Could not add user profile to the cache: %v", err)
-		return
+		log.Errorf("Could not read profile in cache: %v", err)
+		return err
 	}
+
+	// Notify about update
+
+	return nil
 }

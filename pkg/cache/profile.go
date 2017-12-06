@@ -3,7 +3,8 @@ package cache
 import (
 	"github.com/garyburd/redigo/redis"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
 func profileRedisID(id string) string {
@@ -18,14 +19,13 @@ func (cache *Bridge) SetUserProfile(profile db.UserProfile) error {
 
 func (cache *Bridge) GetUserProfile(userID string) (*mdl.UserProfile, error) {
 	key := profileRedisID(userID)
-
 	v, err := redis.Values(cache.conn.Do("HGETALL", key))
+
 	if err != nil {
 		return nil, err
 	}
-
 	if len(v) == 0 {
-		return nil, errNotFound(key)
+		return nil, errx.ErrKeyNotFound(Scope, key)
 	}
 
 	var profile mdl.UserProfile

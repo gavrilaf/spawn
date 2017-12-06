@@ -6,7 +6,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 )
 
 const (

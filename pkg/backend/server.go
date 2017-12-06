@@ -7,6 +7,7 @@ import (
 	"github.com/gavrilaf/spawn/pkg/cache"
 	"github.com/gavrilaf/spawn/pkg/dbx"
 	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -52,9 +53,9 @@ func (srv *Server) StartServer() {
 
 	srv.wg.Add(1)
 
-	go srv.LoadAuthCache()
+	go srv.loadAuthCache()
 
-	timeout := waitTimeout(srv.wg, 10*time.Second)
+	timeout := utils.WaitWithTimeout(srv.wg, 10*time.Second)
 
 	if srv.state == StateLoading {
 		if timeout {
@@ -70,6 +71,20 @@ func (srv *Server) StartServer() {
 
 func (srv *Server) GetServerState() ServerState {
 	return srv.state
+}
+
+func (srv *Server) Close() {
+	if srv.db != nil {
+		err := srv.db.Close()
+		log.Info("Closed database with err: %v", err)
+	}
+
+	if srv.cache != nil {
+		err := srv.cache.Close()
+		log.Info("Closed read model with err: %v", err)
+	}
+
+	srv.state = StateCreated
 }
 
 func (srv *Server) updateServerState(newState ServerState) {

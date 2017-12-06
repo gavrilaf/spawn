@@ -5,8 +5,13 @@ import (
 )
 
 const (
-	ReasonDefault = "default"
-	ReasonSystem  = "system"
+	ScopeUnknown = "unknown"
+
+	ReasonSystem         = "system"
+	ReasonNotFound       = "not-found"
+	ReasonNotImplemented = "not-implemented"
+	ReasonInvalidFormat  = "invalid-format"
+	ReasonEnvironment    = "environment"
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,35 +47,58 @@ func (e Err) Error() string {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-func (e Err) Json() map[string]string {
-	j := map[string]string{"scope": e.scope, "reason": e.reason}
+func New(scope string, reason string) Err {
+	return Err{scope: scope, reason: reason, msg: ""}
+}
+
+func NewFmt(scope string, reason string, format string, args ...interface{}) Err {
+	return Err{scope: scope, reason: reason, msg: fmt.Sprintf(format, args...)}
+}
+
+func WrapErr(scope string, err error) Err {
+	return Err{scope: scope, reason: ReasonSystem, msg: err.Error()}
+}
+
+func ErrNotFound(scope string, format string, args ...interface{}) Err {
+	return NewFmt(scope, ReasonNotFound, format, args...)
+}
+
+func ErrEnvironment(scope string, format string, args ...interface{}) Err {
+	return NewFmt(scope, ReasonEnvironment, format, args...)
+}
+
+func ErrKeyNotFound(scope string, key string) Err {
+	return NewFmt(scope, ReasonNotFound, "Key %v not found", key)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+// GetErrorReason returns Scope & Reason for error. For system error return (ScopeUnknown, ReasonSystem)
+func GetErrorReason(err error) (string, string) {
+	switch err2 := err.(type) {
+	case Err:
+		return err2.Scope(), err2.Reason()
+	default:
+		return ScopeUnknown, ReasonSystem
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+// Encodable
+func (e Err) ToMap() map[string]interface{} {
+	j := map[string]interface{}{"scope": e.scope, "reason": e.reason}
 	if e.msg != "" {
 		j["message"] = e.msg
 	}
 	return j
 }
 
-func Error2Json(e error, defScope string) map[string]string {
+func Error2Map(e error, defScope string) map[string]interface{} {
 	switch e2 := e.(type) {
 	case Err:
-		return e2.Json()
+		return e2.ToMap()
 	default:
-		return NewWithErr(defScope, e).Json()
+		return WrapErr(defScope, e).ToMap()
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////
-
-func New(scope string, reason string) Err {
-	return Err{scope: scope, reason: reason, msg: ""}
-}
-
-func NewWithFmt(scope string, reason string, format string, args ...interface{}) Err {
-	return Err{scope: scope, reason: reason, msg: fmt.Sprintf(format, args...)}
-}
-
-func NewWithErr(scope string, err error) Err {
-	return Err{scope: scope, reason: ReasonSystem, msg: err.Error()}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////

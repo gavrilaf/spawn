@@ -2,7 +2,7 @@ package backend
 
 import (
 	"github.com/davecgh/go-spew/spew"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	"github.com/golang/protobuf/ptypes"
 	log "github.com/sirupsen/logrus"
@@ -40,7 +40,7 @@ func (srv *Server) UpdateUserPersonalInfo(ctx context.Context, req *pb.UserPerso
 			return
 		}
 
-		srv.updateCachedProfile(req.UserID)
+		srv.updateCachedUserProfile(req.UserID)
 	}()
 
 	return &pb.Empty{}, nil
@@ -56,24 +56,8 @@ func (srv *Server) UpdateUserCountry(ctx context.Context, req *pb.UserCountryReq
 			return
 		}
 
-		srv.updateCachedProfile(req.UserID)
+		srv.updateCachedUserProfile(req.UserID)
 	}()
 
 	return &pb.Empty{}, nil
-}
-
-// Private
-func (srv *Server) updateCachedProfile(id string) {
-	profile, err := srv.db.GetUserProfile(id)
-	if err != nil {
-		log.Errorf("Could not read profile from db: %v", err)
-		return
-	}
-
-	err = srv.cache.SetUserProfile(*profile)
-	if err != nil {
-		log.Errorf("Could not read profile in cache: %v", err)
-	}
-
-	// Notify about update
 }

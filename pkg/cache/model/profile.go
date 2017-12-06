@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/fatih/structs"
-	db "github.com/gavrilaf/spawn/pkg/dbx/model"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 )
 
 type PersonalInfo struct {

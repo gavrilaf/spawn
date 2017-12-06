@@ -4,7 +4,7 @@ import (
 	//"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	mdl "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -80,15 +80,8 @@ func (srv *Server) HandleLogin(ctx context.Context, req *pb.LoginRequest) (*pb.E
 	log.Infof("HandleLogin, %v", spew.Sdump(req))
 
 	// Add profile to the cache
-	profile, err := srv.db.GetUserProfile(req.UserID)
+	err := srv.updateCachedUserProfile(req.UserID)
 	if err != nil {
-		log.Errorf("Error reading user profile from db, %v", err)
-		return nil, err
-	}
-
-	err = srv.cache.SetUserProfile(*profile)
-	if err != nil {
-		log.Errorf("Could not save user profile into cache, %v", err)
 		return nil, err
 	}
 

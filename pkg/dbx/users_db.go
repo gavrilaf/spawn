@@ -1,14 +1,17 @@
 package dbx
 
 import (
-	"fmt"
 	"time"
 
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/model"
+	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/utils"
 	"github.com/satori/go.uuid"
 )
 
 const (
+	getAllClients = `select * from public."Clients"`
+
 	addUser = `INSERT INTO
 		public."Users"(id, username, password)
 		VALUES($1, $2, $3)`
@@ -24,7 +27,7 @@ const (
 			is_locked = $2,
 			is_email_confirmed = $3,
 			is_2fa_required = $4,
-			scopes = $5
+			scope = $5
 		WHERE id = $1`
 
 	updatePersonal = `UPDATE public."Users"
@@ -71,19 +74,29 @@ const (
 		WHERE device_id = $1 AND user_id = $2`
 
 	registerLogin = `INSERT INTO
-			public."LoginsLog"(user_id, device_id, device_name, time, user_agent, ip, region)
+			public."LoginsLog"(user_id, device_id, device_name, timestamp, user_agent, ip, region)
 			VALUES($1, $2, $3, $4, $5, $6, $7)`
 
 	getUserDevicesEx = `select distinct on (device_id)
 			D.device_id as device_id, D.user_id as user_id,
-			D.device_name as device_name,
-			LL.time as login_time, LL.ip as login_ip, LL.region as login_region
+			D.device_name as device_name, D.locale as locale, D.lang as lang,
+			LL.timestamp as login_time, LL.ip as login_ip, LL.region as login_region, LL.user_agent as user_agent
 		from
 			public."Devices" D left join public."LoginsLog" LL on
 				D.device_id = LL.device_id AND D.user_id = LL.user_id
 		where D.user_id = $1
 		order by device_id, login_time`
 )
+
+// Clients
+
+func (db *Bridge) GetClients() ([]mdl.Client, error) {
+	var clients []mdl.Client
+	if err := db.conn.Select(&clients, getAllClients); err != nil {
+		return nil, err
+	}
+	return clients, nil
+}
 
 // User profile
 
@@ -112,9 +125,9 @@ func (db *Bridge) RegisterUser(username string, password string, device mdl.Devi
 func (db *Bridge) GetUserProfile(id string) (*mdl.UserProfile, error) {
 	var profile mdl.UserProfile
 	if err := db.conn.Get(&profile, getUserByID, id); err != nil {
-		return nil, err
+		return nil, errx.ErrNotFound(Scope, "User with id %v not found: %v", id, err)
 	}
-
+	profile.BirthDate = utils.FixDbTimezone(profile.BirthDate)
 	return &profile, nil
 }
 
@@ -122,9 +135,9 @@ func (db *Bridge) GetUserProfile(id string) (*mdl.UserProfile, error) {
 func (db *Bridge) FindUserProfile(username string) (*mdl.UserProfile, error) {
 	var profile mdl.UserProfile
 	if err := db.conn.Get(&profile, getUserByName, username); err != nil {
-		return nil, err
+		return nil, errx.ErrNotFound(Scope, "User with name %v not found: %v", username, err)
 	}
-
+	profile.BirthDate = utils.FixDbTimezone(profile.BirthDate)
 	return &profile, nil
 }
 
@@ -135,7 +148,7 @@ func (db *Bridge) UpdateUserPermissions(id string, permissions mdl.Permissions) 
 		permissions.IsLocked,
 		permissions.IsEmailConfirmed,
 		permissions.Is2FARequired,
-		permissions.Scopes)
+		permissions.Scope)
 
 	return err
 }
@@ -189,6 +202,7 @@ func (db *Bridge) ReadAllUserProfiles() (<-chan *mdl.UserProfile, <-chan error) 
 				errors <- err
 				return
 			}
+			profile.BirthDate = utils.FixDbTimezone(profile.BirthDate)
 			result <- &profile
 		}
 
@@ -247,7 +261,7 @@ func (db *Bridge) SetDeviceFingerprint(userID string, deviceID string, fingerpri
 func (db *Bridge) GetUserDevice(userID string, deviceID string) (*mdl.DeviceInfo, error) {
 	var device mdl.DeviceInfo
 	if err := db.conn.Get(&device, getUserDevice, userID, deviceID); err != nil {
-		return nil, err
+		return nil, errx.ErrNotFound(Scope, "Device (%v, %v) not found: %v", userID, deviceID, err)
 	}
 	return &device, nil
 }
@@ -276,7 +290,7 @@ func (db *Bridge) GetUserDevicesEx(userID string) ([]mdl.DeviceInfoEx, error) {
 func (db *Bridge) LogUserLogin(userID string, deviceID string, userAgent string, ip string, region string) error {
 	device, err := db.GetUserDevice(userID, deviceID)
 	if device == nil {
-		return fmt.Errorf("Device (%v, %v) not found. Error: %v", userID, deviceID, err)
+		return errx.ErrNotFound(Scope, "Device (%v, %v) not found. Error: %v", userID, deviceID, err)
 	}
 	_, err = db.conn.Exec(registerLogin, userID, deviceID, device.Name, time.Now(), userAgent, ip, region)
 	return err
