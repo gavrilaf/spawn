@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testOnRealEnvironment = false
+var testOnRealEnvironment = true
 
 const (
-	tClientID = "client_test"
+	tClientID = "client-test-01"
 	tDeviveID = "device1"
 	tPsw      = "password"
 )
@@ -34,7 +34,7 @@ func GetMiddleware(t *testing.T) *Middleware {
 }
 
 func GetClient(t *testing.T, mw *Middleware) *db.Client {
-	p, err := storageMock.FindClient(tClientID)
+	p, err := mw.getClient(tClientID)
 	require.Nil(t, err)
 	return p
 }

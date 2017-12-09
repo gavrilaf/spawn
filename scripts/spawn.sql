@@ -169,7 +169,7 @@ ALTER TABLE ONLY "Devices"
 -- Data for Name: Clients; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO "Clients" VALUES ('io-client-01-key', 'sA?2,S]$P6''Cs`Q)&4;18LXIj#b_=D', true, 'Spawn iOS application key', 0);
+INSERT INTO "Clients" VALUES ('ios-client-01-key', 'sA?2,S]$P6''Cs`Q)&4;18LXIj#b_=D', true, 'Spawn iOS application key', 0);
 INSERT INTO "Clients" VALUES ('client-test-01', '~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<', true, 'Client for internal & external testing', 0);
 
 

@@ -8,8 +8,8 @@ import (
 )
 
 type Bridge struct {
-	readModel  cache.Cache
-	writeModel *pb.BackendBridge
+	ReadModel  cache.Cache
+	WriteModel *pb.BackendBridge
 }
 
 func CreateBridge(en *env.Environment) *Bridge {
@@ -17,27 +17,27 @@ func CreateBridge(en *env.Environment) *Bridge {
 
 	cache, err := cache.Connect(en)
 	if err != nil {
-		log.Errorf("Can not connect to cache: %v", err)
+		log.Errorf("Could not connect to the read  model: %v", err)
 		return nil
 	}
-	log.Infof("Cache connection, ok")
+	log.Infof("Read model connection, ok")
 
 	backend, err := pb.CreateClient(en)
 	if err != nil {
-		log.Errorf("Can not connect to backend: %v", err)
+		log.Errorf("Could not connect to the write model: %v", err)
 		return nil
 	}
-	log.Infof("Backend connection, ok")
+	log.Infof("Write model connection, ok")
 
-	return &Bridge{readModel: cache, writeModel: backend}
+	return &Bridge{ReadModel: cache, WriteModel: backend}
 }
 
 func (p *Bridge) Close() {
-	if p.readModel != nil {
-		p.readModel.Close()
+	if p.ReadModel != nil {
+		p.ReadModel.Close()
 	}
 
-	if p.writeModel != nil {
-		p.writeModel.Close()
+	if p.WriteModel != nil {
+		p.WriteModel.Close()
 	}
 }

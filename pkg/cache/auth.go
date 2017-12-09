@@ -23,13 +23,14 @@ func (cache *Bridge) AddClient(client db.Client) error {
 }
 
 func (cache *Bridge) FindClient(id string) (*db.Client, error) {
-	v, err := redis.Values(cache.conn.Do("HGETALL", clientRedisID(id)))
+	key := clientRedisID(id)
+	v, err := redis.Values(cache.conn.Do("HGETALL", key))
 
 	if err != nil {
 		return nil, err
 	}
 	if len(v) == 0 {
-		return nil, errx.ErrKeyNotFound(Scope, sessionRedisID(id))
+		return nil, errx.ErrKeyNotFound(Scope, key)
 	}
 
 	var client db.Client

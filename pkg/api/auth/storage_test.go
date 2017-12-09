@@ -10,7 +10,7 @@ import (
 func TestStorageMock(t *testing.T) {
 	storage := NewStorageMock(env.GetEnvironment("Test"))
 
-	client, err := storage.FindClient("client_test")
+	client, err := storage.FindClient("client-test-01")
 	assert.NotNil(t, client)
 	assert.Nil(t, err)
 

@@ -22,7 +22,7 @@ func (p ProfileApiImpl) GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := p.Cache.GetUserProfile(session.UserID)
+	profile, err := p.ReadModel.GetUserProfile(session.UserID)
 	if err != nil {
 		log.Errorf("ProfileApi.GetUserProfile, read profile %v error, %v", session.UserID, err)
 		p.handleError(c, http.StatusInternalServerError, err)
@@ -51,7 +51,7 @@ func (p ProfileApiImpl) UpdateUserCountry(c *gin.Context) {
 
 	log.Infof("ProfileApi.UpdateUserCountry, for user %v country %v", session.UserID, req.Country)
 
-	_, err = p.Backend.Client.UpdateUserCountry(context.Background(), &pb.UserCountryRequest{
+	_, err = p.WriteModel.Client.UpdateUserCountry(context.Background(), &pb.UserCountryRequest{
 		UserID:  session.UserID,
 		Country: req.Country,
 	})
@@ -94,7 +94,7 @@ func (p ProfileApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 
 	protoTime, _ := ptypes.TimestampProto(t)
 
-	_, err = p.Backend.Client.UpdateUserPersonalInfo(context.Background(), &pb.UserPersonalInfoRequest{
+	_, err = p.WriteModel.Client.UpdateUserPersonalInfo(context.Background(), &pb.UserPersonalInfoRequest{
 		UserID:    session.UserID,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,

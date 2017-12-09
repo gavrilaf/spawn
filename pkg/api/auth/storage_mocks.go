@@ -15,8 +15,8 @@ var storageMock = NewStorageMock(env.GetEnvironment("Test"))
  */
 
 var DefaultClients = map[string][]byte{
-	"client_test": []byte("client_test_key"),
-	"client_ios":  []byte("client_ios_key"),
+	"client-test-01": []byte("client_test_key"),
+	"client-ios":     []byte("client_ios_key"),
 }
 
 var DefaultUsers = []mdl.AuthUser{

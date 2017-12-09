@@ -35,7 +35,7 @@ func (p ProfileApiImpl) ConfirmDevice(c *gin.Context) {
 
 	log.Infof("ProfileApi.ConfirmDevice, confirm device (%v, %v) with code %v", session.UserID, session.DeviceID, req.Code)
 
-	_, err = p.Backend.Client.DoConfirm(context.Background(), &pb.ConfirmRequest{
+	_, err = p.WriteModel.Client.DoConfirm(context.Background(), &pb.ConfirmRequest{
 		Code: req.Code,
 		Kind: "device"})
 

@@ -7,10 +7,28 @@ import (
 )
 
 func (srv *Server) loadAuthCache() {
-	log.Infof("Loading users auth cache")
-	profiles, errs := srv.db.ReadAllUserProfiles()
-	counter := 0
+	log.Infof("Initializing auth read model...")
 
+	log.Info("Loading clients")
+
+	clients, err := srv.db.GetClients()
+	if err != nil {
+		log.Fatalf("Could not loading clients, %v", err)
+	}
+
+	for _, cl := range clients {
+		err = srv.cache.AddClient(cl)
+		if err != nil {
+			log.Errorf("Could not add client %v, error: %v", cl, err)
+		} else {
+			log.Infof("Client %v added to the read model", cl.ID)
+		}
+	}
+
+	log.Info("Loading users")
+
+	counter := 0
+	profiles, errs := srv.db.ReadAllUserProfiles()
 readLoop:
 	for {
 		select {
@@ -40,7 +58,7 @@ readLoop:
 		}
 	}
 
-	log.Infof("Auth cache init ok, loaded %d users", counter)
+	log.Infof("Read model init ok, loaded %d users", counter)
 	srv.wg.Done()
 }
 

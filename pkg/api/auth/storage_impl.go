@@ -16,8 +16,7 @@ func (sb StorageImpl) Close() {
 }
 
 func (sb StorageImpl) FindClient(id string) (*db.Client, error) {
-	var storageMock = NewStorageMock(nil)
-	return storageMock.FindClient(id)
+	return sb.ReadModel.FindClient(id)
 }
 
 func (sb StorageImpl) RegisterUser(username string, password string, device db.DeviceInfo) error {
@@ -31,7 +30,7 @@ func (sb StorageImpl) RegisterUser(username string, password string, device db.D
 			Lang:   device.Lang},
 	}
 
-	resp, err := sb.Backend.Client.CreateUser(context.Background(), &req)
+	resp, err := sb.WriteModel.Client.CreateUser(context.Background(), &req)
 	if err == nil && resp != nil {
 		log.Infof("Registered user (%v, %v)", username, resp.ID)
 	}
@@ -40,11 +39,11 @@ func (sb StorageImpl) RegisterUser(username string, password string, device db.D
 }
 
 func (sb StorageImpl) FindUser(username string) (*mdl.AuthUser, error) {
-	return sb.Cache.FindUserAuthInfo(username)
+	return sb.ReadModel.FindUserAuthInfo(username)
 }
 
 func (sb StorageImpl) FindDevice(userId string, deviceId string) (*mdl.AuthDevice, error) {
-	return sb.Cache.FindDevice(userId, deviceId)
+	return sb.ReadModel.FindDevice(userId, deviceId)
 }
 
 func (sb StorageImpl) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthDevice, error) {
@@ -58,7 +57,7 @@ func (sb StorageImpl) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthD
 			Lang:   device.Lang},
 	}
 
-	_, err := sb.Backend.Client.AddDevice(context.Background(), &req)
+	_, err := sb.WriteModel.Client.AddDevice(context.Background(), &req)
 	if err == nil {
 		log.Infof("Added device (%v, %v)", userID, device.ID)
 	}
@@ -67,11 +66,11 @@ func (sb StorageImpl) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthD
 }
 
 func (sb StorageImpl) StoreSession(session mdl.Session) error {
-	return sb.Cache.AddSession(session)
+	return sb.ReadModel.AddSession(session)
 }
 
 func (sb StorageImpl) FindSession(id string) (*mdl.Session, error) {
-	session, err := sb.Cache.FindSession(id)
+	session, err := sb.ReadModel.FindSession(id)
 	if err != nil {
 		log.Errorf("Can't find session with id %v, error: %v", id, err)
 		return nil, errSessionNotFound
@@ -93,7 +92,7 @@ func (sb StorageImpl) HandlerLogin(session mdl.Session, ctx LoginContext) error 
 		LoginIP:     ctx.IP,
 		LoginRegion: ctx.Region}
 
-	_, err := sb.Backend.Client.HandleLogin(context.Background(), &req)
+	_, err := sb.WriteModel.Client.HandleLogin(context.Background(), &req)
 	if err != nil {
 		log.Errorf("Register login error, %v", err)
 	}

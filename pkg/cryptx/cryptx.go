@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/pbkdf2"
 
+	"fmt"
 	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
@@ -62,6 +63,8 @@ func CheckSignature(message string, signature string, key []byte) error {
 	mac := hmac.New(sha512.New, key)
 	mac.Write([]byte(message))
 	expectedSign := mac.Sum(nil)
+
+	fmt.Printf("Check sign for %v with key %v\nCalc sign \n%v \nExpected \n%v\n", message, string(key), signature, hex.EncodeToString(expectedSign))
 
 	if !hmac.Equal(sign2, expectedSign) {
 		return InvalidSignature
