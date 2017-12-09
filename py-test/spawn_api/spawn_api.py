@@ -69,13 +69,31 @@ class SpawnApi:
         resp = requests.post(self.endpoint + '/auth/login', json=request)
         return self.handle_login(resp)
 
-    def get_profile(self):
-        resp = requests.get(self.endpoint + "/profile", headers={"Authorization": "Bearer " + self.auth_token})
+    def get_state(self):
+        resp = requests.get(self.endpoint + "/user/state", headers={"Authorization": "Bearer " + self.auth_token})
+        json = resp.json()
+
+        if resp.status_code != 200:
+            return True, json["error"]
+        else:
+            return False, json
+
+    def logout(self):
+        resp = requests.post(self.endpoint + "/user/logout", headers={"Authorization": "Bearer " + self.auth_token})
         json = resp.json()
         if resp.status_code != 200:
             return json["error"]
         else:
-            return json
+            return None
+
+    def get_profile(self):
+        resp = requests.get(self.endpoint + "/profile", headers={"Authorization": "Bearer " + self.auth_token})
+        json = resp.json()
+        if resp.status_code != 200:
+            return True, json["error"]
+        else:
+            return False, json
 
 
+# Client for test purposes
 TEST_CLEINT = Client("client-test-01", "~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<")

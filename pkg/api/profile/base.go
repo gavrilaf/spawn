@@ -37,9 +37,3 @@ func (api ProfileApiImpl) handleError(c *gin.Context, httpCode int, err error) {
 func (api ProfileApiImpl) getSession(c *gin.Context) (*mdl.Session, error) {
 	return api.ReadModel.FindSession(c.GetString("session_id"))
 }
-
-/*func (api ProfileApiImpl) getProfile(c *gin.Context) (*mdl.UserProfile, error) {
-	userId := c.GetString("user_id")
-
-	api.Cache
-}*/

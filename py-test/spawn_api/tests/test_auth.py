@@ -9,7 +9,8 @@ class TestProfile(unittest.TestCase):
         self.client = spawn.TEST_CLEINT
         self.api = spawn.SpawnApi('http://localhost:8080', self.client)
 
-    def get_name(self):
+    @staticmethod
+    def get_name():
         return str(uuid.uuid4()) + "@spawn.com"
 
     def testRegister(self):
@@ -53,11 +54,24 @@ class TestProfile(unittest.TestCase):
         # device is confirmed
         self.assertEqual(self.api.permissions["is_device_confirmed"], True)
 
+    def testLoginWithNewDevice(self):
+        username = self.get_name()
+        device = spawn.Device("test-device-1", "test-device-1-name")
+        password = "password"
+
+        err = self.api.sign_up(username, password, device, "ru", "es")
+        self.assertIsNone(err)
+
         # login with new device -> login ok, but device unconfirmed
         err = self.api.sign_in(username, password, spawn.Device("test-device-1-new", "test-device-1-name-new"), "ru", "es")
         self.assertIsNone(err)
 
         self.assertEqual(self.api.permissions["is_device_confirmed"], False)
+
+    def testWrongLogin(self):
+        username = self.get_name()
+        device = spawn.Device("test-device-1", "test-device-1-name")
+        password = "password"
 
         # wrong password
         err = self.api.sign_in(username, password + "111", device, "ru", "es")
@@ -70,6 +84,41 @@ class TestProfile(unittest.TestCase):
         self.assertIsNotNone(err)
         self.assertEqual(err["scope"], "auth")
         self.assertEqual(err["reason"], "user-unknown")
+
+    def testGetState(self):
+        username = self.get_name()
+        device = spawn.Device("test-device-1", "test-device-1-name")
+        password = "password"
+
+        err = self.api.sign_up(username, password, device, "ru", "es")
+        self.assertIsNone(err)
+
+        is_error, state = self.api.get_state()
+        self.assertFalse(is_error, "Error is {}".format(state))
+
+        self.assertEqual("es", state["lang"])
+        self.assertEqual("ru", state["locale"])
+        self.assertEqual(self.api.permissions, state["permissions"])
+
+    def testLogout(self):
+        username = self.get_name()
+        device = spawn.Device("test-device-1", "test-device-1-name")
+        password = "password"
+
+        err = self.api.sign_up(username, password, device, "ru", "es")
+        self.assertIsNone(err)
+
+        is_error, state = self.api.get_state()
+        self.assertFalse(is_error, "Error is {}".format(state))
+
+        err = self.api.logout()
+        self.assertIsNone(err)
+
+        # should be error
+        is_error, err = self.api.get_state()
+        self.assertTrue(is_error)
+        self.assertEqual(err["scope"], "auth")
+        self.assertEqual(err["reason"], "session-not-found")
 
 
 if __name__ == '__main__':

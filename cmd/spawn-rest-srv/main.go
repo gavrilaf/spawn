@@ -7,6 +7,7 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
 	"github.com/gavrilaf/spawn/pkg/api/profile"
+	"github.com/gavrilaf/spawn/pkg/api/user"
 	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/utils"
 
@@ -36,12 +37,20 @@ func main() {
 	authMiddleware := auth.CreateMiddleware(apiBridge)
 
 	profileAPI := profile.CreateApi(apiBridge)
+	userAPI := user.CreateApi(apiBridge)
 
 	auth := router.Group("/auth")
 	{
 		auth.POST("/register", authMiddleware.RegisterHandler)
 		auth.POST("/login", authMiddleware.LoginHandler)
 		auth.POST("/refresh_token", authMiddleware.RefreshHandler)
+	}
+
+	user := router.Group("user")
+	user.Use(authMiddleware.MiddlewareFunc())
+	{
+		user.GET("/state", userAPI.GetState)
+		user.POST("/logout", userAPI.Logout)
 	}
 
 	profile := router.Group("profile")
