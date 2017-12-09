@@ -7,7 +7,8 @@ class TestProfile(unittest.TestCase):
 
     def setUp(self):
         self.client = spawn.TEST_CLEINT
-        self.api = spawn.SpawnApi('http://localhost:8080', self.client)
+        self.endpoint = 'http://localhost:8080'
+        self.api = spawn.SpawnApi(self.endpoint, self.client)
 
     @staticmethod
     def get_name():
@@ -119,6 +120,20 @@ class TestProfile(unittest.TestCase):
         self.assertTrue(is_error)
         self.assertEqual(err["scope"], "auth")
         self.assertEqual(err["reason"], "session-not-found")
+
+    def testRefreshToken(self):
+        username = self.get_name()
+        device = spawn.Device("test-device-1", "test-device-1-name")
+        password = "password"
+
+        err = self.api.sign_up(username, password, device, "ru", "es")
+        self.assertIsNone(err)
+
+        #old_api = spawn.SpawnApi(self.endpoint, self.client)
+        #old_api.auth_token = self.api.auth_token
+
+        err = self.api.do_refresh_token()
+        self.assertIsNone(err)
 
 
 if __name__ == '__main__':

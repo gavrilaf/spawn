@@ -34,7 +34,8 @@ class SpawnApi:
             return json["error"]
         else:
             self.auth_token = json["auth_token"]
-            self.refresh_token = json["refresh_token"]
+            if len(json["refresh_token"]) > 0:
+                self.refresh_token = json["refresh_token"]
             self.permissions = json["permissions"]
             return None
 
@@ -67,6 +68,15 @@ class SpawnApi:
         }
 
         resp = requests.post(self.endpoint + '/auth/login', json=request)
+        return self.handle_login(resp)
+
+    def do_refresh_token(self):
+        request = {
+            "auth_token": self.auth_token,
+            "refresh_token": self.refresh_token,
+        }
+
+        resp = requests.post(self.endpoint + '/auth/refresh_token', json=request)
         return self.handle_login(resp)
 
     def get_state(self):
