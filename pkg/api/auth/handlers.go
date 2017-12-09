@@ -11,6 +11,7 @@ import (
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
 	"encoding/hex"
+	"github.com/gavrilaf/spawn/pkg/errx"
 	"time"
 )
 
@@ -50,12 +51,13 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 
 	// Check device
 	device, err := mw.storage.FindDevice(user.ID, p.DeviceID)
-	if err != nil {
-		log.Errorf("auth.HandleLogin, check device error: (%v)", err)
-		return AuthTokenDTO{}, err
-	}
-
 	if device == nil {
+		_, reason := errx.GetErrorReason(err)
+		if reason != errx.ReasonNotFound {
+			log.Errorf("auth.HandleLogin, check device error: (%v)", err)
+			return AuthTokenDTO{}, err
+		}
+
 		log.Infof("Login with new device. User %v, device (%v, %v)", user.ID, p.DeviceID, p.DeviceName)
 		newDevice := p.CreateDevice()
 
