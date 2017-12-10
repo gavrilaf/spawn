@@ -14,38 +14,38 @@ import (
 )
 
 // GetUserProfile - return current user profile
-func (p ProfileApiImpl) GetUserProfile(c *gin.Context) {
-	session, err := p.getSession(c)
+func (p ApiImpl) GetUserProfile(c *gin.Context) {
+	session, err := p.GetSession(c)
 	if err != nil {
 		log.Errorf("ProfileApi.GetUserProfile, could not find session, %v", err)
-		p.handleError(c, http.StatusUnauthorized, err)
+		p.HandleError(c, errScope, http.StatusUnauthorized, err)
 		return
 	}
 
 	profile, err := p.ReadModel.GetUserProfile(session.UserID)
 	if err != nil {
 		log.Errorf("ProfileApi.GetUserProfile, read profile %v error, %v", session.UserID, err)
-		p.handleError(c, http.StatusInternalServerError, err)
+		p.HandleError(c, errScope, http.StatusInternalServerError, err)
 	}
 
 	c.JSON(http.StatusOK, profile.ToMap())
 }
 
 // UpdateUserCountry - update current user Country
-func (p ProfileApiImpl) UpdateUserCountry(c *gin.Context) {
+func (p ApiImpl) UpdateUserCountry(c *gin.Context) {
 	var req UpdateCountryRequest
 
 	err := c.Bind(&req)
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserCountry, could not bind, %v", err)
-		p.handleError(c, http.StatusBadRequest, err)
+		p.HandleError(c, errScope, http.StatusBadRequest, err)
 		return
 	}
 
-	session, err := p.getSession(c)
+	session, err := p.GetSession(c)
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserCountry, could not find session, %v", err)
-		p.handleError(c, http.StatusUnauthorized, err)
+		p.HandleError(c, errScope, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (p ProfileApiImpl) UpdateUserCountry(c *gin.Context) {
 
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserCountry, backend error: %v", err)
-		p.handleError(c, http.StatusInternalServerError, err)
+		p.HandleError(c, errScope, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -66,20 +66,20 @@ func (p ProfileApiImpl) UpdateUserCountry(c *gin.Context) {
 }
 
 // UpdateUserPersonalInfo - update current user personal info
-func (p ProfileApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
+func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 	var req UpdatePersonalInfoRequest
 
 	err := c.Bind(&req)
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserPersonalInfo, could not bind: %v", err)
-		p.handleError(c, http.StatusBadRequest, err)
+		p.HandleError(c, errScope, http.StatusBadRequest, err)
 		return
 	}
 
-	session, err := p.getSession(c)
+	session, err := p.GetSession(c)
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserPersonalInfo, could not find session: %v", err)
-		p.handleError(c, http.StatusUnauthorized, err)
+		p.HandleError(c, errScope, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (p ProfileApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 	t, err := time.Parse(time.RFC3339, req.BirthDate)
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserPersonalInfo, invalid BirthDate: %v", err)
-		p.handleError(c, http.StatusBadRequest, err)
+		p.HandleError(c, errScope, http.StatusBadRequest, err)
 		return
 	}
 
@@ -103,7 +103,7 @@ func (p ProfileApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserPersonalInfo, backend error: %v", err)
-		p.handleError(c, http.StatusInternalServerError, err)
+		p.HandleError(c, errScope, http.StatusInternalServerError, err)
 		return
 	}
 

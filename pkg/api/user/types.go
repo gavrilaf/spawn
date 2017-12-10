@@ -5,6 +5,10 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api/auth"
 )
 
+type ConfirmDeviceRequest struct {
+	Code string `json:"code" form:"code" binding:"required"`
+}
+
 type UserState struct {
 	UserID      string              `structs:"user_id"`
 	Locale      string              `structs:"locale"`

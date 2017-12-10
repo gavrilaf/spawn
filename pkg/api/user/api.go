@@ -1,54 +1,20 @@
 package user
 
 import (
+	"context"
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
-	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
-	"github.com/gavrilaf/spawn/pkg/errx"
+	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
-const (
-	errScope = "user"
-)
-
-type Api interface {
-	GetState(c *gin.Context)
-	Logout(c *gin.Context)
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-type ApiImpl struct {
-	*api.Bridge
-}
-
-func CreateApi(bridge *api.Bridge) ApiImpl {
-	return ApiImpl{Bridge: bridge}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-func (api ApiImpl) handleError(c *gin.Context, httpCode int, err error) {
-	log.Errorf("profile.HandleError, code=%d, err=%v", httpCode, err)
-	errJSON := errx.Error2Map(err, errScope)
-	c.JSON(httpCode, gin.H{"error": errJSON})
-	c.Abort()
-}
-
-func (api ApiImpl) getSession(c *gin.Context) (*mdl.Session, error) {
-	return api.ReadModel.FindSession(c.GetString("session_id"))
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 func (p ApiImpl) GetState(c *gin.Context) {
-	session, err := p.getSession(c)
+	session, err := p.GetSession(c)
 	if err != nil {
 		log.Errorf("UserApi.GetState, could not find session: %v", err)
-		p.handleError(c, http.StatusUnauthorized, err)
+		p.HandleError(c, errScope, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -69,19 +35,61 @@ func (p ApiImpl) GetState(c *gin.Context) {
 }
 
 func (p ApiImpl) Logout(c *gin.Context) {
-	session, err := p.getSession(c)
+	session, err := p.GetSession(c)
 	if err != nil {
 		log.Errorf("UserApi.GetState, could not find session: %v", err)
-		p.handleError(c, http.StatusUnauthorized, err)
+		p.HandleError(c, errScope, http.StatusUnauthorized, err)
 		return
 	}
 
 	err = p.ReadModel.DeleteSession(session.ID)
 	if err != nil {
 		log.Errorf("UserApi.GetState, could not invalidate session: %v", err)
-		p.handleError(c, http.StatusInternalServerError, err)
+		p.HandleError(c, errScope, http.StatusInternalServerError, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, api.EmptySuccessResponse)
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+func (p ApiImpl) ConfirmDevice(c *gin.Context) {
+	var req ConfirmDeviceRequest
+
+	err := c.Bind(&req)
+	if err != nil {
+		log.Errorf("ProfileApi.ConfirmDevice, could not bind, %v", err)
+		p.HandleError(c, errScope, http.StatusBadRequest, err)
+		return
+	}
+
+	session, err := p.GetSession(c)
+	if err != nil {
+		log.Errorf("ProfileApi.ConfirmDevice, could not find session, %v", err)
+		p.HandleError(c, errScope, http.StatusUnauthorized, err)
+		return
+	}
+
+	if session.IsDeviceConfirmed {
+		log.Errorf("ProfileApi.ConfirmDevice, device (%v, %v) already confirmed", session.UserID, session.DeviceID)
+		p.HandleError(c, errScope, http.StatusInternalServerError, errAlreadyConfirmed)
+		return
+	}
+
+	log.Infof("ProfileApi.ConfirmDevice, confirm device (%v, %v) with code %v", session.UserID, session.DeviceID, req.Code)
+
+	_, err = p.WriteModel.Client.DoConfirm(context.Background(), &pb.ConfirmRequest{
+		Code: req.Code,
+		Kind: "device"})
+
+	if err != nil {
+		log.Errorf("ProfileApi.ConfirmDevice, confirm device (%v, %v) error %v", session.UserID, session.DeviceID, err)
+		p.HandleError(c, errScope, http.StatusInternalServerError, err)
+		return
+	}
+
+	log.Infof("ProfileApi.ConfirmDevice, device (%v, %v) is confirmed", session.UserID, session.DeviceID)
+
+	c.JSON(200, api.EmptySuccessResponse)
 }

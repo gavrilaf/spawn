@@ -2,8 +2,11 @@ package api
 
 import (
 	"github.com/gavrilaf/spawn/pkg/cache"
+	rdm "github.com/gavrilaf/spawn/pkg/cache/model"
 	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/errx"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,4 +43,18 @@ func (p *Bridge) Close() {
 	if p.WriteModel != nil {
 		p.WriteModel.Close()
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Helpers
+
+func (p *Bridge) HandleError(c *gin.Context, scope string, httpCode int, err error) {
+	log.Errorf("api.Bridge.HandleError: scope=%v, code=%d, err=%v", scope, httpCode, err)
+	errJSON := errx.Error2Map(err, scope)
+	c.JSON(httpCode, gin.H{"error": errJSON})
+	c.Abort()
+}
+
+func (p *Bridge) GetSession(c *gin.Context) (*rdm.Session, error) {
+	return p.ReadModel.FindSession(c.GetString("session_id"))
 }
