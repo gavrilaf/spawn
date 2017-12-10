@@ -129,11 +129,14 @@ class TestProfile(unittest.TestCase):
         err = self.api.sign_up(username, password, device, "ru", "es")
         self.assertIsNone(err)
 
-        #old_api = spawn.SpawnApi(self.endpoint, self.client)
-        #old_api.auth_token = self.api.auth_token
+        old_auth = self.api.auth_token
+        old_refresh = self.api.refresh_token
 
         err = self.api.do_refresh_token()
         self.assertIsNone(err)
+
+        self.assertEqual(self.api.auth_token, old_auth)
+        self.assertEqual(self.api.refresh_token, old_refresh)
 
 
 if __name__ == '__main__':
