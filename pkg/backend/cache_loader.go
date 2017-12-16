@@ -71,11 +71,25 @@ func (srv *Server) updateCachedUserProfile(id string) error {
 
 	err = srv.cache.SetUserProfile(*profile)
 	if err != nil {
-		log.Errorf("Could not read profile in cache: %v", err)
+		log.Errorf("Could not save profile in cache: %v", err)
 		return err
 	}
 
-	// Notify about update
+	return nil
+}
+
+func (srv *Server) updateCachedUserDevices(userID string) error {
+	devices, err := srv.db.GetUserDevicesEx(userID)
+	if err != nil {
+		log.Errorf("Could not read user devices from db: %v", err)
+		return err
+	}
+
+	err = srv.cache.SetUserDevicesInfo(userID, devices)
+	if err != nil {
+		log.Errorf("Could not save devices into the cache: %v", err)
+		return err
+	}
 
 	return nil
 }

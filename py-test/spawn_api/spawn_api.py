@@ -104,6 +104,14 @@ class SpawnApi:
         else:
             return False, json
 
+    def get_devices(self):
+        resp = requests.get(self.endpoint + "/user/devices", headers={"Authorization": "Bearer " + self.auth_token})
+        json = resp.json()
+        if resp.status_code != 200:
+            return True, json["error"]
+        else:
+            return False, json
+
 
 # Client for test purposes
 TEST_CLEINT = Client("client-test-01", "~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<")

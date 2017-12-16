@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
@@ -51,6 +52,9 @@ type Cache interface {
 
 	SetUserProfile(profile db.UserProfile) error
 	GetUserProfile(userID string) (*mdl.UserProfile, error)
+
+	SetUserDevicesInfo(userID string, devices []db.DeviceInfoEx) error
+	GetUserDevicesInfo(userID string) ([]mdl.UserDeviceInfo, error)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -65,4 +69,27 @@ func (cache *Bridge) Close() error {
 	}
 
 	return cache.conn.Close()
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+func (p *Bridge) getKeys(pattern string) ([]string, error) {
+	iter := 0
+	keys := []string{}
+	for {
+		arr, err := redis.Values(p.conn.Do("SCAN", iter, "MATCH", pattern))
+		if err != nil {
+			return keys, fmt.Errorf("error retrieving '%s' keys", pattern)
+		}
+
+		iter, _ = redis.Int(arr[0], nil)
+		k, _ := redis.Strings(arr[1], nil)
+		keys = append(keys, k...)
+
+		if iter == 0 {
+			break
+		}
+	}
+
+	return keys, nil
 }

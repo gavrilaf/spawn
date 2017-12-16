@@ -51,6 +51,7 @@ func main() {
 	{
 		user.GET("/state", userAPI.GetState)
 		user.POST("/logout", userAPI.Logout)
+		user.GET("/devices", userAPI.GetDevices)
 	}
 
 	profile := router.Group("profile")

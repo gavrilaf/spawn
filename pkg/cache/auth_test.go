@@ -153,7 +153,7 @@ func TestBridge_SetDevice(t *testing.T) {
 	assert.Equal(t, "d2", d2.DeviceID)
 	assert.Equal(t, "user-1", d2.UserID)
 	assert.Equal(t, true, d2.IsConfirmed)
-	assert.Equal(t, []byte("fingerprint"), d2.Fingerpring)
+	assert.Equal(t, []byte("fingerprint"), d2.Fingerprint)
 	assert.Equal(t, "en", d2.Locale)
 	assert.Equal(t, "en", d2.Lang)
 

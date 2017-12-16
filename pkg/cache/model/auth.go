@@ -25,7 +25,7 @@ type AuthUser struct {
 type AuthDevice struct {
 	DeviceID    string
 	UserID      string
-	Fingerpring []byte
+	Fingerprint []byte
 	IsConfirmed bool
 	Locale      string
 	Lang        string
@@ -42,7 +42,7 @@ func CreateAuthDeviceFromDevice(d db.DeviceInfo) AuthDevice {
 		DeviceID:    d.ID,
 		UserID:      d.UserID,
 		IsConfirmed: d.IsConfirmed,
-		Fingerpring: d.Fingerprint,
+		Fingerprint: d.Fingerprint,
 		Locale:      d.Locale,
 		Lang:        d.Lang}
 }

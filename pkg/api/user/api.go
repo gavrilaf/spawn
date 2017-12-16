@@ -54,6 +54,32 @@ func (p ApiImpl) Logout(c *gin.Context) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+func (p ApiImpl) GetDevices(c *gin.Context) {
+	session, err := p.GetSession(c)
+	if err != nil {
+		log.Errorf("UserApi.GetDevices, could not find session: %v", err)
+		p.HandleError(c, errScope, http.StatusUnauthorized, err)
+		return
+	}
+
+	devices, err := p.ReadModel.GetUserDevicesInfo(session.UserID)
+	if err != nil {
+		log.Errorf("UserApi.GetDevices, could not read devices: %v", err)
+		p.HandleError(c, errScope, http.StatusInternalServerError, err)
+		return
+	}
+
+	for indx, _ := range devices {
+		if devices[indx].ID == session.DeviceID {
+			devices[indx].IsCurrent = true
+		}
+	}
+
+	d := UserDevices{Devices: devices}
+
+	c.JSON(http.StatusOK, d.ToMap())
+}
+
 func (p ApiImpl) ConfirmDevice(c *gin.Context) {
 	var req ConfirmDeviceRequest
 

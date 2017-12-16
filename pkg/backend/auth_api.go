@@ -108,5 +108,10 @@ func (srv *Server) HandleLogin(ctx context.Context, req *pb.LoginRequest) (*pb.E
 		return nil, err
 	}
 
+	err = srv.updateCachedUserDevices(req.UserID)
+	if err != nil {
+		log.Errorf("Could not update user devices, %v", err)
+	}
+
 	return &pb.Empty{}, nil
 }

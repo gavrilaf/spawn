@@ -17,6 +17,7 @@ type Api interface {
 	Logout(c *gin.Context)
 
 	ConfirmDevice(c *gin.Context)
+	GetDevices(c *gin.Context)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
