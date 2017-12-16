@@ -78,7 +78,7 @@ const (
 			VALUES($1, $2, $3, $4, $5, $6, $7)`
 
 	getUserDevicesEx = `select distinct on (device_id)
-			D.device_id as device_id, D.user_id as user_id,
+			D.device_id as device_id, D.user_id as user_id, D.is_confirmed as is_confirmed,
 			D.device_name as device_name, D.locale as locale, D.lang as lang,
 			LL.timestamp as login_time, LL.ip as login_ip, LL.region as login_region, LL.user_agent as user_agent
 		from

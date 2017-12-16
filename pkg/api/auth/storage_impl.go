@@ -89,6 +89,7 @@ func (sb StorageImpl) HandlerLogin(session mdl.Session, ctx LoginContext) error 
 			Name:   ctx.DeviceName,
 			Lang:   session.Lang,
 			Locale: session.Locale},
+		UserAgent:   ctx.UserAgent,
 		LoginIP:     ctx.IP,
 		LoginRegion: ctx.Region}
 

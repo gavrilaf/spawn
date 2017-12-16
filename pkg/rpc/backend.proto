@@ -37,11 +37,11 @@ message AddDeviceRequest {
 }
 
 message LoginRequest {
-  string sessionID = 1;
-  string userID = 2;
-  Device device = 3;
-  string userAgent = 4;
-	string loginIP = 5;
+    string sessionID = 1;
+    string userID = 2;
+    Device device = 3;
+    string userAgent = 4;
+    string loginIP = 5;
 	string loginRegion = 6;
 }
 
