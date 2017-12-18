@@ -52,6 +52,7 @@ func main() {
 		user.GET("/state", userAPI.GetState)
 		user.POST("/logout", userAPI.Logout)
 		user.GET("/devices", userAPI.GetDevices)
+		user.DELETE("/devices/:id", userAPI.DeleteDevice)
 	}
 
 	profile := router.Group("profile")

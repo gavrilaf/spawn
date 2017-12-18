@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-
+	"github.com/gavrilaf/spawn/pkg/api"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
@@ -73,7 +73,7 @@ func (sb StorageImpl) FindSession(id string) (*mdl.Session, error) {
 	session, err := sb.ReadModel.FindSession(id)
 	if err != nil {
 		log.Errorf("Can't find session with id %v, error: %v", id, err)
-		return nil, errSessionNotFound
+		return nil, api.ErrSessionNotFound
 	}
 
 	return session, nil

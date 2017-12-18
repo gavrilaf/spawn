@@ -9,16 +9,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (srv *Server) DoConfirm(ctx context.Context, req *pb.ConfirmRequest) (*pb.Empty, error) {
-	log.Infof("DoConfirm, %v", spew.Sdump(req))
-
-	switch req.Kind {
-
-	}
-
-	return &pb.Empty{}, nil
-}
-
 func (srv *Server) UpdateUserPersonalInfo(ctx context.Context, req *pb.UserPersonalInfoRequest) (*pb.Empty, error) {
 	go func() {
 		log.Infof("UpdateUserPersonalInfo: %v", spew.Sdump(req))

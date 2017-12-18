@@ -10,10 +10,6 @@ type ConfirmDeviceRequest struct {
 	Code string `json:"code" form:"code" binding:"required"`
 }
 
-type DeleteDeviceRequest struct {
-	DeviceID string `json:"device_id" form:"device_id" binding:"required"`
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 type UserState struct {

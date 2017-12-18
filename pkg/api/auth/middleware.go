@@ -62,7 +62,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 		}
 
 		if !mw.CheckAccess(session.UserID, session.ClientID, c) {
-			mw.handleError(c, http.StatusForbidden, errAccessForbiden)
+			mw.handleError(c, http.StatusForbidden, api.ErrAccessForbiden)
 			return
 		}
 
@@ -137,7 +137,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 func (mw *Middleware) handleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 	log.Errorf("auth error, code=%d, err=%v", httpCode, err)
-	c.JSON(httpCode, gin.H{"error": errx.Error2Map(err, errScope)})
+	c.JSON(httpCode, gin.H{"error": errx.Error2Map(err, api.ErrScope)})
 	c.Abort()
 }
 
@@ -159,12 +159,12 @@ func (mw *Middleware) jwtFromHeader(c *gin.Context, key string) (string, error) 
 	authHeader := c.Request.Header.Get(key)
 
 	if authHeader == "" {
-		return "", errInvalidRequest
+		return "", api.ErrInvalidRequest
 	}
 
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == TokenHeadName) {
-		return "", errInvalidRequest
+		return "", api.ErrInvalidRequest
 	}
 
 	return parts[1], nil

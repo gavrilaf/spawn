@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-
+	"github.com/gavrilaf/spawn/pkg/api"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/env"
@@ -77,14 +77,14 @@ func (c *StorageMock) Close() {}
 func (c *StorageMock) FindClient(id string) (*db.Client, error) {
 	secret, ok := DefaultClients[id]
 	if !ok {
-		return nil, errClientUnknown
+		return nil, api.ErrClientUnknown
 	}
 	return &db.Client{ID: id, Secret: secret}, nil
 }
 
 func (c *StorageMock) RegisterUser(username string, password string, device db.DeviceInfo) error {
 	if user, _ := c.FindUser(username); user != nil {
-		return errUserAlreadyExist
+		return api.ErrUserAlreadyExist
 	}
 
 	id := fmt.Sprintf("id%d", c.counter)
@@ -118,7 +118,7 @@ func (c *StorageMock) AddDevice(userId string, device db.DeviceInfo) (*mdl.AuthD
 func (c *StorageMock) FindUser(username string) (*mdl.AuthUser, error) {
 	user, ok := c.users[username]
 	if !ok {
-		return nil, errUserUnknown
+		return nil, api.ErrUserUnknown
 	}
 
 	return &user, nil
@@ -127,7 +127,7 @@ func (c *StorageMock) FindUser(username string) (*mdl.AuthUser, error) {
 func (c *StorageMock) FindDevice(userId string, deviceId string) (*mdl.AuthDevice, error) {
 	devices, ok := c.devices[userId]
 	if !ok {
-		return nil, errDeviceUnknown
+		return nil, api.ErrDeviceUnknown
 	}
 
 	d, ok := devices[deviceId]
@@ -146,7 +146,7 @@ func (c *StorageMock) StoreSession(session mdl.Session) error {
 func (c *StorageMock) FindSession(id string) (*mdl.Session, error) {
 	session, ok := c.sessions[id]
 	if !ok {
-		return nil, errSessionNotFound
+		return nil, api.ErrSessionNotFound
 	}
 	return &session, nil
 }

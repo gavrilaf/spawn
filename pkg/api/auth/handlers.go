@@ -11,6 +11,7 @@ import (
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
 	"encoding/hex"
+	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	"time"
 )
@@ -32,21 +33,21 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 	// Check signature
 	if err = p.CheckSignature(client.Secret); err != nil {
 		log.Errorf("auth.HandleLogin, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
-		return AuthTokenDTO{}, errInvalidSignature
+		return AuthTokenDTO{}, api.ErrInvalidSignature
 	}
 
 	// Check user
 	user, err := mw.storage.FindUser(p.Username)
 	if err != nil {
 		log.Errorf("auth.HandleLogin, find user error: (%v)", err)
-		return AuthTokenDTO{}, errUserUnknown
+		return AuthTokenDTO{}, api.ErrUserUnknown
 	}
 
 	log.Infof("Found user: %v", spew.Sdump(user))
 
 	if !p.CheckPassword(user.PasswordHash) {
 		log.Errorf("auth.HandleLogin, invalid password for %v", p.Username)
-		return AuthTokenDTO{}, errUserUnknown
+		return AuthTokenDTO{}, api.ErrUserUnknown
 	}
 
 	// Check device
@@ -101,14 +102,14 @@ func (mw *Middleware) HandleRegister(p RegisterDTO, ctx LoginContext) (AuthToken
 	// Check signature
 	if p.CheckSignature(client.Secret) != nil {
 		log.Errorf("auth.HandleRegister, invalid signature for %v, must be %v", p, p.GetSignature(client.Secret))
-		return AuthTokenDTO{}, errInvalidSignature
+		return AuthTokenDTO{}, api.ErrInvalidSignature
 	}
 
 	// Check user already registered
 	alredyExist, _ := mw.storage.FindUser(p.Username)
 	if alredyExist != nil {
 		log.Errorf("auth.HandleRegister, user %v already exists", p.Username)
-		return AuthTokenDTO{}, errUserAlreadyExist
+		return AuthTokenDTO{}, api.ErrUserAlreadyExist
 	}
 
 	// Create password hash
@@ -155,7 +156,7 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	log.Infof("auth.HandleRefresh, sesson = %v, iat = %v", sessionID, origIat)
 
 	if origIat < time.Now().Add(-mw.maxRefresh).Unix() {
-		return AuthTokenDTO{}, errTokenExpired
+		return AuthTokenDTO{}, api.ErrTokenExpired
 	}
 
 	session, err := mw.storage.FindSession(sessionID)
@@ -166,7 +167,7 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 
 	if p.RefreshToken != session.RefreshToken {
 		log.Errorf("auth.HandleRefresh, invalid refresh token!!!")
-		return AuthTokenDTO{}, errTokenInvalid
+		return AuthTokenDTO{}, api.ErrTokenInvalid
 	}
 
 	// Create the token

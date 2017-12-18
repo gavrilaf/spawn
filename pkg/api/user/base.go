@@ -2,15 +2,8 @@ package user
 
 import (
 	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/gin-gonic/gin"
 )
-
-const (
-	errScope = "user"
-)
-
-var errAlreadyConfirmed = errx.New(errScope, "device-already-confirmed")
 
 type Api interface {
 	GetState(c *gin.Context)
@@ -18,6 +11,7 @@ type Api interface {
 
 	ConfirmDevice(c *gin.Context)
 	GetDevices(c *gin.Context)
+	DeleteDevice(c *gin.Context)
 }
 
 ///////////////////////////////////////////////////////////////////////////////

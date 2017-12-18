@@ -6,7 +6,10 @@ service Spawn {
     rpc CreateUser(CreateUserRequest) returns (IDResponse) {}
     rpc AddDevice(AddDeviceRequest) returns(Empty) {}
 	rpc HandleLogin(LoginRequest) returns(Empty) {}
+
     rpc DoConfirm(ConfirmRequest) returns(Empty) {}
+    rpc DeleteDevice(DeleteDeviceRequest) returns(Empty) {}
+
     rpc UpdateUserCountry(UserCountryRequest) returns(Empty) {}
     rpc UpdateUserPersonalInfo(UserPersonalInfoRequest) returns(Empty) {}
 }
@@ -30,19 +33,23 @@ message CreateUserRequest {
   Device device = 3;
 }
 
+message LoginRequest {
+  string sessionID = 1;
+  string userID = 2;
+  Device device = 3;
+  string userAgent = 4;
+  string loginIP = 5;
+  string loginRegion = 6;
+}
 
 message AddDeviceRequest {
 	string userID = 1;
 	Device device = 2;
 }
 
-message LoginRequest {
-    string sessionID = 1;
-    string userID = 2;
-    Device device = 3;
-    string userAgent = 4;
-    string loginIP = 5;
-	string loginRegion = 6;
+message DeleteDeviceRequest {
+  string userID = 1;
+  string deviceID = 2;
 }
 
 message ConfirmRequest {

@@ -66,12 +66,12 @@ func DoTestRegistration(t *testing.T, mw *Middleware) {
 
 	// Already registered
 	_, err = mw.HandleRegister(p, LoginContext{})
-	require.Equal(t, errUserAlreadyExist, err)
+	require.Equal(t, api.ErrUserAlreadyExist, err)
 
 	// Invalid signature
 	p.Signature += "111"
 	_, err = mw.HandleRegister(p, LoginContext{})
-	require.Equal(t, errInvalidSignature, err)
+	require.Equal(t, api.ErrInvalidSignature, err)
 }
 
 func DoTestLogin(t *testing.T, mw *Middleware) {
@@ -88,7 +88,7 @@ func DoTestLogin(t *testing.T, mw *Middleware) {
 	reg.Username += "111"
 	login = GetLoginDTO(t, reg, mw)
 	_, err = mw.HandleLogin(login, LoginContext{})
-	assert.Equal(t, errUserUnknown, err)
+	assert.Equal(t, api.ErrUserUnknown, err)
 }
 
 ////////////////////////////////////////////////////////////////

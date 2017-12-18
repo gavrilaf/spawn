@@ -38,7 +38,7 @@ class TestProfile(unittest.TestCase):
 
         err = self.api.sign_up(username, password, device, "ru", "es")
         self.assertIsNotNone(err)
-        self.assertEqual(err["scope"], "auth")
+        self.assertEqual(err["scope"], "api")
         self.assertEqual(err["reason"], "user-already-exist")
 
     def testLogin(self):
@@ -77,13 +77,13 @@ class TestProfile(unittest.TestCase):
         # wrong password
         err = self.api.sign_in(username, password + "111", device, "ru", "es")
         self.assertIsNotNone(err)
-        self.assertEqual(err["scope"], "auth")
+        self.assertEqual(err["scope"], "api")
         self.assertEqual(err["reason"], "user-unknown")
 
         # wrong username
         err = self.api.sign_in(username + "111", password, device, "ru", "es")
         self.assertIsNotNone(err)
-        self.assertEqual(err["scope"], "auth")
+        self.assertEqual(err["scope"], "api")
         self.assertEqual(err["reason"], "user-unknown")
 
     def testRefreshToken(self):

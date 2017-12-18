@@ -5,10 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	errScope = "profile"
-)
-
 type Api interface {
 	GetUserProfile(c *gin.Context)
 	UpdateUserCountry(c *gin.Context)

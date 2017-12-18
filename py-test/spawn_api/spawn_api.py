@@ -112,6 +112,14 @@ class SpawnApi:
         else:
             return False, json
 
+    def delete_device(self, id):
+        resp = requests.delete(self.endpoint + "/user/devices/" + id, headers={"Authorization": "Bearer " + self.auth_token})
+        json = resp.json()
+        if resp.status_code != 200:
+            return json["error"]
+        else:
+            return None
+
 
 # Client for test purposes
 TEST_CLEINT = Client("client-test-01", "~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<")
