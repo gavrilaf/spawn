@@ -2,6 +2,9 @@ package cache
 
 import (
 	"fmt"
+
+	"time"
+
 	"github.com/garyburd/redigo/redis"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
@@ -18,11 +21,7 @@ const (
 func Connect(en *env.Environment) (Cache, error) {
 
 	//redis://[:password@]host[:port][/db-number][?option=value]
-	conn, err := redis.DialURL("redis://localhost:7001")
-	if err != nil {
-		return nil, err
-	}
-	return &Bridge{conn}, nil
+	return &Bridge{newPool(en)}, nil
 }
 
 type Cache interface {
@@ -39,6 +38,8 @@ type Cache interface {
 
 	SetUserAuthInfo(profile db.UserProfile, devices []db.DeviceInfo) error
 	FindUserAuthInfo(username string) (*mdl.AuthUser, error)
+
+	// Devices
 
 	SetDevice(device db.DeviceInfo) error
 	DeleteDevice(userId string, deviceId string) error
@@ -60,24 +61,52 @@ type Cache interface {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 type Bridge struct {
-	conn redis.Conn
+	pool *redis.Pool
 }
 
-func (cache *Bridge) Close() error {
-	if cache == nil || cache.conn == nil {
+func newPool(en *env.Environment) *redis.Pool {
+	return &redis.Pool{
+
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.DialURL("redis://localhost:7001")
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
+
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
+	}
+}
+
+func (p *Bridge) Close() error {
+	if p == nil || p.pool == nil {
 		return nil
 	}
 
-	return cache.conn.Close()
+	return p.pool.Close()
+}
+
+func (p *Bridge) get() redis.Conn {
+	return p.pool.Get()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 func (p *Bridge) getKeys(pattern string) ([]string, error) {
+	conn := p.get()
+	defer conn.Close()
+
 	iter := 0
 	keys := []string{}
 	for {
-		arr, err := redis.Values(p.conn.Do("SCAN", iter, "MATCH", pattern))
+		arr, err := redis.Values(conn.Do("SCAN", iter, "MATCH", pattern))
 		if err != nil {
 			return keys, fmt.Errorf("error retrieving '%s' keys", pattern)
 		}

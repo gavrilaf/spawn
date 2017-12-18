@@ -94,13 +94,13 @@ class TestProfile(unittest.TestCase):
         err = self.api.sign_up(username, password, device, "ru", "es")
         self.assertIsNone(err)
 
-        old_auth = self.api.auth_token
-        old_refresh = self.api.refresh_token
+        old_auth = self.api.auth_token[:]
+        old_refresh = self.api.refresh_token[:]
 
         err = self.api.do_refresh_token()
         self.assertIsNone(err)
 
-        self.assertEqual(self.api.auth_token, old_auth)
+        self.assertFalse(self.api.auth_token == old_auth)
         self.assertEqual(self.api.refresh_token, old_refresh)
 
 

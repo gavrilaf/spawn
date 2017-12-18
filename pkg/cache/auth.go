@@ -17,14 +17,20 @@ func clientRedisID(id string) string {
 	return "client:" + id
 }
 
-func (cache *Bridge) AddClient(client db.Client) error {
-	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(clientRedisID(client.ID)).AddFlat(&client)...)
+func (br *Bridge) AddClient(client db.Client) error {
+	conn := br.get()
+	defer conn.Close()
+
+	_, err := conn.Do("HMSET", redis.Args{}.Add(clientRedisID(client.ID)).AddFlat(&client)...)
 	return err
 }
 
-func (cache *Bridge) FindClient(id string) (*db.Client, error) {
+func (br *Bridge) FindClient(id string) (*db.Client, error) {
+	conn := br.get()
+	defer conn.Close()
+
 	key := clientRedisID(id)
-	v, err := redis.Values(cache.conn.Do("HGETALL", key))
+	v, err := redis.Values(conn.Do("HGETALL", key))
 
 	if err != nil {
 		return nil, err
@@ -47,14 +53,20 @@ func sessionRedisID(id string) string {
 	return "session:" + id
 }
 
-func (cache *Bridge) AddSession(session mdl.Session) error {
-	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(sessionRedisID(session.ID)).AddFlat(&session)...)
+func (br *Bridge) AddSession(session mdl.Session) error {
+	conn := br.get()
+	defer conn.Close()
+
+	_, err := conn.Do("HMSET", redis.Args{}.Add(sessionRedisID(session.ID)).AddFlat(&session)...)
 	return err
 }
 
-func (cache *Bridge) FindSession(id string) (*mdl.Session, error) {
+func (br *Bridge) FindSession(id string) (*mdl.Session, error) {
+	conn := br.get()
+	defer conn.Close()
+
 	key := sessionRedisID(id)
-	v, err := redis.Values(cache.conn.Do("HGETALL", key))
+	v, err := redis.Values(conn.Do("HGETALL", key))
 
 	if err != nil {
 		return nil, err
@@ -71,8 +83,11 @@ func (cache *Bridge) FindSession(id string) (*mdl.Session, error) {
 	return &session, nil
 }
 
-func (cache *Bridge) DeleteSession(id string) error {
-	_, err := cache.conn.Do("DEL", sessionRedisID(id))
+func (br *Bridge) DeleteSession(id string) error {
+	conn := br.get()
+	defer conn.Close()
+
+	_, err := conn.Do("DEL", sessionRedisID(id))
 	return err
 }
 
@@ -81,17 +96,20 @@ func authUserID(username string) string {
 	return "user:" + username
 }
 
-func (cache *Bridge) SetUserAuthInfo(profile db.UserProfile, devices []db.DeviceInfo) error {
+func (br *Bridge) SetUserAuthInfo(profile db.UserProfile, devices []db.DeviceInfo) error {
+	conn := br.get()
+	defer conn.Close()
+
 	authUser := mdl.CreateAuthUserFromProfile(profile)
 
-	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(authUserID(profile.Username)).AddFlat(&authUser)...)
+	_, err := conn.Do("HMSET", redis.Args{}.Add(authUserID(profile.Username)).AddFlat(&authUser)...)
 	if err != nil {
 		return err
 	}
 
 	for _, d := range devices {
 		d.UserID = profile.ID
-		err = cache.SetDevice(d)
+		err = br.SetDevice(d)
 		if err != nil {
 			return err
 		}
@@ -100,9 +118,12 @@ func (cache *Bridge) SetUserAuthInfo(profile db.UserProfile, devices []db.Device
 	return nil
 }
 
-func (cache *Bridge) FindUserAuthInfo(username string) (*mdl.AuthUser, error) {
+func (br *Bridge) FindUserAuthInfo(username string) (*mdl.AuthUser, error) {
+	conn := br.get()
+	defer conn.Close()
+
 	key := authUserID(username)
-	v, err := redis.Values(cache.conn.Do("HGETALL", key))
+	v, err := redis.Values(conn.Do("HGETALL", key))
 
 	if err != nil {
 		return nil, err
@@ -125,20 +146,29 @@ func authDeviceID(userID string, deviceID string) string {
 	return "device:" + userID + deviceID
 }
 
-func (cache *Bridge) SetDevice(device db.DeviceInfo) error {
+func (br *Bridge) SetDevice(device db.DeviceInfo) error {
+	conn := br.get()
+	defer conn.Close()
+
 	ad := mdl.CreateAuthDeviceFromDevice(device)
-	_, err := cache.conn.Do("HMSET", redis.Args{}.Add(authDeviceID(device.UserID, device.ID)).AddFlat(&ad)...)
+	_, err := conn.Do("HMSET", redis.Args{}.Add(authDeviceID(device.UserID, device.ID)).AddFlat(&ad)...)
 	return err
 }
 
-func (cache *Bridge) DeleteDevice(userID string, deviceID string) error {
-	_, err := cache.conn.Do("DEL", authDeviceID(userID, deviceID))
+func (br *Bridge) DeleteDevice(userID string, deviceID string) error {
+	conn := br.get()
+	defer conn.Close()
+
+	_, err := conn.Do("DEL", authDeviceID(userID, deviceID))
 	return err
 }
 
-func (cache *Bridge) FindDevice(userID string, deviceID string) (*mdl.AuthDevice, error) {
+func (br *Bridge) FindDevice(userID string, deviceID string) (*mdl.AuthDevice, error) {
+	conn := br.get()
+	defer conn.Close()
+
 	key := authDeviceID(userID, deviceID)
-	v, err := redis.Values(cache.conn.Do("HGETALL", key))
+	v, err := redis.Values(conn.Do("HGETALL", key))
 
 	if err != nil {
 		return nil, err
@@ -156,19 +186,28 @@ func (cache *Bridge) FindDevice(userID string, deviceID string) (*mdl.AuthDevice
 }
 
 // Confirm code
-func (cache *Bridge) AddConfirmCode(kind string, id string, code string) error {
+func (br *Bridge) AddConfirmCode(kind string, id string, code string) error {
+	conn := br.get()
+	defer conn.Close()
+
 	key := "confirm:" + kind + id
-	_, err := cache.conn.Do("SETEX", key, confirmExpiration, code)
+	_, err := conn.Do("SETEX", key, confirmExpiration, code)
 	return err
 }
 
-func (cache *Bridge) GetConfirmCode(kind string, id string) (string, error) {
+func (br *Bridge) GetConfirmCode(kind string, id string) (string, error) {
+	conn := br.get()
+	defer conn.Close()
+
 	key := "confirm:" + kind + id
-	return redis.String(cache.conn.Do("GET", key))
+	return redis.String(conn.Do("GET", key))
 }
 
-func (cache *Bridge) DeleteConfirmCode(kind string, id string) error {
+func (br *Bridge) DeleteConfirmCode(kind string, id string) error {
+	conn := br.get()
+	defer conn.Close()
+
 	key := "confirm:" + kind + id
-	_, err := cache.conn.Do("DEL", key)
+	_, err := conn.Do("DEL", key)
 	return err
 }
