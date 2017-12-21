@@ -56,5 +56,5 @@ func (p *Bridge) HandleError(c *gin.Context, scope string, httpCode int, err err
 }
 
 func (p *Bridge) GetSession(c *gin.Context) (*rdm.Session, error) {
-	return p.ReadModel.FindSession(c.GetString("session_id"))
+	return p.ReadModel.GetSession(c.GetString("session_id"))
 }

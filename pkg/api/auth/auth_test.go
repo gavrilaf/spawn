@@ -6,6 +6,8 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/env"
 	//"github.com/stretchr/testify/assert"
+	"time"
+
 	"github.com/gavrilaf/spawn/pkg/cryptx"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/satori/go.uuid"
@@ -21,93 +23,135 @@ const (
 	tPsw      = "password"
 )
 
-var mockMiddleware = CreateMockMiddleware()
-
-func GetMockMiddleware() *Middleware {
-	return mockMiddleware
-}
-
-func GetMiddleware(t *testing.T) *Middleware {
+func getMiddleware(t *testing.T) *Middleware {
 	bridge := api.CreateBridge(env.GetEnvironment("Test"))
 	require.NotNil(t, bridge)
 	return CreateMiddleware(bridge)
 }
 
-func GetClient(t *testing.T, mw *Middleware) *db.Client {
+func getClient(t *testing.T, mw *Middleware) *db.Client {
 	p, err := mw.getClient(tClientID)
 	require.Nil(t, err)
 	return p
 }
 
-func GetRegistrationDTO(t *testing.T, mw *Middleware) RegisterDTO {
-	client := GetClient(t, mw)
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+func TestAuth_Register(t *testing.T) {
+	mw := CreateMiddleware(api.CreateBridge(env.GetEnvironment("Test")))
+	require.NotNil(t, mw)
+
+	client := getClient(t, mw)
 	username := uuid.NewV4().String()
 	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
-	return RegisterDTO{ClientID: client.ID, DeviceID: tDeviveID, Username: username, Password: tPsw, Signature: sign}
-}
-
-func GetLoginDTO(t *testing.T, reg RegisterDTO, mw *Middleware) LoginDTO {
-	client := GetClient(t, mw)
-	sign := cryptx.GenerateSignature(client.ID+reg.DeviceID+reg.Username, client.Secret)
-
-	return LoginDTO{ClientID: client.ID,
-		DeviceID:  reg.DeviceID,
-		AuthType:  AuthTypeSimple,
-		Username:  reg.Username,
-		Password:  reg.Password,
+	dto := RegisterDTO{
+		ClientID:  client.ID,
+		DeviceID:  tDeviveID,
+		Username:  username,
+		Password:  tPsw,
 		Signature: sign}
-}
 
-func DoTestRegistration(t *testing.T, mw *Middleware) {
-	p := GetRegistrationDTO(t, mw)
-
-	_, err := mw.HandleRegister(p, LoginContext{IP: "127.0.0.1", Region: "SF"})
+	token, err := mw.HandleRegister(dto, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	require.Nil(t, err)
 
+	assert.NotEmpty(t, token.AuthToken)
+	assert.NotEmpty(t, token.RefreshToken)
+
+	assert.Equal(t, false, token.Permissions.IsLocked)
+	assert.Equal(t, false, token.Permissions.IsEmailConfirmed)
+	assert.Equal(t, false, token.Permissions.Is2FARequired)
+	assert.Equal(t, true, token.Permissions.IsDeviceConfirmed)
+
 	// Already registered
-	_, err = mw.HandleRegister(p, LoginContext{})
+	_, err = mw.HandleRegister(dto, LoginContext{})
 	require.Equal(t, api.ErrUserAlreadyExist, err)
 
 	// Invalid signature
-	p.Signature += "111"
-	_, err = mw.HandleRegister(p, LoginContext{})
+	dto.Signature += "111"
+	_, err = mw.HandleRegister(dto, LoginContext{})
 	require.Equal(t, api.ErrInvalidSignature, err)
 }
 
-func DoTestLogin(t *testing.T, mw *Middleware) {
-	reg := GetRegistrationDTO(t, mw)
-	_, err := mw.HandleRegister(reg, LoginContext{IP: "127.0.0.1", Region: "SF"})
+func TestAuth_Login(t *testing.T) {
+	mw := CreateMiddleware(api.CreateBridge(env.GetEnvironment("Test")))
+	require.NotNil(t, mw)
+
+	client := getClient(t, mw)
+	username := uuid.NewV4().String()
+	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
+	regDto := RegisterDTO{
+		ClientID:  client.ID,
+		DeviceID:  tDeviveID,
+		Username:  username,
+		Password:  tPsw,
+		Signature: sign}
+
+	_, err := mw.HandleRegister(regDto, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	require.Nil(t, err)
 
-	login := GetLoginDTO(t, reg, mw)
+	sign2 := cryptx.GenerateSignature(client.ID+tDeviveID+"111"+username, client.Secret)
+	logingDto := LoginDTO{
+		ClientID:  client.ID,
+		DeviceID:  tDeviveID + "111",
+		AuthType:  AuthTypeSimple,
+		Username:  username,
+		Password:  tPsw,
+		Signature: sign2}
 
-	token, err := mw.HandleLogin(login, LoginContext{IP: "127.0.0.1", Region: "SF"})
+	token, err := mw.HandleLogin(logingDto, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	assert.Nil(t, err)
 	assert.NotNil(t, token)
 
-	reg.Username += "111"
-	login = GetLoginDTO(t, reg, mw)
-	_, err = mw.HandleLogin(login, LoginContext{})
+	assert.NotEmpty(t, token.AuthToken)
+	assert.NotEmpty(t, token.RefreshToken)
+
+	assert.Equal(t, false, token.Permissions.IsLocked)
+	assert.Equal(t, false, token.Permissions.IsEmailConfirmed)
+	assert.Equal(t, false, token.Permissions.Is2FARequired)
+	assert.Equal(t, false, token.Permissions.IsDeviceConfirmed) // new device, need confirmation
+
+	assert.Equal(t, float64(1), token.Expire.Sub(time.Now()).Round(time.Hour).Hours()) // One hour token
+
+	logingDto.Username += "111"
+	logingDto.Signature = cryptx.GenerateSignature(logingDto.ClientID+logingDto.DeviceID+logingDto.Username, client.Secret)
+	_, err = mw.HandleLogin(logingDto, LoginContext{})
 	assert.Equal(t, api.ErrUserUnknown, err)
+
+	logingDto.Signature += "111"
+	_, err = mw.HandleLogin(logingDto, LoginContext{})
+	require.Equal(t, api.ErrInvalidSignature, err)
 }
 
-////////////////////////////////////////////////////////////////
+func TestAuth_Refresh(t *testing.T) {
+	mw := CreateMiddleware(api.CreateBridge(env.GetEnvironment("Test")))
+	require.NotNil(t, mw)
 
-func TestRegistration(t *testing.T) {
-	DoTestRegistration(t, GetMockMiddleware())
+	client := getClient(t, mw)
+	username := uuid.NewV4().String()
+	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
+	dto := RegisterDTO{
+		ClientID:  client.ID,
+		DeviceID:  tDeviveID,
+		Username:  username,
+		Password:  tPsw,
+		Signature: sign}
 
-	if testOnRealEnvironment {
-		mw := GetMiddleware(t)
-		defer mw.Close()
-		DoTestRegistration(t, mw)
+	token, err := mw.HandleRegister(dto, LoginContext{IP: "127.0.0.1", Region: "SF"})
+	require.Nil(t, err)
+
+	refreshDto := RefreshDTO{
+		AuthToken:    token.AuthToken,
+		RefreshToken: token.RefreshToken,
 	}
-}
 
-func TestLogin(t *testing.T) {
-	DoTestLogin(t, GetMockMiddleware())
-	if testOnRealEnvironment {
-		mw := GetMiddleware(t)
-		defer mw.Close()
-		DoTestLogin(t, mw)
-	}
+	auth, err := mw.HandleRefresh(refreshDto)
+	assert.Nil(t, err)
+	require.NotNil(t, auth)
+
+	assert.NotEmpty(t, auth.AuthToken)
+	//assert.NotEqual(t, token.AuthToken, auth.AuthToken) // TODO: Fix later
+	assert.Empty(t, auth.RefreshToken)
+	assert.Equal(t, token.Permissions, auth.Permissions)
+
+	assert.Equal(t, float64(1), auth.Expire.Sub(time.Now()).Round(time.Hour).Hours()) // One hour token
 }

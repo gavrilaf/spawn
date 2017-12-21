@@ -71,7 +71,7 @@ func TestServer_RegisterUser(t *testing.T) {
 
 	//fmt.Printf("Cache user: %v\n", spew.Sdump(cacheUser))
 
-	cacheDevice, err := srv.cache.FindDevice(res.ID, "device-1")
+	cacheDevice, err := srv.cache.GetDevice(res.ID, "device-1")
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheDevice)
 
@@ -121,7 +121,7 @@ func TestServer_AddDevice(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(dbDevices))
 
-	cacheDevice, err := srv.cache.FindDevice(user.ID, "d2")
+	cacheDevice, err := srv.cache.GetDevice(user.ID, "d2")
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheDevice)
 

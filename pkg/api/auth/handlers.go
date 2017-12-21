@@ -11,9 +11,10 @@ import (
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
 	"encoding/hex"
+	"time"
+
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/errx"
-	"time"
 )
 
 // HandleLogin handles sign in proccess
@@ -24,7 +25,7 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 	p.FixLocale() // set 'en' locale & language if empty
 
 	// Check client
-	client, err := mw.storage.FindClient(p.ClientID)
+	client, err := mw.bridge.GetClient(p.ClientID)
 	if err != nil {
 		log.Errorf("auth.HandleLogin, can't find client with ID = %v: (%v)", p.ClientID, err)
 		return AuthTokenDTO{}, err
@@ -37,7 +38,7 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 	}
 
 	// Check user
-	user, err := mw.storage.FindUser(p.Username)
+	user, err := mw.bridge.FindUser(p.Username)
 	if err != nil {
 		log.Errorf("auth.HandleLogin, find user error: (%v)", err)
 		return AuthTokenDTO{}, api.ErrUserUnknown
@@ -51,7 +52,7 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 	}
 
 	// Check device
-	device, err := mw.storage.FindDevice(user.ID, p.DeviceID)
+	device, err := mw.bridge.GetDevice(user.ID, p.DeviceID)
 	if device == nil {
 		_, reason := errx.GetErrorReason(err)
 		if reason != errx.ReasonNotFound {
@@ -69,7 +70,7 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 		newDevice.Locale = p.Locale
 		newDevice.IsConfirmed = false
 
-		device, err = mw.storage.AddDevice(user.ID, newDevice)
+		device, err = mw.bridge.AddDevice(user.ID, newDevice)
 		if err != nil {
 			log.Errorf("auth.HandleLogin, add device error: (%v, %v), (%v)", user.ID, p.DeviceID, err)
 			return AuthTokenDTO{}, err
@@ -93,7 +94,7 @@ func (mw *Middleware) HandleRegister(p RegisterDTO, ctx LoginContext) (AuthToken
 	p.FixLocale() // set 'en' locale & language if empty
 
 	// Check client
-	client, err := mw.storage.FindClient(p.ClientID)
+	client, err := mw.bridge.GetClient(p.ClientID)
 	if err != nil {
 		log.Errorf("auth.HandleRegister, can't find client with ID = %v: (%v)", p.ClientID, err)
 		return AuthTokenDTO{}, err
@@ -106,7 +107,7 @@ func (mw *Middleware) HandleRegister(p RegisterDTO, ctx LoginContext) (AuthToken
 	}
 
 	// Check user already registered
-	alredyExist, _ := mw.storage.FindUser(p.Username)
+	alredyExist, _ := mw.bridge.FindUser(p.Username)
 	if alredyExist != nil {
 		log.Errorf("auth.HandleRegister, user %v already exists", p.Username)
 		return AuthTokenDTO{}, api.ErrUserAlreadyExist
@@ -119,13 +120,13 @@ func (mw *Middleware) HandleRegister(p RegisterDTO, ctx LoginContext) (AuthToken
 		return AuthTokenDTO{}, err
 	}
 
-	err = mw.storage.RegisterUser(p.Username, pswHash, p.CreateDevice())
+	err = mw.bridge.RegisterUser(p.Username, pswHash, p.CreateDevice())
 	if err != nil {
 		log.Errorf("auth.HandleRegister, add to storage error %v: (%v)", p.Username, err)
 		return AuthTokenDTO{}, err
 	}
 
-	user, err := mw.storage.FindUser(p.Username)
+	user, err := mw.bridge.FindUser(p.Username)
 	if err != nil {
 		log.Errorf("auth.HandleRegister, find registered user error %v: (%v)", p.Username, err)
 		return AuthTokenDTO{}, err
@@ -133,7 +134,7 @@ func (mw *Middleware) HandleRegister(p RegisterDTO, ctx LoginContext) (AuthToken
 
 	log.Infof("Created new user: %v", spew.Sdump(user))
 
-	device, err := mw.storage.FindDevice(user.ID, p.DeviceID)
+	device, err := mw.bridge.GetDevice(user.ID, p.DeviceID)
 	if err != nil {
 		log.Errorf("auth.HandleRegister, find device error %v: (%v)", p.Username, err)
 		return AuthTokenDTO{}, err
@@ -159,7 +160,7 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 		return AuthTokenDTO{}, api.ErrTokenExpired
 	}
 
-	session, err := mw.storage.FindSession(sessionID)
+	session, err := mw.bridge.GetSession(sessionID)
 	if err != nil {
 		log.Errorf("auth.HandleRefresh, can't find session: (%v)", err)
 		return AuthTokenDTO{}, err
@@ -212,11 +213,9 @@ func (mw *Middleware) CheckAccess(userId string, clientId string, c *gin.Context
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *mdl.AuthDevice, ctx *LoginContext) (AuthTokenDTO, error) {
-	sessionID := generateSessionID()
-	refreshToken := generateRefreshToken(sessionID)
+	refreshToken := generateRefreshToken()
 
 	session := mdl.Session{
-		ID:                sessionID,
 		RefreshToken:      refreshToken,
 		ClientID:          client.ID,
 		ClientSecret:      client.Secret,
@@ -228,7 +227,7 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 		Permissions:       user.Permissions,
 	}
 
-	err := mw.storage.StoreSession(session)
+	sessionID, err := mw.bridge.StoreSession(session)
 	if err != nil {
 		log.Errorf("auth.makeLogin, add to storage error (%v), (%v)", session, err)
 		return AuthTokenDTO{}, err
@@ -240,7 +239,7 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 
 	now := time.Now()
 	expire := now.Add(mw.timeout)
-	claims["session_id"] = session.ID
+	claims["session_id"] = sessionID
 	claims["aud"] = session.ClientID
 	claims["exp"] = expire.Unix()
 	claims["orig_iat"] = now.Unix()
@@ -254,7 +253,8 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 		return AuthTokenDTO{}, err
 	}
 
-	err = mw.storage.HandlerLogin(session, *ctx)
+	session.ID = sessionID
+	err = mw.bridge.HandlerLogin(session, *ctx)
 	if err != nil {
 		return AuthTokenDTO{}, err
 	}
@@ -274,11 +274,7 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func generateSessionID() string {
-	return uuid.NewV4().String()
-}
-
-func generateRefreshToken(sessionID string) string {
-	k, _ := cryptx.GenerateSaltedKey(sessionID)
+func generateRefreshToken() string {
+	k, _ := cryptx.GenerateSaltedKey(uuid.NewV4().String())
 	return hex.EncodeToString(k)
 }

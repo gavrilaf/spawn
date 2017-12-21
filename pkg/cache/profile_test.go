@@ -1,24 +1,17 @@
 package cache
 
 import (
-	//"fmt"
-
 	"testing"
 
-	//"github.com/davecgh/go-spew/spew"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	//"github.com/gavrilaf/spawn/pkg/env"
-	//"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/gavrilaf/spawn/pkg/utils"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	//"github.com/stretchr/testify/require"
-
-	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
 func TestBridge_UserProfile(t *testing.T) {
-	cache := getCache(t)
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	id := uuid.NewV4().String()
@@ -62,7 +55,7 @@ func TestBridge_UserProfile(t *testing.T) {
 }
 
 func TestBridge_ProfileNotFound(t *testing.T) {
-	cache := getCache(t)
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	id := uuid.NewV4().String() + "-not-found"

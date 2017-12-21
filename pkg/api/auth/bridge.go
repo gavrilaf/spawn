@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/gavrilaf/spawn/pkg/api"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
@@ -9,17 +10,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (sb StorageImpl) Close() {
+type Bridge struct {
+	*api.Bridge
+}
+
+func (sb Bridge) Close() {
 	if sb.Bridge != nil {
 		sb.Bridge.Close()
 	}
 }
 
-func (sb StorageImpl) FindClient(id string) (*db.Client, error) {
+func (sb Bridge) GetClient(id string) (*db.Client, error) {
 	return sb.ReadModel.FindClient(id)
 }
 
-func (sb StorageImpl) RegisterUser(username string, password string, device db.DeviceInfo) error {
+func (sb Bridge) RegisterUser(username string, password string, device db.DeviceInfo) error {
 	req := pb.CreateUserRequest{
 		Username:     username,
 		PasswordHash: password,
@@ -38,15 +43,15 @@ func (sb StorageImpl) RegisterUser(username string, password string, device db.D
 	return err
 }
 
-func (sb StorageImpl) FindUser(username string) (*mdl.AuthUser, error) {
+func (sb Bridge) FindUser(username string) (*mdl.AuthUser, error) {
 	return sb.ReadModel.FindUserAuthInfo(username)
 }
 
-func (sb StorageImpl) FindDevice(userId string, deviceId string) (*mdl.AuthDevice, error) {
-	return sb.ReadModel.FindDevice(userId, deviceId)
+func (sb Bridge) GetDevice(userId string, deviceId string) (*mdl.AuthDevice, error) {
+	return sb.ReadModel.GetDevice(userId, deviceId)
 }
 
-func (sb StorageImpl) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthDevice, error) {
+func (sb Bridge) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthDevice, error) {
 
 	req := pb.AddDeviceRequest{
 		UserID: userID,
@@ -62,15 +67,15 @@ func (sb StorageImpl) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthD
 		log.Infof("Added device (%v, %v)", userID, device.ID)
 	}
 
-	return sb.FindDevice(userID, device.ID)
+	return sb.GetDevice(userID, device.ID)
 }
 
-func (sb StorageImpl) StoreSession(session mdl.Session) error {
-	return sb.ReadModel.AddSession(session)
+func (sb Bridge) StoreSession(session mdl.Session) (string, error) {
+	return sb.ReadModel.AddSession(session, false)
 }
 
-func (sb StorageImpl) FindSession(id string) (*mdl.Session, error) {
-	session, err := sb.ReadModel.FindSession(id)
+func (sb Bridge) GetSession(id string) (*mdl.Session, error) {
+	session, err := sb.ReadModel.GetSession(id)
 	if err != nil {
 		log.Errorf("Can't find session with id %v, error: %v", id, err)
 		return nil, api.ErrSessionNotFound
@@ -79,7 +84,7 @@ func (sb StorageImpl) FindSession(id string) (*mdl.Session, error) {
 	return session, nil
 }
 
-func (sb StorageImpl) HandlerLogin(session mdl.Session, ctx LoginContext) error {
+func (sb Bridge) HandlerLogin(session mdl.Session, ctx LoginContext) error {
 
 	req := pb.LoginRequest{
 		SessionID: session.ID,

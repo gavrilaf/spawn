@@ -32,5 +32,18 @@ func (srv *Server) DeleteDevice(ctx context.Context, req *pb.DeleteDeviceRequest
 		return nil, err
 	}
 
+	log.Infof("Device (%v, %v) is deleted", req.UserID, req.DeviceID)
+
+	// Invalidate session
+	session, _ := srv.cache.FindSession(req.UserID, req.DeviceID)
+	if session != nil {
+		err = srv.cache.DeleteSession(session.ID)
+		if err != nil {
+			log.Errorf("Could not invalidate session with id %v, %v", session.ID, err)
+		} else {
+			log.Infof("Session %v is invalidated", session.ID)
+		}
+	}
+
 	return &pb.Empty{}, nil
 }

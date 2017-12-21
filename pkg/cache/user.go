@@ -41,7 +41,7 @@ func (br *Bridge) GetUserDevicesInfo(userID string) ([]mdl.UserDeviceInfo, error
 	conn := br.get()
 	defer conn.Close()
 
-	keys, err := br.getKeys(userDevicesPattern(userID) + "*")
+	keys, err := getKeys(conn, userDevicesPattern(userID)+"*")
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (br *Bridge) deleteUserDevicesInfo(userID string) error {
 	conn := br.get()
 	defer conn.Close()
 
-	keys, err := br.getKeys(userDevicesPattern(userID) + "*")
+	keys, err := getKeys(conn, userDevicesPattern(userID)+"*")
 	if err != nil {
 		return err
 	}
@@ -82,4 +82,31 @@ func (br *Bridge) deleteUserDevicesInfo(userID string) error {
 	}
 
 	return nil
+}
+
+// Confirm code
+func (br *Bridge) AddConfirmCode(kind string, id string, code string) error {
+	conn := br.get()
+	defer conn.Close()
+
+	key := "confirm:" + kind + id
+	_, err := conn.Do("SETEX", key, confirmExpiration, code)
+	return err
+}
+
+func (br *Bridge) GetConfirmCode(kind string, id string) (string, error) {
+	conn := br.get()
+	defer conn.Close()
+
+	key := "confirm:" + kind + id
+	return redis.String(conn.Do("GET", key))
+}
+
+func (br *Bridge) DeleteConfirmCode(kind string, id string) error {
+	conn := br.get()
+	defer conn.Close()
+
+	key := "confirm:" + kind + id
+	_, err := conn.Do("DEL", key)
+	return err
 }

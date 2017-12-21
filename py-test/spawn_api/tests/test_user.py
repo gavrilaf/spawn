@@ -46,7 +46,6 @@ class TestProfile(unittest.TestCase):
         # should be error
         is_error, err = self.api.get_state()
         self.assertTrue(is_error)
-        self.assertEqual(err["scope"], "api")
         self.assertEqual(err["reason"], "session-not-found")
 
     def testGetDevices(self):
@@ -112,7 +111,6 @@ class TestProfile(unittest.TestCase):
 
         err = self.api.delete_device("device-2")
         self.assertIsNotNone(err)
-        self.assertEqual(err["scope"], "api")
         self.assertEqual(err["reason"], "delete-current-device")
 
         err = self.api.delete_device("device-1")
@@ -126,6 +124,29 @@ class TestProfile(unittest.TestCase):
         self.assertEqual("device-2", devices[0]["device_id"])
         self.assertEqual("device-2-name", devices[0]["device_name"])
 
+    def testDeleteDeviceInvalidateSession(self):
+        username = self.get_name()
+        device = spawn.Device("device-1", "device-1-name")
+        password = "password"
+
+        err = self.api.sign_up(username, password, device, "en", "en")
+        self.assertIsNone(err)
+
+        # login with other device
+        api2 = spawn.SpawnApi(self.endpoint, self.client)
+        err = api2.sign_in(username, password, spawn.Device("device-2", "device-2-name"), "en", "en")
+        self.assertIsNone(err)
+
+        # session 2 is in valid state
+        is_error, _ = api2.get_state()
+        self.assertFalse(is_error)
+
+        err = self.api.delete_device("device-2")
+        self.assertIsNone(err)
+
+        # session 2 is invalidated
+        is_error, _ = api2.get_state()
+        self.assertTrue(is_error)
 
 if __name__ == '__main__':
     unittest.main()

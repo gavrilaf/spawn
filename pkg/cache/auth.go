@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"strconv"
+
 	"github.com/garyburd/redigo/redis"
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
@@ -49,23 +51,87 @@ func (br *Bridge) FindClient(id string) (*db.Client, error) {
 
 // Session
 
-func sessionRedisID(id string) string {
-	return "session:" + id
+func sessionPatern(userID string, deviceID string) string {
+	return "session:" + userID + ":" + deviceID
 }
 
-func (br *Bridge) AddSession(session mdl.Session) error {
+func (br *Bridge) AddSession(session mdl.Session, forced bool) (string, error) {
 	conn := br.get()
 	defer conn.Close()
 
-	_, err := conn.Do("HMSET", redis.Args{}.Add(sessionRedisID(session.ID)).AddFlat(&session)...)
+	// check old session
+	keys, err := getKeys(conn, sessionPatern(session.UserID, session.DeviceID)+"*")
+	if err != nil {
+		return "", err
+	}
+
+	if len(keys) > 0 {
+		if !forced {
+			return "", ErrSessionDuplicate
+		}
+
+		// invalidate old session
+		for _, key := range keys {
+			conn.Do("DEL", key)
+		}
+	}
+
+	nonce, _ := redis.Int(conn.Do("INCR", "sessions-counter"))
+	key := sessionPatern(session.UserID, session.DeviceID) + ":" + strconv.Itoa(nonce)
+
+	session.ID = key
+	_, err = conn.Do("HMSET", redis.Args{}.Add(key).AddFlat(&session)...)
+	if err != nil {
+		return "", nil
+	}
+
+	return key, err
+}
+
+func (br *Bridge) GetSession(id string) (*mdl.Session, error) {
+	conn := br.get()
+	defer conn.Close()
+
+	v, err := redis.Values(conn.Do("HGETALL", id))
+
+	if err != nil {
+		return nil, err
+	}
+	if len(v) == 0 {
+		return nil, errx.ErrKeyNotFound(Scope, id)
+	}
+
+	var session mdl.Session
+	if err := redis.ScanStruct(v, &session); err != nil {
+		return nil, err
+	}
+
+	return &session, nil
+}
+
+func (br *Bridge) DeleteSession(id string) error {
+	conn := br.get()
+	defer conn.Close()
+
+	_, err := conn.Do("DEL", id)
 	return err
 }
 
-func (br *Bridge) FindSession(id string) (*mdl.Session, error) {
+func (br *Bridge) FindSession(userID string, deviceID string) (*mdl.Session, error) {
 	conn := br.get()
 	defer conn.Close()
 
-	key := sessionRedisID(id)
+	key := sessionPatern(userID, deviceID)
+	keys, err := getKeys(conn, key+"*")
+	if err != nil {
+		return nil, err
+	}
+
+	if len(keys) == 0 {
+		return nil, errx.ErrKeyNotFound(Scope, key)
+	}
+
+	key = keys[0]
 	v, err := redis.Values(conn.Do("HGETALL", key))
 
 	if err != nil {
@@ -83,17 +149,10 @@ func (br *Bridge) FindSession(id string) (*mdl.Session, error) {
 	return &session, nil
 }
 
-func (br *Bridge) DeleteSession(id string) error {
-	conn := br.get()
-	defer conn.Close()
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	_, err := conn.Do("DEL", sessionRedisID(id))
-	return err
-}
-
-// Users
 func authUserID(username string) string {
-	return "user:" + username
+	return "auser:" + username
 }
 
 func (br *Bridge) SetUserAuthInfo(profile db.UserProfile, devices []db.DeviceInfo) error {
@@ -143,7 +202,7 @@ func (br *Bridge) FindUserAuthInfo(username string) (*mdl.AuthUser, error) {
 // Devices
 
 func authDeviceID(userID string, deviceID string) string {
-	return "device:" + userID + deviceID
+	return "adevice:" + userID + deviceID
 }
 
 func (br *Bridge) SetDevice(device db.DeviceInfo) error {
@@ -163,7 +222,7 @@ func (br *Bridge) DeleteDevice(userID string, deviceID string) error {
 	return err
 }
 
-func (br *Bridge) FindDevice(userID string, deviceID string) (*mdl.AuthDevice, error) {
+func (br *Bridge) GetDevice(userID string, deviceID string) (*mdl.AuthDevice, error) {
 	conn := br.get()
 	defer conn.Close()
 
@@ -183,31 +242,4 @@ func (br *Bridge) FindDevice(userID string, deviceID string) (*mdl.AuthDevice, e
 	}
 
 	return &d, nil
-}
-
-// Confirm code
-func (br *Bridge) AddConfirmCode(kind string, id string, code string) error {
-	conn := br.get()
-	defer conn.Close()
-
-	key := "confirm:" + kind + id
-	_, err := conn.Do("SETEX", key, confirmExpiration, code)
-	return err
-}
-
-func (br *Bridge) GetConfirmCode(kind string, id string) (string, error) {
-	conn := br.get()
-	defer conn.Close()
-
-	key := "confirm:" + kind + id
-	return redis.String(conn.Do("GET", key))
-}
-
-func (br *Bridge) DeleteConfirmCode(kind string, id string) error {
-	conn := br.get()
-	defer conn.Close()
-
-	key := "confirm:" + kind + id
-	_, err := conn.Do("DEL", key)
-	return err
 }

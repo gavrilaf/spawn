@@ -1,26 +1,36 @@
 package cache
 
 import (
-	//"fmt"
-
-	"testing"
-
-	//"github.com/davecgh/go-spew/spew"
-	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	//"github.com/gavrilaf/spawn/pkg/env"
-	//"github.com/gavrilaf/spawn/pkg/errx"
-
-	"github.com/satori/go.uuid"
-	"github.com/stretchr/testify/assert"
-	//"github.com/stretchr/testify/require"
 	"database/sql"
+	"testing"
 	"time"
 
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/lib/pq"
+	"github.com/satori/go.uuid"
+	"github.com/stretchr/testify/assert"
 )
 
+func TestBridge_ConfirmCode(t *testing.T) {
+	cache := getTestCache(t)
+	defer cache.Close()
+
+	err := cache.AddConfirmCode("device", "d-id-1", "123456")
+	assert.Nil(t, err)
+
+	code, err := cache.GetConfirmCode("device", "d-id-1")
+	assert.Nil(t, err)
+	assert.Equal(t, "123456", code)
+
+	err = cache.DeleteConfirmCode("device", "d-id-1")
+	assert.Nil(t, err)
+
+	code, _ = cache.GetConfirmCode("device", "d-id-1")
+	assert.Equal(t, "", code)
+}
+
 func TestBridge_SetUserDevicesInfo(t *testing.T) {
-	cache := getCache(t)
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	devices := []db.DeviceInfoEx{

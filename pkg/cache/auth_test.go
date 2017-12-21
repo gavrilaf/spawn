@@ -1,13 +1,10 @@
 package cache
 
 import (
-	//"fmt"
-
 	"testing"
 
 	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	"github.com/gavrilaf/spawn/pkg/env"
 
 	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/satori/go.uuid"
@@ -15,15 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getCache(t *testing.T) Cache {
-	cache, err := Connect(env.GetEnvironment("Test"))
-	require.Nil(t, err)
-	require.NotNil(t, cache)
-	return cache
-}
-
 func TestBridge_AddClient(t *testing.T) {
-	cache := getCache(t)
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	cl := db.Client{"cl-1", []byte("secret"), true, "desc", 0}
@@ -39,28 +29,27 @@ func TestBridge_AddClient(t *testing.T) {
 }
 
 func TestBridge_AddSession(t *testing.T) {
-	cache := getCache(t)
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	session := mdl.Session{
-		ID:                "ses-1",
 		RefreshToken:      "refresh-token",
 		ClientID:          "client-id",
 		ClientSecret:      []byte("secret"),
-		UserID:            "user-id",
-		DeviceID:          "device-id",
+		UserID:            "user-id-11",
+		DeviceID:          "device-id-11",
 		IsDeviceConfirmed: true,
 		Locale:            "en",
 		Lang:              "en"}
 
-	err := cache.AddSession(session)
+	sessionID, err := cache.AddSession(session, false)
 	require.Nil(t, err)
 
-	p, err := cache.FindSession(session.ID)
+	p, err := cache.GetSession(sessionID)
 	require.Nil(t, err)
 	require.NotNil(t, p)
 
-	assert.Equal(t, session.ID, p.ID)
+	assert.Equal(t, sessionID, p.ID)
 	assert.Equal(t, session.ClientID, p.ClientID)
 	assert.Equal(t, session.RefreshToken, p.RefreshToken)
 	assert.Equal(t, session.ClientSecret, p.ClientSecret)
@@ -70,17 +59,92 @@ func TestBridge_AddSession(t *testing.T) {
 	assert.Equal(t, session.Locale, p.Locale)
 	assert.Equal(t, session.Lang, p.Lang)
 
-	err = cache.DeleteSession(session.ID)
+	err = cache.DeleteSession(sessionID)
 	assert.Nil(t, err)
 
-	p, err = cache.FindSession(session.ID)
-	//fmt.Printf("Error: %v\n", err)
+	p, err = cache.GetSession(sessionID)
 	require.NotNil(t, err)
 	require.Nil(t, p)
 }
 
+func TestBridge_AddSessionIfExists(t *testing.T) {
+	cache := getTestCache(t)
+	defer cache.Close()
+
+	session := mdl.Session{
+		RefreshToken:      "refresh-token",
+		ClientID:          "client-id",
+		ClientSecret:      []byte("secret"),
+		UserID:            "user-id-21",
+		DeviceID:          "device-id-21",
+		IsDeviceConfirmed: true,
+		Locale:            "en",
+		Lang:              "en"}
+
+	sessionID, err := cache.AddSession(session, false)
+	require.Nil(t, err)
+
+	sessionID, err = cache.AddSession(session, false)
+	assert.NotNil(t, err)
+
+	scope, reason := errx.GetErrorReason(err)
+	assert.Equal(t, Scope, scope)
+	assert.Equal(t, ReasonSessionDuplicate, reason)
+
+	sessionID2, err := cache.AddSession(session, true)
+	assert.Nil(t, err)
+
+	assert.NotEqual(t, sessionID, sessionID2)
+
+	p, err := cache.GetSession(sessionID)
+	require.NotNil(t, err)
+	require.Nil(t, p)
+
+	p, err = cache.GetSession(sessionID2)
+	require.Nil(t, err)
+	require.NotNil(t, p)
+
+	err = cache.DeleteSession(sessionID2)
+	assert.Nil(t, err)
+}
+
+func TestBridge_FindSession(t *testing.T) {
+	cache := getTestCache(t)
+	defer cache.Close()
+
+	session := mdl.Session{
+		RefreshToken:      "refresh-token",
+		ClientID:          "client-id",
+		ClientSecret:      []byte("secret"),
+		UserID:            "user-id-1111",
+		DeviceID:          "device-id-1111",
+		IsDeviceConfirmed: true,
+		Locale:            "en",
+		Lang:              "en"}
+
+	sessionID, err := cache.AddSession(session, false)
+	require.Nil(t, err)
+
+	p, err := cache.FindSession("user-id-1111", "device-id-1111")
+	assert.Nil(t, err)
+	assert.NotNil(t, p)
+
+	assert.Equal(t, sessionID, p.ID)
+	assert.Equal(t, session.ClientID, p.ClientID)
+	assert.Equal(t, session.RefreshToken, p.RefreshToken)
+	assert.Equal(t, session.ClientSecret, p.ClientSecret)
+	assert.Equal(t, session.UserID, p.UserID)
+	assert.Equal(t, session.DeviceID, p.DeviceID)
+	assert.Equal(t, session.IsDeviceConfirmed, p.IsDeviceConfirmed)
+	assert.Equal(t, session.Locale, p.Locale)
+	assert.Equal(t, session.Lang, p.Lang)
+
+	err = cache.DeleteSession(sessionID)
+	assert.Nil(t, err)
+}
+
 func TestBridge_SetUserAuthInfo(t *testing.T) {
-	cache := getCache(t)
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	profile := db.UserProfile{
@@ -117,12 +181,10 @@ func TestBridge_SetUserAuthInfo(t *testing.T) {
 	p2, err := cache.FindUserAuthInfo("unknown-user-name@@@")
 	require.NotNil(t, err)
 	require.Nil(t, p2)
-
-	//fmt.Printf("Error: %v", err)
 }
 
 func TestBridge_SetDevice(t *testing.T) {
-	cache := getCache(t)
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	profile := db.UserProfile{
@@ -143,11 +205,11 @@ func TestBridge_SetDevice(t *testing.T) {
 	err := cache.SetUserAuthInfo(profile, devices)
 	require.Nil(t, err)
 
-	d1, err := cache.FindDevice("user-1", "d1")
+	d1, err := cache.GetDevice("user-1", "d1")
 	assert.Nil(t, err)
 	assert.NotNil(t, d1)
 
-	d2, err := cache.FindDevice("user-1", "d2")
+	d2, err := cache.GetDevice("user-1", "d2")
 	assert.Nil(t, err)
 
 	assert.Equal(t, "d2", d2.DeviceID)
@@ -158,13 +220,13 @@ func TestBridge_SetDevice(t *testing.T) {
 	assert.Equal(t, "en", d2.Lang)
 
 	assert.Nil(t, cache.DeleteDevice(profile.ID, "d1"))
-	dd1, _ := cache.FindDevice(profile.ID, "d1")
+	dd1, _ := cache.GetDevice(profile.ID, "d1")
 	assert.Nil(t, dd1)
 
 	err = cache.SetDevice(db.DeviceInfo{ID: "d3", UserID: profile.ID})
 	assert.Nil(t, err)
 
-	d3, _ := cache.FindDevice(profile.ID, "d3")
+	d3, _ := cache.GetDevice(profile.ID, "d3")
 	assert.NotNil(t, d3)
 
 	assert.Nil(t, cache.DeleteDevice(profile.ID, "d3"))
@@ -173,26 +235,8 @@ func TestBridge_SetDevice(t *testing.T) {
 	assert.Nil(t, cache.DeleteDevice(profile.ID, "d2"))
 }
 
-func TestBridge_ConfirmCode(t *testing.T) {
-	cache := getCache(t)
-	defer cache.Close()
-
-	err := cache.AddConfirmCode("device", "d-id-1", "123456")
-	assert.Nil(t, err)
-
-	code, err := cache.GetConfirmCode("device", "d-id-1")
-	assert.Nil(t, err)
-	assert.Equal(t, "123456", code)
-
-	err = cache.DeleteConfirmCode("device", "d-id-1")
-	assert.Nil(t, err)
-
-	code, _ = cache.GetConfirmCode("device", "d-id-1")
-	assert.Equal(t, "", code)
-}
-
-func TestBridge_NotFound(t *testing.T) {
-	cache := getCache(t)
+func TestBridge_AuthNotFound(t *testing.T) {
+	cache := getTestCache(t)
 	defer cache.Close()
 
 	new_id := uuid.NewV4().String() + "-not-found"
@@ -208,7 +252,7 @@ func TestBridge_NotFound(t *testing.T) {
 	require.NotNil(t, err)
 	check(err)
 
-	p1, err := cache.FindSession(new_id)
+	p1, err := cache.GetSession(new_id)
 	assert.Nil(t, p1)
 	require.NotNil(t, err)
 	check(err)
@@ -218,7 +262,7 @@ func TestBridge_NotFound(t *testing.T) {
 	require.NotNil(t, err)
 	check(err)
 
-	p3, err := cache.FindDevice(new_id, new_id)
+	p3, err := cache.GetDevice(new_id, new_id)
 	assert.Nil(t, p3)
 	require.NotNil(t, err)
 	check(err)

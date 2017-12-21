@@ -17,26 +17,18 @@ import (
 type Middleware struct {
 	timeout    time.Duration
 	maxRefresh time.Duration
-	storage    Storage
+	bridge     Bridge
 }
 
 func CreateMiddleware(bridge *api.Bridge) *Middleware {
+	if bridge == nil {
+		return nil
+	}
+
 	return &Middleware{
 		timeout:    time.Hour,
 		maxRefresh: time.Hour * 24,
-		storage:    StorageImpl{Bridge: bridge}}
-}
-
-func CreateMockMiddleware() *Middleware {
-	return &Middleware{
-		timeout:    time.Minute,
-		maxRefresh: time.Hour,
-		storage:    storageMock}
-}
-
-func (mw *Middleware) Close() {
-	if mw.storage != nil {
-		mw.storage.Close()
+		bridge:     Bridge{bridge},
 	}
 }
 
@@ -55,7 +47,7 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 		}
 
 		claims := ClaimsFromToken(token)
-		session, err := mw.storage.FindSession(claims.SessionID())
+		session, err := mw.bridge.GetSession(claims.SessionID())
 		if err != nil {
 			mw.handleError(c, http.StatusUnauthorized, err)
 			return
@@ -146,7 +138,7 @@ func (mw *Middleware) handleError(c *gin.Context, httpCode int, err error) {
 func (mw *Middleware) parseToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		claims := ClaimsFromToken(token)
-		client, err := mw.storage.FindClient(claims.ClientID())
+		client, err := mw.bridge.GetClient(claims.ClientID())
 		if err != nil {
 			return nil, err
 		}
@@ -172,7 +164,7 @@ func (mw *Middleware) jwtFromHeader(c *gin.Context, key string) (string, error) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 func (mw *Middleware) getClient(id string) (*db.Client, error) {
-	return mw.storage.FindClient(id)
+	return mw.bridge.GetClient(id)
 }
 
 func createLoginContext(c *gin.Context) LoginContext {
