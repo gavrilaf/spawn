@@ -149,7 +149,7 @@ func TestAuth_Refresh(t *testing.T) {
 	require.NotNil(t, auth)
 
 	assert.NotEmpty(t, auth.AuthToken)
-	//assert.NotEqual(t, token.AuthToken, auth.AuthToken) // TODO: Fix later
+	assert.NotEqual(t, token.AuthToken, auth.AuthToken)
 	assert.Empty(t, auth.RefreshToken)
 	assert.Equal(t, token.Permissions, auth.Permissions)
 

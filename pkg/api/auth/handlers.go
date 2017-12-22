@@ -13,6 +13,8 @@ import (
 	"encoding/hex"
 	"time"
 
+	"fmt"
+
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/errx"
 )
@@ -151,10 +153,12 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	token, _ := mw.parseToken(p.AuthToken)
 	claims := token.Claims.(jwt.MapClaims)
 
+	fmt.Printf(spew.Sdump(claims))
 	sessionID := claims["session_id"].(string)
 	origIat := int64(claims["orig_iat"].(float64))
+	nonce := int64(claims["nonce"].(float64))
 
-	log.Infof("auth.HandleRefresh, sesson = %v, iat = %v", sessionID, origIat)
+	log.Infof("auth.HandleRefresh, sesson = %v, iat = %d, nonce = %d", sessionID, origIat, nonce)
 
 	if origIat < time.Now().Add(-mw.maxRefresh).Unix() {
 		return AuthTokenDTO{}, api.ErrTokenExpired
@@ -167,8 +171,13 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	}
 
 	if p.RefreshToken != session.RefreshToken {
-		log.Errorf("auth.HandleRefresh, invalid refresh token!!!")
+		log.Errorf("auth.HandleRefresh, invalid refresh token")
 		return AuthTokenDTO{}, api.ErrTokenInvalid
+	}
+
+	if nonce != session.Nonce {
+		log.Errorf("auth.HandleRefresh, invalid nonce %d, required %d", nonce, session.Nonce)
+		return AuthTokenDTO{}, api.ErrTokenExpired
 	}
 
 	// Create the token
@@ -183,6 +192,17 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	now := time.Now()
 	expire := now.Add(mw.timeout)
 	claims["exp"] = expire.Unix()
+
+	// Update nonce
+	nonce += 1
+	claims["nonce"] = nonce
+	session.Nonce = nonce
+
+	err = mw.bridge.UpdateSession(*session)
+	if err != nil {
+		log.Errorf("auth.HandleRefresh, can't update session %v: (%v)", sessionID, err)
+		return AuthTokenDTO{}, err
+	}
 
 	tokenString, err := token.SignedString(session.ClientSecret)
 	if err != nil {
@@ -217,6 +237,7 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 
 	session := mdl.Session{
 		RefreshToken:      refreshToken,
+		Nonce:             1,
 		ClientID:          client.ID,
 		ClientSecret:      client.Secret,
 		UserID:            user.ID,
@@ -227,7 +248,7 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 		Permissions:       user.Permissions,
 	}
 
-	sessionID, err := mw.bridge.StoreSession(session)
+	sessionID, err := mw.bridge.AddSession(session)
 	if err != nil {
 		log.Errorf("auth.makeLogin, add to storage error (%v), (%v)", session, err)
 		return AuthTokenDTO{}, err
@@ -244,6 +265,7 @@ func (mw *Middleware) makeLogin(client *db.Client, user *mdl.AuthUser, device *m
 	claims["exp"] = expire.Unix()
 	claims["orig_iat"] = now.Unix()
 	claims["iss"] = Realm
+	claims["nonce"] = int64(1)
 
 	// Add custom claims here
 

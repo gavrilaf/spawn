@@ -6,6 +6,7 @@ import (
 
 type Session struct {
 	ID                string
+	Nonce             int64
 	RefreshToken      string
 	ClientID          string
 	ClientSecret      []byte

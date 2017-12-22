@@ -88,6 +88,14 @@ func (br *Bridge) AddSession(session mdl.Session, forced bool) (string, error) {
 	return key, err
 }
 
+func (br *Bridge) SetSession(session mdl.Session) error {
+	conn := br.get()
+	defer conn.Close()
+
+	_, err := conn.Do("HMSET", redis.Args{}.Add(session.ID).AddFlat(&session)...)
+	return err
+}
+
 func (br *Bridge) GetSession(id string) (*mdl.Session, error) {
 	conn := br.get()
 	defer conn.Close()

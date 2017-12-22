@@ -70,8 +70,12 @@ func (sb Bridge) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthDevice
 	return sb.GetDevice(userID, device.ID)
 }
 
-func (sb Bridge) StoreSession(session mdl.Session) (string, error) {
+func (sb Bridge) AddSession(session mdl.Session) (string, error) {
 	return sb.ReadModel.AddSession(session, false)
+}
+
+func (sb Bridge) UpdateSession(session mdl.Session) error {
+	return sb.ReadModel.SetSession(session)
 }
 
 func (sb Bridge) GetSession(id string) (*mdl.Session, error) {

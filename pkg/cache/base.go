@@ -35,6 +35,7 @@ type Cache interface {
 	// returns stored session id
 	AddSession(session mdl.Session, forced bool) (string, error)
 
+	SetSession(session mdl.Session) error
 	GetSession(id string) (*mdl.Session, error)
 	DeleteSession(id string) error
 

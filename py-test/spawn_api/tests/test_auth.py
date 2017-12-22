@@ -105,13 +105,18 @@ class TestProfile(unittest.TestCase):
         self.assertIsNone(err)
 
         old_auth = self.api.auth_token[:]
-        old_refresh = self.api.refresh_token[:]
 
         err = self.api.do_refresh_token()
         self.assertIsNone(err)
 
-        #self.assertFalse(self.api.auth_token == old_auth) # TODO: Fix after token nonce task
+        # new token must be differ
+        self.assertNotEqual(self.api.auth_token, old_auth)
 
+        # token is invalidated after refresh
+        self.api.auth_token = old_auth
+        err = self.api.do_refresh_token()
+        self.assertIsNotNone(err)
+        self.assertEqual(err["reason"], "token-expired")
 
 
 if __name__ == '__main__':

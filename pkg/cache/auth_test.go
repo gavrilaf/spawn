@@ -33,6 +33,7 @@ func TestBridge_AddSession(t *testing.T) {
 	defer cache.Close()
 
 	session := mdl.Session{
+		Nonce:             1,
 		RefreshToken:      "refresh-token",
 		ClientID:          "client-id",
 		ClientSecret:      []byte("secret"),
@@ -50,6 +51,7 @@ func TestBridge_AddSession(t *testing.T) {
 	require.NotNil(t, p)
 
 	assert.Equal(t, sessionID, p.ID)
+	assert.Equal(t, session.Nonce, p.Nonce)
 	assert.Equal(t, session.ClientID, p.ClientID)
 	assert.Equal(t, session.RefreshToken, p.RefreshToken)
 	assert.Equal(t, session.ClientSecret, p.ClientSecret)
@@ -67,11 +69,54 @@ func TestBridge_AddSession(t *testing.T) {
 	require.Nil(t, p)
 }
 
+func TestBridge_SetSession(t *testing.T) {
+	cache := getTestCache(t)
+	defer cache.Close()
+
+	session := mdl.Session{
+		Nonce:             1,
+		RefreshToken:      "refresh-token",
+		ClientID:          "client-id",
+		ClientSecret:      []byte("secret"),
+		UserID:            "user-id-11--",
+		DeviceID:          "device-id-11--",
+		IsDeviceConfirmed: true,
+		Locale:            "en",
+		Lang:              "en"}
+
+	id, err := cache.AddSession(session, false)
+	require.Nil(t, err)
+
+	session.ID = id
+	session.Nonce = 12
+
+	err = cache.SetSession(session)
+	require.Nil(t, err)
+
+	p, err := cache.GetSession(id)
+	require.Nil(t, err)
+	require.NotNil(t, p)
+
+	assert.Equal(t, session.ID, p.ID)
+	assert.Equal(t, session.Nonce, p.Nonce)
+	assert.Equal(t, session.ClientID, p.ClientID)
+	assert.Equal(t, session.RefreshToken, p.RefreshToken)
+	assert.Equal(t, session.ClientSecret, p.ClientSecret)
+	assert.Equal(t, session.UserID, p.UserID)
+	assert.Equal(t, session.DeviceID, p.DeviceID)
+	assert.Equal(t, session.IsDeviceConfirmed, p.IsDeviceConfirmed)
+	assert.Equal(t, session.Locale, p.Locale)
+	assert.Equal(t, session.Lang, p.Lang)
+
+	cache.DeleteSession(id)
+}
+
 func TestBridge_AddSessionIfExists(t *testing.T) {
 	cache := getTestCache(t)
 	defer cache.Close()
 
 	session := mdl.Session{
+		Nonce:             1,
 		RefreshToken:      "refresh-token",
 		ClientID:          "client-id",
 		ClientSecret:      []byte("secret"),
