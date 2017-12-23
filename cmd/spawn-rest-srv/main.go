@@ -27,11 +27,14 @@ func main() {
 	router.Use(gin.Recovery())
 
 	environment := env.GetEnvironment("Test")
+	if environment == nil {
+		panic("Could not read environment")
+	}
 
 	//storage := auth.NewStorageMock(environment)
 	apiBridge := api.CreateBridge(environment)
 	if apiBridge == nil {
-		panic("Can not create storage")
+		panic("Could not connect to the api bridge")
 	}
 
 	authMiddleware := auth.CreateMiddleware(apiBridge)

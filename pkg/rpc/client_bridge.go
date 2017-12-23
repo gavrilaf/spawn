@@ -1,14 +1,17 @@
 package backend
 
 import (
+	"context"
+
 	"github.com/gavrilaf/spawn/pkg/env"
 	"google.golang.org/grpc"
-	"time"
 )
 
 type BackendBridge struct {
-	Client SpawnClient
-	conn   *grpc.ClientConn
+	Client     SpawnClient
+	Ctx        context.Context
+	CancelFunc context.CancelFunc
+	conn       *grpc.ClientConn
 }
 
 func (b *BackendBridge) Close() {
@@ -18,15 +21,15 @@ func (b *BackendBridge) Close() {
 func CreateClient(en *env.Environment) (*BackendBridge, error) {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithTimeout(time.Duration(3) * time.Second),
-	}
+		grpc.WithBlock()}
 
-	conn, err := grpc.Dial("localhost:7887", opts...)
+	ctx, cancel := context.WithTimeout(context.Background(), en.GetRPCOpts().Timeout)
+
+	conn, err := grpc.DialContext(ctx, en.GetRPCOpts().URL, opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	client := NewSpawnClient(conn)
-	return &BackendBridge{client, conn}, nil
+	return &BackendBridge{client, ctx, cancel, conn}, nil
 }

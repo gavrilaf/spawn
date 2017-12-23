@@ -32,14 +32,14 @@ func CreateServer(en *env.Environment) *Server {
 
 	db, err := dbx.Connect(en)
 	if err != nil {
-		log.Errorf("Can not connect to database: %v", err)
+		log.Errorf("Could not connect to database: %v", err)
 		return nil
 	}
 	log.Infof("Db connection, ok")
 
 	cache, err := cache.Connect(en)
 	if err != nil {
-		log.Errorf("Can not connect to cache: %v", err)
+		log.Errorf("Could not connect to cache: %v", err)
 		return nil
 	}
 	log.Infof("Cache connection, ok")

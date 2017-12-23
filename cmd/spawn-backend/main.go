@@ -12,6 +12,10 @@ import (
 
 func newBackend() *backend.Server {
 	en := env.GetEnvironment("Test")
+	if en == nil {
+		panic("Could not read environment")
+	}
+
 	srv := backend.CreateServer(en)
 
 	if srv == nil {

@@ -15,11 +15,11 @@ type Bridge struct {
 func newPool(en *env.Environment) *redis.Pool {
 	return &redis.Pool{
 
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
+		MaxIdle:     en.GetRedisOpts().MaxIdle,
+		IdleTimeout: en.GetRedisOpts().IdleTimeout,
 
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialURL("redis://localhost:7001")
+			c, err := redis.DialURL(en.GetRedisOpts().URL)
 			if err != nil {
 				return nil, err
 			}

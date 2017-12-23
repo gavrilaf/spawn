@@ -16,7 +16,7 @@ type Bridge struct {
 }
 
 func CreateBridge(en *env.Environment) *Bridge {
-	log.Infof("Starting storage with environment: %v", en.GetName())
+	log.Infof("Starting api with environment: %v", en.GetName())
 
 	cache, err := cache.Connect(en)
 	if err != nil {

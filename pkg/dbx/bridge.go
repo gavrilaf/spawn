@@ -15,7 +15,7 @@ const (
 
 // Connect - connect to spawn database
 func Connect(en *env.Environment) (Database, error) {
-	db, err := sqlx.Connect("postgres", "dbname=spawn host=localhost port=5432 user=postgres sslmode=disable")
+	db, err := sqlx.Connect(en.GetDBOpts().Driver, en.GetDBOpts().DataSource)
 	if err != nil {
 		return nil, errx.ErrEnvironment(Scope, "Couldn't connect to postgre database: %v", err)
 	}
