@@ -29,6 +29,8 @@ type Database interface {
 
 	GetClients() ([]mdl.Client, error)
 
+	// User
+
 	RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error)
 
 	GetUserProfile(id string) (*mdl.UserProfile, error)
@@ -54,6 +56,17 @@ type Database interface {
 	GetUserDevicesEx(userID string) ([]mdl.DeviceInfoEx, error)
 
 	LogUserLogin(userID string, deviceID string, userAgent string, ip string, region string) error
+
+	// Accounts
+
+	GetSupportedAccounts() ([]mdl.AccountMeta, error)
+
+	GetAccountsAllowedForUser(userID string) ([]mdl.AccountMeta, error)
+	GetUserAccount(userID string) ([]mdl.Account, error)
+
+	RegisterAccount(userID string, currency string, name string) error
+
+	GetAccount(accountID string) (*mdl.Account, error)
 }
 
 //////////////////////////////////////////////////////////////////////////////

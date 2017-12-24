@@ -71,6 +71,10 @@ func ErrKeyNotFound(scope string, key string) Err {
 	return NewFmt(scope, ReasonNotFound, "Key %v not found", key)
 }
 
+func ErrNotImplemented(scope string, function string) Err {
+	return NewFmt(scope, ReasonNotImplemented, "Function %v in %v not implemented yet", function, scope)
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 // GetErrorReason returns Scope & Reason for error. For system error return (ScopeUnknown, ReasonSystem)

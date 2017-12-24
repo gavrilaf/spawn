@@ -62,4 +62,7 @@ type Cache interface {
 
 	SetUserProfile(profile db.UserProfile) error
 	GetUserProfile(userID string) (*mdl.UserProfile, error)
+
+	// Accounts
+
 }
