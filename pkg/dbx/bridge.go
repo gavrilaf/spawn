@@ -62,9 +62,9 @@ type Database interface {
 	GetSupportedAccounts() ([]mdl.AccountMeta, error)
 
 	GetAccountsAllowedForUser(userID string) ([]mdl.AccountMeta, error)
-	GetUserAccount(userID string) ([]mdl.Account, error)
+	GetUserAccounts(userID string) ([]mdl.Account, error)
 
-	RegisterAccount(userID string, currency string, name string) error
+	AddAccount(userID string, currency string, name string) (*mdl.Account, error)
 
 	GetAccount(accountID string) (*mdl.Account, error)
 }

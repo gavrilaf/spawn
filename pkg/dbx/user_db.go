@@ -104,15 +104,29 @@ func (db *Bridge) GetClients() ([]mdl.Client, error) {
 func (db *Bridge) RegisterUser(username string, password string, device mdl.DeviceInfo) (*mdl.UserProfile, error) {
 	userID := uuid.NewV4().String()
 
-	tx := db.conn.MustBegin()
-	tx.MustExec(addUser, userID, username, password)
-	tx.MustExec(addDevice,
+	tx, err := db.conn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = tx.Exec(addUser, userID, username, password)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	_, err = tx.Exec(addDevice,
 		device.ID,
 		userID,
 		device.Name,
 		device.IsConfirmed,
 		device.Locale,
 		device.Lang)
+
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 
 	if err := tx.Commit(); err != nil {
 		return nil, err

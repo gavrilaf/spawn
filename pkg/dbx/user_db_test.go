@@ -7,7 +7,6 @@ import (
 
 	//"github.com/davecgh/go-spew/spew"
 	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/gavrilaf/spawn/pkg/utils"
 	"github.com/satori/go.uuid"
@@ -15,16 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func GetBridge(t *testing.T) Database {
-	db, err := Connect(env.GetEnvironment("Test"))
-	require.NotNil(t, db)
-	require.Nil(t, err)
-
-	return db
-}
-
 func TestBridge_GetClients(t *testing.T) {
-	db := GetBridge(t)
+	db := getBridge(t)
 	defer db.Close()
 
 	clients, err := db.GetClients()
@@ -33,7 +24,7 @@ func TestBridge_GetClients(t *testing.T) {
 }
 
 func TestBridge_NotFound(t *testing.T) {
-	db := GetBridge(t)
+	db := getBridge(t)
 	defer db.Close()
 
 	new_id := uuid.NewV4().String()
@@ -61,7 +52,7 @@ func TestBridge_NotFound(t *testing.T) {
 }
 
 func TestBridge_RegisterProfile(t *testing.T) {
-	db := GetBridge(t)
+	db := getBridge(t)
 	defer db.Close()
 
 	username := uuid.NewV4().String()
@@ -97,8 +88,8 @@ func TestBridge_RegisterProfile(t *testing.T) {
 	assert.Equal(t, devices[0].UserID, profile.ID)
 }
 
-func TestReadAllProfiles(t *testing.T) {
-	db := GetBridge(t)
+func TestBridge_ReadAllProfiles(t *testing.T) {
+	db := getBridge(t)
 	defer db.Close()
 	profiles, errs := db.ReadAllUserProfiles()
 
@@ -124,8 +115,8 @@ readLoop:
 	fmt.Printf("Readed %d profiles\n", counter)
 }
 
-func TestDeviceManagement(t *testing.T) {
-	db := GetBridge(t)
+func TestBridge_DeviceManagement(t *testing.T) {
+	db := getBridge(t)
 	defer db.Close()
 
 	username := uuid.NewV4().String()
@@ -212,8 +203,8 @@ func TestDeviceManagement(t *testing.T) {
 	assert.Equal(t, 0, len(devices))
 }
 
-func TestEditUserProfile(t *testing.T) {
-	db := GetBridge(t)
+func TestBridge_EditUserProfile(t *testing.T) {
+	db := getBridge(t)
 	defer db.Close()
 
 	username := uuid.NewV4().String()
@@ -288,8 +279,8 @@ func TestEditUserProfile(t *testing.T) {
 	assert.Equal(t, "97822345", phoneNumber.Number)
 }
 
-func TestLoginLog(t *testing.T) {
-	db := GetBridge(t)
+func TestBridge_LoginLog(t *testing.T) {
+	db := getBridge(t)
 	defer db.Close()
 
 	username := uuid.NewV4().String()

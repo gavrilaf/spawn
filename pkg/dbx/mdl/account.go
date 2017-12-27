@@ -7,22 +7,13 @@ type AccountMeta struct {
 	IsCrypto        string `db:"is_crypto" structs:"is_crypto"`
 	Precision       int    `db:"precision" structs:"precision"`
 	MultipleAllowed bool   `db:"multiple_allowed" structs:"multiple_allowed"`
-	LockAllowed     bool   `db:"lock_allowed" structs:"lock_allowed"`
-}
-
-type AccountStatus int
-
-type AccountState struct {
-	ID      string        `db:"id" structs:"id"`
-	Balance int           `db:"balance" structs:"balance"`
-	Status  AccountStatus `db:"status" structs:"status"`
-	Updated time.Time     `db:"updated" structs:"updated"`
+	Description     string `db:"description" structs:"description"`
 }
 
 type Account struct {
-	ID      string    `db:"id" structs:"id"`
-	Name    string    `db:"name" structs:"name"`
-	Created time.Time `db:"created" structs:"created"`
-	AccountMeta
-	AccountState
+	ID       string    `db:"id" structs:"id"`
+	UserID   string    `db:"user_id" structs:"user_id"`
+	Name     string    `db:"name" structs:"name"`
+	Currency string    `db:"currency" structs:"currency"`
+	Created  time.Time `db:"created" structs:"created"`
 }

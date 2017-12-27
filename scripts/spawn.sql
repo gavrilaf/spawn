@@ -5,7 +5,7 @@
 -- Dumped from database version 10.0
 -- Dumped by pg_dump version 10.0
 
--- Started on 2017-12-02 22:44:08 EET
+-- Started on 2017-12-24 14:31:33 EET
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -18,7 +18,7 @@ SET row_security = off;
 
 DROP DATABASE spawn;
 --
--- TOC entry 2893 (class 1262 OID 24576)
+-- TOC entry 2917 (class 1262 OID 32868)
 -- Name: spawn; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -45,8 +45,9 @@ SET row_security = off;
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
+
 --
--- TOC entry 2896 (class 0 OID 0)
+-- TOC entry 2920 (class 0 OID 0)
 -- Dependencies: 1
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -61,7 +62,39 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- TOC entry 199 (class 1259 OID 24622)
+-- TOC entry 197 (class 1259 OID 32875)
+-- Name: AccountMeta; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE "AccountMeta" (
+    currency text NOT NULL,
+    is_crypto boolean NOT NULL,
+    "precision" integer NOT NULL,
+    multiple_allowed boolean NOT NULL,
+    description text DEFAULT ''::text NOT NULL
+);
+
+
+ALTER TABLE "AccountMeta" OWNER TO postgres;
+
+--
+-- TOC entry 196 (class 1259 OID 32869)
+-- Name: Accounts; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE "Accounts" (
+    id uuid NOT NULL,
+    name text NOT NULL,
+    currency text NOT NULL,
+    is_crypto boolean NOT NULL,
+    created timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE "Accounts" OWNER TO postgres;
+
+--
+-- TOC entry 198 (class 1259 OID 32882)
 -- Name: Clients; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -77,7 +110,7 @@ CREATE TABLE "Clients" (
 ALTER TABLE "Clients" OWNER TO postgres;
 
 --
--- TOC entry 196 (class 1259 OID 24577)
+-- TOC entry 199 (class 1259 OID 32891)
 -- Name: Devices; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -95,7 +128,7 @@ CREATE TABLE "Devices" (
 ALTER TABLE "Devices" OWNER TO postgres;
 
 --
--- TOC entry 197 (class 1259 OID 24587)
+-- TOC entry 200 (class 1259 OID 32901)
 -- Name: LoginsLog; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -113,7 +146,20 @@ CREATE TABLE "LoginsLog" (
 ALTER TABLE "LoginsLog" OWNER TO postgres;
 
 --
--- TOC entry 198 (class 1259 OID 24596)
+-- TOC entry 202 (class 1259 OID 32938)
+-- Name: User_Accounts; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE "User_Accounts" (
+    user_id uuid,
+    account_id uuid
+);
+
+
+ALTER TABLE "User_Accounts" OWNER TO postgres;
+
+--
+-- TOC entry 201 (class 1259 OID 32910)
 -- Name: Users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -138,7 +184,95 @@ CREATE TABLE "Users" (
 ALTER TABLE "Users" OWNER TO postgres;
 
 --
--- TOC entry 2750 (class 2606 OID 16415)
+-- TOC entry 2907 (class 0 OID 32875)
+-- Dependencies: 197
+-- Data for Name: AccountMeta; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "AccountMeta" (currency, is_crypto, "precision", multiple_allowed, description) VALUES ('BTC', true, 6, false, 'Bitcoin wallet');
+INSERT INTO "AccountMeta" (currency, is_crypto, "precision", multiple_allowed, description) VALUES ('ETH', true, 6, true, 'Etherium wallet');
+INSERT INTO "AccountMeta" (currency, is_crypto, "precision", multiple_allowed, description) VALUES ('USD', true, 2, false, 'USD bank account');
+
+
+--
+-- TOC entry 2906 (class 0 OID 32869)
+-- Dependencies: 196
+-- Data for Name: Accounts; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- TOC entry 2908 (class 0 OID 32882)
+-- Dependencies: 198
+-- Data for Name: Clients; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "Clients" (id, secret, is_active, description, def_scope) VALUES ('io-client-01-key', 'sA?2,S]$P6''Cs`Q)&4;18LXIj#b_=D', true, 'Spawn iOS application key', 0);
+INSERT INTO "Clients" (id, secret, is_active, description, def_scope) VALUES ('client-test-01', '~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<', true, 'Client for internal & external testing', 0);
+
+
+--
+-- TOC entry 2909 (class 0 OID 32891)
+-- Dependencies: 199
+-- Data for Name: Devices; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- TOC entry 2910 (class 0 OID 32901)
+-- Dependencies: 200
+-- Data for Name: LoginsLog; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- TOC entry 2912 (class 0 OID 32938)
+-- Dependencies: 202
+-- Data for Name: User_Accounts; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- TOC entry 2911 (class 0 OID 32910)
+-- Dependencies: 201
+-- Data for Name: Users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- TOC entry 2778 (class 2606 OID 32931)
+-- Name: AccountMeta AccountMeta_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "AccountMeta"
+    ADD CONSTRAINT "AccountMeta_pkey" PRIMARY KEY (currency);
+
+
+--
+-- TOC entry 2776 (class 2606 OID 32937)
+-- Name: Accounts Accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "Accounts"
+    ADD CONSTRAINT "Accounts_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2780 (class 2606 OID 32933)
+-- Name: Clients Clients_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "Clients"
+    ADD CONSTRAINT "Clients_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2782 (class 2606 OID 32935)
 -- Name: Users Users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -147,58 +281,25 @@ ALTER TABLE ONLY "Users"
 
 
 --
--- TOC entry 2752 (class 2606 OID 16417)
--- Name: Users username_uniq; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- TOC entry 2783 (class 2606 OID 32941)
+-- Name: User_Accounts user_account_accounts_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY "Users"
-    ADD CONSTRAINT username_uniq UNIQUE (username);
-
-
---
--- TOC entry 2753 (class 2606 OID 16418)
--- Name: Devices device_user_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY "Devices"
-    ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) REFERENCES "Users"(id);
-
---
--- TOC entry 2888 (class 0 OID 24622)
--- Dependencies: 199
--- Data for Name: Clients; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO "Clients" VALUES ('ios-client-01-key', 'sA?2,S]$P6''Cs`Q)&4;18LXIj#b_=D', true, 'Spawn iOS application key', 0);
-INSERT INTO "Clients" VALUES ('client-test-01', '~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<', true, 'Client for internal & external testing', 0);
+ALTER TABLE ONLY "User_Accounts"
+    ADD CONSTRAINT user_account_accounts_id_fk FOREIGN KEY (account_id) REFERENCES "Accounts"(id);
 
 
 --
--- TOC entry 2885 (class 0 OID 24577)
--- Dependencies: 196
--- Data for Name: Devices; Type: TABLE DATA; Schema: public; Owner: postgres
+-- TOC entry 2784 (class 2606 OID 32946)
+-- Name: User_Accounts user_account_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-
-
---
--- TOC entry 2886 (class 0 OID 24587)
--- Dependencies: 197
--- Data for Name: LoginsLog; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
+ALTER TABLE ONLY "User_Accounts"
+    ADD CONSTRAINT user_account_users_id_fk FOREIGN KEY (user_id) REFERENCES "Users"(id);
 
 
 --
--- TOC entry 2887 (class 0 OID 24596)
--- Dependencies: 198
--- Data for Name: Users; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
--- TOC entry 2895 (class 0 OID 0)
+-- TOC entry 2919 (class 0 OID 0)
 -- Dependencies: 5
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -206,7 +307,7 @@ INSERT INTO "Clients" VALUES ('client-test-01', '~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<'
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2017-12-02 22:44:08 EET
+-- Completed on 2017-12-24 14:31:34 EET
 
 --
 -- PostgreSQL database dump complete
