@@ -1,4 +1,4 @@
-package model
+package mdl
 
 import (
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"

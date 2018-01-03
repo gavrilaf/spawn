@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/garyburd/redigo/redis"
-	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
+	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/errx"
 )

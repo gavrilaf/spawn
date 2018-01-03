@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/fatih/structs"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
-	rdm "github.com/gavrilaf/spawn/pkg/cache/model"
+	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 )
 
 type ConfirmDeviceRequest struct {
@@ -26,7 +26,7 @@ func (s UserState) ToMap() map[string]interface{} {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 type UserDevices struct {
-	Devices []rdm.UserDeviceInfo `structs:"devices"`
+	Devices []mdl.UserDeviceInfo `structs:"devices"`
 }
 
 func (s UserDevices) ToMap() map[string]interface{} {

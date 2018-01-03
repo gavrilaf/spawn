@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/davecgh/go-spew/spew"
-	mdl "github.com/gavrilaf/spawn/pkg/cache/model"
+	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gin-gonic/gin"

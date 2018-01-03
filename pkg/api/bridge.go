@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gavrilaf/spawn/pkg/cache"
-	rdm "github.com/gavrilaf/spawn/pkg/cache/model"
+	rdm "github.com/gavrilaf/spawn/pkg/cache/mdl"
 	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
