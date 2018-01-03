@@ -11,6 +11,7 @@ import (
 	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/utils"
 
+	"github.com/gavrilaf/spawn/pkg/api/account"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -41,6 +42,7 @@ func main() {
 
 	profileAPI := profile.CreateApi(apiBridge)
 	userAPI := user.CreateApi(apiBridge)
+	accountsApi := account.CreateApi(apiBridge)
 
 	auth := router.Group("/auth")
 	{
@@ -65,6 +67,18 @@ func main() {
 
 		profile.PUT("/country", profileAPI.UpdateUserCountry)
 		profile.PUT("/personal", profileAPI.UpdateUserPersonalInfo)
+	}
+
+	accounts := router.Group("accounts")
+	accounts.Use(authMiddleware.MiddlewareFunc())
+	{
+		accounts.GET("/", accountsApi.GetAccounts)
+		accounts.GET("/state/:id", accountsApi.GetAccountState)
+
+		accounts.POST("/register", accountsApi.RegisterAccount)
+
+		accounts.POST("/suspend/:id", accountsApi.SuspendAccount)
+		accounts.POST("/resume/:id", accountsApi.ResumeAccount)
 	}
 
 	router.Run()
