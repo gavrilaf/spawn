@@ -67,3 +67,16 @@ func getKeys(conn redis.Conn, pattern string) ([]string, error) {
 
 	return keys, nil
 }
+
+func deleteKeys(conn redis.Conn, pattern string) (int, error) {
+	keys, err := getKeys(conn, pattern)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, key := range keys {
+		conn.Do("DEL", key)
+	}
+
+	return len(keys), nil
+}

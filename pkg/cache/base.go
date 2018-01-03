@@ -65,4 +65,14 @@ type Cache interface {
 
 	// Accounts
 
+	SetUserAccounts(userID string, accounts []db.Account) error
+	AddUserAccount(userID string, account db.Account) error
+
+	GetUserAccounts(userID string) ([]mdl.Account, error)
+	GetUserAccount(userID string, accountID string) (*mdl.Account, error)
+
+	UpdateUserAccountStatus(userID string, accountID string, status mdl.AccountStatus) error
+	UpdateUserAccountBalance(userID string, accountID string, balance string) error
+
+	ClearUserAccounts(userID string) error
 }

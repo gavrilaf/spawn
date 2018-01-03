@@ -4,19 +4,29 @@ import (
 	"time"
 
 	"github.com/fatih/structs"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 )
 
-type AccountBalance struct {
-	ID      string `structs:"id"`
-	Balance string `structs:"balance"`
-	Updated int64  `structs:"updated"`
+type AccountStatus int
+
+const (
+	ACCOUNT_CREATED AccountStatus = iota
+	ACCOUNT_ACTIVE
+	ACCOUNT_SUSPENDED
+	ACCOUNT_CLOSED
+)
+
+type AccountState struct {
+	Status  AccountStatus `structs:"status"`
+	Balance string        `structs:"balance"`
+	Updated int64         `structs:"updated"`
 }
 
-func (p AccountBalance) GetUpdated() time.Time {
+func (p AccountState) GetUpdated() time.Time {
 	return time.Unix(p.Updated, 0).UTC()
 }
 
-func (s AccountBalance) ToMap() map[string]interface{} {
+func (s AccountState) ToMap() map[string]interface{} {
 	p := structs.Map(s)
 	p["updated"] = s.GetUpdated().Format(time.RFC3339)
 	return p
@@ -27,24 +37,27 @@ func (s AccountBalance) ToMap() map[string]interface{} {
 type Account struct {
 	ID       string `structs:"id"`
 	Name     string `structs:"name"`
-	Status   int    `structs:"status"`
 	Currency string `structs:"currency"`
-	IsCrypto bool   `structs:"is_crypto"`
-	Updated  int64  `structs:"updated"`
 	Created  int64  `structs:"created"`
-}
-
-func (p Account) GetUpdated() time.Time {
-	return time.Unix(p.Updated, 0).UTC()
+	AccountState
 }
 
 func (p Account) GetCreated() time.Time {
-	return time.Unix(p.Updated, 0).UTC()
+	return time.Unix(p.Created, 0).UTC()
 }
 
 func (s Account) ToMap() map[string]interface{} {
 	p := structs.Map(s)
-	p["updated"] = s.GetUpdated().Format(time.RFC3339)
 	p["created"] = s.GetCreated().Format(time.RFC3339)
 	return p
+}
+
+func CreateAcountFromDbModel(p db.Account) Account {
+	return Account{
+		ID:           p.ID,
+		Name:         p.Name,
+		Currency:     p.Currency,
+		Created:      p.Created.Unix(),
+		AccountState: AccountState{},
+	}
 }
