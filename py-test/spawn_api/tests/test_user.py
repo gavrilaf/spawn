@@ -148,5 +148,6 @@ class TestProfile(unittest.TestCase):
         is_error, _ = api2.get_state()
         self.assertTrue(is_error)
 
+
 if __name__ == '__main__':
     unittest.main()

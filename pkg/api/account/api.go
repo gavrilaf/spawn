@@ -13,14 +13,25 @@ import (
 )
 
 func (p ApiImpl) GetAccounts(c *gin.Context) {
-	_, err := p.GetSession(c)
+	session, err := p.GetSession(c)
 	if err != nil {
 		log.Errorf("AccountsApi.GetAccounts, could not find session: %v", err)
 		p.HandleError(c, api.ErrScope, http.StatusUnauthorized, api.ErrSessionNotFound)
 		return
 	}
 
-	p.HandleError(c, api.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(api.ErrScope, "GetAccounts"))
+	userID := session.UserID
+
+	accounts, err := p.ReadModel.GetUserAccounts(userID)
+	if err != nil {
+		log.Errorf("AccountsApi.GetAccounts, could not read accounts: %v", err)
+		p.HandleError(c, api.ErrScope, http.StatusInternalServerError, err)
+		return
+	}
+
+	userAccounts := UserAccounts{Accounts: accounts}
+
+	c.JSON(http.StatusOK, userAccounts.ToMap())
 }
 
 func (p ApiImpl) GetAccountState(c *gin.Context) {

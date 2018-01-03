@@ -120,6 +120,14 @@ class SpawnApi:
         else:
             return None
 
+    def get_accounts(self):
+        resp = requests.get(self.endpoint + "/accounts", headers={"Authorization": "Bearer " + self.auth_token})
+        json = resp.json()
+        if resp.status_code != 200:
+            return True, json["error"]
+        else:
+            return False, json
+
 
 # Client for test purposes
 TEST_CLEINT = Client("client-test-01", "~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<")
