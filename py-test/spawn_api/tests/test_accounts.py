@@ -14,6 +14,8 @@ class TestAccounts(unittest.TestCase):
     def get_name():
         return str(uuid.uuid4()) + "@spawn.com"
 
+    # Register new user; query accounts list
+    # Accounts list is empty for new user
     def testNewUser(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")

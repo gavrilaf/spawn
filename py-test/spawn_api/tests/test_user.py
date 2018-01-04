@@ -14,6 +14,8 @@ class TestProfile(unittest.TestCase):
     def get_name():
         return str(uuid.uuid4()) + "@spawn.com"
 
+    # Register new user and query session state
+    # Should return session state
     def testGetState(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -29,6 +31,8 @@ class TestProfile(unittest.TestCase):
         self.assertEqual("ru", state["locale"])
         self.assertEqual(self.api.permissions, state["permissions"])
 
+    # Register new user; logout; query session state
+    # Should returns error (session-not-found)
     def testLogout(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -48,6 +52,8 @@ class TestProfile(unittest.TestCase):
         self.assertTrue(is_error)
         self.assertEqual(err["reason"], "session-not-found")
 
+    # Register new user; login with new device; query devices list
+    # Should two devices in list; first is confirmed; second is current (active session)
     def testGetDevices(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -92,6 +98,9 @@ class TestProfile(unittest.TestCase):
         self.assertIsNotNone(current[0]["login_time"])
         self.assertIsNotNone(current[0]["user_agent"])
 
+    # Register new user; login with new device; try to delete current device; try to delete first device
+    # Should could not delete current device (delete-current-device),
+    # after deleting first device only one device in devices list
     def testDeleteDevice(self):
         username = self.get_name()
         device = spawn.Device("device-1", "device-1-name")
@@ -124,6 +133,8 @@ class TestProfile(unittest.TestCase):
         self.assertEqual("device-2", devices[0]["device_id"])
         self.assertEqual("device-2-name", devices[0]["device_name"])
 
+    # Register new user; login with new device; delete first device; check first session state
+    # Should device session is invalidated when device is deleted
     def testDeleteDeviceInvalidateSession(self):
         username = self.get_name()
         device = spawn.Device("device-1", "device-1-name")

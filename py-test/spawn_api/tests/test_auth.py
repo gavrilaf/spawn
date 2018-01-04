@@ -14,6 +14,8 @@ class TestProfile(unittest.TestCase):
     def get_name():
         return str(uuid.uuid4()) + "@spawn.com"
 
+    # Register new user
+    # Should: user is logged in after registration, device is confirmed, permission by default
     def testRegister(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -26,11 +28,13 @@ class TestProfile(unittest.TestCase):
         # device is confirmed after registration
         self.assertEqual(self.api.permissions["is_device_confirmed"], True)
 
-        self.assertEqual(self.api.permissions["is_2fa_reqired"], False)
+        self.assertEqual(self.api.permissions["is_2fa_required"], False)
         self.assertEqual(self.api.permissions["is_email_confirmed"], False)
         self.assertEqual(self.api.permissions["is_locked"], False)
         self.assertEqual(self.api.permissions["scopes"], 0)
 
+    # Register new user and try to register user with the same name
+    # Should: server throws 'user-already-exist' error
     def testRegisterAlreadyExists(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -43,6 +47,10 @@ class TestProfile(unittest.TestCase):
         self.assertIsNotNone(err)
         self.assertEqual(err["reason"], "user-already-exist")
 
+    # Register new user and login with same device
+    # Should: only one session for (user / device) pair is allowed, server rejects login (session-already-exist)
+    # Logout and login again
+    # Should: login success
     def testLogin(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -67,6 +75,8 @@ class TestProfile(unittest.TestCase):
         # device is confirmed
         self.assertEqual(self.api.permissions["is_device_confirmed"], True)
 
+    # Register new user and login with new device
+    # Should: login success, device isn't confirmed
     def testLoginWithNewDevice(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -81,6 +91,8 @@ class TestProfile(unittest.TestCase):
 
         self.assertEqual(self.api.permissions["is_device_confirmed"], False)
 
+    # Try to login with wrong credentials
+    # Should: server rejects login (user-unknown)
     def testWrongLogin(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -96,6 +108,8 @@ class TestProfile(unittest.TestCase):
         self.assertIsNotNone(err)
         self.assertEqual(err["reason"], "user-unknown")
 
+    # Register new user and refresh token
+    # Should: new token != old token, old token is invalid
     def testRefreshToken(self):
         username = self.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
