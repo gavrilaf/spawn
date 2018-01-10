@@ -23,7 +23,7 @@ func TestBridge_GetClients(t *testing.T) {
 	assert.NotEmpty(t, clients)
 }
 
-func TestBridge_NotFound(t *testing.T) {
+func TestBridge_ProfileNotFound(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
 

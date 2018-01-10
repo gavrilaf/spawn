@@ -16,18 +16,11 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
 
-DROP DATABASE spawn;
+-- DROP DATABASE spawn;
 --
 -- TOC entry 2917 (class 1262 OID 32868)
 -- Name: spawn; Type: DATABASE; Schema: -; Owner: postgres
 --
-
-CREATE DATABASE spawn WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.utf8' LC_CTYPE = 'en_US.utf8';
-
-
-ALTER DATABASE spawn OWNER TO postgres;
-
-\connect spawn
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -84,9 +77,9 @@ ALTER TABLE "AccountMeta" OWNER TO postgres;
 
 CREATE TABLE "Accounts" (
     id uuid NOT NULL,
+    user_id uuid NOT NULL,
     name text NOT NULL,
     currency text NOT NULL,
-    is_crypto boolean NOT NULL,
     created timestamp without time zone NOT NULL
 );
 
@@ -146,19 +139,6 @@ CREATE TABLE "LoginsLog" (
 ALTER TABLE "LoginsLog" OWNER TO postgres;
 
 --
--- TOC entry 202 (class 1259 OID 32938)
--- Name: User_Accounts; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE "User_Accounts" (
-    user_id uuid,
-    account_id uuid
-);
-
-
-ALTER TABLE "User_Accounts" OWNER TO postgres;
-
---
 -- TOC entry 201 (class 1259 OID 32910)
 -- Name: Users; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -195,14 +175,6 @@ INSERT INTO "AccountMeta" (currency, is_crypto, "precision", multiple_allowed, d
 
 
 --
--- TOC entry 2906 (class 0 OID 32869)
--- Dependencies: 196
--- Data for Name: Accounts; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
 -- TOC entry 2908 (class 0 OID 32882)
 -- Dependencies: 198
 -- Data for Name: Clients; Type: TABLE DATA; Schema: public; Owner: postgres
@@ -210,38 +182,6 @@ INSERT INTO "AccountMeta" (currency, is_crypto, "precision", multiple_allowed, d
 
 INSERT INTO "Clients" (id, secret, is_active, description, def_scope) VALUES ('io-client-01-key', 'sA?2,S]$P6''Cs`Q)&4;18LXIj#b_=D', true, 'Spawn iOS application key', 0);
 INSERT INTO "Clients" (id, secret, is_active, description, def_scope) VALUES ('client-test-01', '~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<', true, 'Client for internal & external testing', 0);
-
-
---
--- TOC entry 2909 (class 0 OID 32891)
--- Dependencies: 199
--- Data for Name: Devices; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
--- TOC entry 2910 (class 0 OID 32901)
--- Dependencies: 200
--- Data for Name: LoginsLog; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
--- TOC entry 2912 (class 0 OID 32938)
--- Dependencies: 202
--- Data for Name: User_Accounts; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
--- TOC entry 2911 (class 0 OID 32910)
--- Dependencies: 201
--- Data for Name: Users; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
 
 
 --
@@ -281,20 +221,11 @@ ALTER TABLE ONLY "Users"
 
 
 --
--- TOC entry 2783 (class 2606 OID 32941)
--- Name: User_Accounts user_account_accounts_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY "User_Accounts"
-    ADD CONSTRAINT user_account_accounts_id_fk FOREIGN KEY (account_id) REFERENCES "Accounts"(id);
-
-
---
 -- TOC entry 2784 (class 2606 OID 32946)
 -- Name: User_Accounts user_account_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY "User_Accounts"
+ALTER TABLE ONLY "Accounts"
     ADD CONSTRAINT user_account_users_id_fk FOREIGN KEY (user_id) REFERENCES "Users"(id);
 
 
