@@ -5,8 +5,8 @@ import (
 	_ "github.com/lib/pq" // postgres driver module
 
 	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/senv"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 // Connect - connect to spawn database
-func Connect(en *env.Environment) (Database, error) {
+func Connect(en *senv.Environment) (Database, error) {
 	db, err := sqlx.Connect(en.GetDBOpts().Driver, en.GetDBOpts().DataSource)
 	if err != nil {
 		return nil, errx.ErrEnvironment(Scope, "Couldn't connect to postgre database: %v", err)

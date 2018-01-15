@@ -8,7 +8,7 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api/auth"
 	"github.com/gavrilaf/spawn/pkg/api/profile"
 	"github.com/gavrilaf/spawn/pkg/api/user"
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/gavrilaf/spawn/pkg/utils"
 
 	"github.com/gavrilaf/spawn/pkg/api/account"
@@ -27,7 +27,7 @@ func main() {
 	router.Use(utils.Logger(log))
 	router.Use(gin.Recovery())
 
-	environment := env.GetEnvironment("Test")
+	environment := senv.GetEnvironment("Test")
 	if environment == nil {
 		panic("Could not read environment")
 	}

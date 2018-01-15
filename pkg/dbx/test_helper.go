@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func getBridge(t *testing.T) Database {
-	db, err := Connect(env.GetEnvironment("Test"))
+	db, err := Connect(senv.GetEnvironment("Test"))
 	require.NotNil(t, db)
 	require.Nil(t, err)
 

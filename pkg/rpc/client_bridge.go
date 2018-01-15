@@ -3,7 +3,7 @@ package backend
 import (
 	"context"
 
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +18,7 @@ func (b *BackendBridge) Close() {
 	b.conn.Close()
 }
 
-func CreateClient(en *env.Environment) (*BackendBridge, error) {
+func CreateClient(en *senv.Environment) (*BackendBridge, error) {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 		grpc.WithBlock()}

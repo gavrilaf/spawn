@@ -3,12 +3,12 @@ package cache
 import (
 	"testing"
 
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/stretchr/testify/require"
 )
 
 func TestBridge_Connect(t *testing.T) {
-	cache, err := Connect(env.GetEnvironment("Test"))
+	cache, err := Connect(senv.GetEnvironment("Test"))
 	defer cache.Close()
 
 	require.Nil(t, err)

@@ -3,9 +3,9 @@ package api
 import (
 	"github.com/gavrilaf/spawn/pkg/cache"
 	rdm "github.com/gavrilaf/spawn/pkg/cache/mdl"
-	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
@@ -15,7 +15,7 @@ type Bridge struct {
 	WriteModel *pb.BackendBridge
 }
 
-func CreateBridge(en *env.Environment) *Bridge {
+func CreateBridge(en *senv.Environment) *Bridge {
 	log.Infof("Starting api with environment: %v", en.GetName())
 
 	cache, err := cache.Connect(en)

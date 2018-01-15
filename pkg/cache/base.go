@@ -3,8 +3,8 @@ package cache
 import (
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	"github.com/gavrilaf/spawn/pkg/env"
 	"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/senv"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 var ErrSessionDuplicate = errx.New(Scope, ReasonSessionDuplicate)
 
 // Connect to the spawn read model
-func Connect(en *env.Environment) (Cache, error) {
+func Connect(en *senv.Environment) (Cache, error) {
 
 	//redis://[:password@]host[:port][/db-number][?option=value]
 	return &Bridge{newPool(en)}, nil

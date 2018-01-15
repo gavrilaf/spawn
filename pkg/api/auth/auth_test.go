@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	//"github.com/stretchr/testify/assert"
 	"time"
 
@@ -15,8 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testOnRealEnvironment = true
-
 const (
 	tClientID = "client-test-01"
 	tDeviveID = "device1"
@@ -24,7 +22,7 @@ const (
 )
 
 func getMiddleware(t *testing.T) *Middleware {
-	bridge := api.CreateBridge(env.GetEnvironment("Test"))
+	bridge := api.CreateBridge(senv.GetEnvironment("Test"))
 	require.NotNil(t, bridge)
 	return CreateMiddleware(bridge)
 }
@@ -38,9 +36,7 @@ func getClient(t *testing.T, mw *Middleware) *db.Client {
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 func TestAuth_Register(t *testing.T) {
-	mw := CreateMiddleware(api.CreateBridge(env.GetEnvironment("Test")))
-	require.NotNil(t, mw)
-
+	mw := getMiddleware(t)
 	client := getClient(t, mw)
 	username := uuid.NewV4().String()
 	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
@@ -73,7 +69,7 @@ func TestAuth_Register(t *testing.T) {
 }
 
 func TestAuth_Login(t *testing.T) {
-	mw := CreateMiddleware(api.CreateBridge(env.GetEnvironment("Test")))
+	mw := getMiddleware(t)
 	require.NotNil(t, mw)
 
 	client := getClient(t, mw)
@@ -123,7 +119,7 @@ func TestAuth_Login(t *testing.T) {
 }
 
 func TestAuth_Refresh(t *testing.T) {
-	mw := CreateMiddleware(api.CreateBridge(env.GetEnvironment("Test")))
+	mw := getMiddleware(t)
 	require.NotNil(t, mw)
 
 	client := getClient(t, mw)

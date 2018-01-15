@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	//mdl "github.com/gavrilaf/spawn/pkg/mdl"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ import (
 )
 
 func createServer(t *testing.T) *Server {
-	en := env.GetEnvironment("Test")
+	en := senv.GetEnvironment("Test")
 	srv := CreateServer(en)
 	require.NotNil(t, srv)
 	return srv

@@ -4,14 +4,14 @@ import (
 	"net"
 
 	"github.com/gavrilaf/spawn/pkg/backend"
-	"github.com/gavrilaf/spawn/pkg/env"
 	pb "github.com/gavrilaf/spawn/pkg/rpc"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 func newBackend() *backend.Server {
-	en := env.GetEnvironment("Test")
+	en := senv.GetEnvironment("Test")
 	if en == nil {
 		panic("Could not read environment")
 	}

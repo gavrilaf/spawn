@@ -6,7 +6,7 @@ import (
 
 	"github.com/gavrilaf/spawn/pkg/cache"
 	"github.com/gavrilaf/spawn/pkg/dbx"
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/gavrilaf/spawn/pkg/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -27,7 +27,7 @@ type Server struct {
 	wg    *sync.WaitGroup
 }
 
-func CreateServer(en *env.Environment) *Server {
+func CreateServer(en *senv.Environment) *Server {
 	log.Infof("Starting backend with environment: %v", en.GetName())
 
 	db, err := dbx.Connect(en)

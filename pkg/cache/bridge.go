@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/gavrilaf/spawn/pkg/env"
+	"github.com/gavrilaf/spawn/pkg/senv"
 )
 
 type Bridge struct {
 	pool *redis.Pool
 }
 
-func newPool(en *env.Environment) *redis.Pool {
+func newPool(en *senv.Environment) *redis.Pool {
 	return &redis.Pool{
 
 		MaxIdle:     en.GetRedisOpts().MaxIdle,
