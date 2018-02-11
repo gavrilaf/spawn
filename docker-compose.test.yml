@@ -1,0 +1,36 @@
+version: '3.2'
+
+services:
+
+  sp-backend:
+    restart: 'always'
+    ports:
+      - '7887:7887'
+    container_name: sp-backend
+    build:
+      context: .
+      dockerfile: ./Dockerfile.backend
+    depends_on:
+      - sp-postgres
+      - sp-redis
+    links:
+      - sp-postgres
+      - sp-redis
+
+  sp-postgres:
+    restart: 'always'
+    ports:
+      - '5432:5432'
+    container_name: sp-postgres
+    environment:
+      - "POSTGRES_USER=spawnuser"
+      - "POSTGRES_DB=spawn"
+      - "POSTGRES_PASSWORD=spawn-pg-test-password"
+    build: './scripts/db'
+
+  sp-redis:
+    image: "redis:alpine"
+    container_name: sp-redis
+    restart: 'always'
+    ports:
+      - '6379:6379'

@@ -10,7 +10,7 @@ import (
 )
 
 func TestStartServer(t *testing.T) {
-	srv := CreateServer(senv.GetEnvironment("Test"))
+	srv := CreateServer(senv.GetEnvironment())
 	require.NotNil(t, srv)
 
 	assert.Equal(t, StateCreated, srv.state)

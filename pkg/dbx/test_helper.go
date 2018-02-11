@@ -10,7 +10,7 @@ import (
 )
 
 func getBridge(t *testing.T) Database {
-	db, err := Connect(senv.GetEnvironment("Test"))
+	db, err := Connect(senv.GetEnvironment())
 	require.NotNil(t, db)
 	require.Nil(t, err)
 

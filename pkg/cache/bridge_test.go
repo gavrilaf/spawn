@@ -8,7 +8,7 @@ import (
 )
 
 func TestBridge_Connect(t *testing.T) {
-	cache, err := Connect(senv.GetEnvironment("Test"))
+	cache, err := Connect(senv.GetEnvironment())
 	defer cache.Close()
 
 	require.Nil(t, err)

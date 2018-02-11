@@ -27,7 +27,7 @@ func main() {
 	router.Use(utils.Logger(log))
 	router.Use(gin.Recovery())
 
-	environment := senv.GetEnvironment("Test")
+	environment := senv.GetEnvironment()
 	if environment == nil {
 		panic("Could not read environment")
 	}

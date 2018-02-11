@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"os"
 	"sync"
 	"time"
 
@@ -28,14 +29,15 @@ type Server struct {
 }
 
 func CreateServer(en *senv.Environment) *Server {
-	log.Infof("Starting backend with environment: %v", en.GetName())
-
-	db, err := dbx.Connect(en)
-	if err != nil {
-		log.Errorf("Could not connect to database: %v", err)
-		return nil
+	log.Info("Starting Spawn backened server...")
+	log.Info("System environment:")
+	for _, e := range os.Environ() {
+		log.Info(e)
 	}
-	log.Infof("Db connection, ok")
+
+	log.Infof("Backend environment type: %v", en.GetName())
+	log.Infof("DB path: %v", en.GetDBOpts().DataSource)
+	log.Infof("Cache path: %v", en.GetRedisOpts().URL)
 
 	cache, err := cache.Connect(en)
 	if err != nil {
@@ -43,6 +45,13 @@ func CreateServer(en *senv.Environment) *Server {
 		return nil
 	}
 	log.Infof("Cache connection, ok")
+
+	db, err := dbx.Connect(en)
+	if err != nil {
+		log.Errorf("Could not connect to database: %v", err)
+		return nil
+	}
+	log.Infof("Db connection, ok")
 
 	return &Server{db: db, cache: cache, state: StateCreated, wg: &sync.WaitGroup{}}
 }

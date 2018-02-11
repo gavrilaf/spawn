@@ -22,7 +22,7 @@ const (
 )
 
 func getMiddleware(t *testing.T) *Middleware {
-	bridge := api.CreateBridge(senv.GetEnvironment("Test"))
+	bridge := api.CreateBridge(senv.GetEnvironment())
 	require.NotNil(t, bridge)
 	return CreateMiddleware(bridge)
 }

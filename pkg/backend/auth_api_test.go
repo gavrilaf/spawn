@@ -16,7 +16,7 @@ import (
 )
 
 func createServer(t *testing.T) *Server {
-	en := senv.GetEnvironment("Test")
+	en := senv.GetEnvironment()
 	srv := CreateServer(en)
 	require.NotNil(t, srv)
 	return srv

@@ -11,7 +11,7 @@ import (
 )
 
 func newBackend() *backend.Server {
-	en := senv.GetEnvironment("Test")
+	en := senv.GetEnvironment()
 	if en == nil {
 		panic("Could not read environment")
 	}
