@@ -8,8 +8,7 @@ import (
 )
 
 func getTestCache(t *testing.T) Cache {
-	cache, err := Connect(senv.GetEnvironment())
-	require.Nil(t, err)
+	cache := Connect(senv.GetEnvironment())
 	require.NotNil(t, cache)
 	return cache
 }

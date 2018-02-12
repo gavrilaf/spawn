@@ -10,19 +10,20 @@ import (
 const (
 	Scope                  = "read-model"
 	ReasonSessionDuplicate = "session-already-exist"
+
+	maxAttempts = 3
 )
 
 var ErrSessionDuplicate = errx.New(Scope, ReasonSessionDuplicate)
 
 // Connect to the spawn read model
-func Connect(en *senv.Environment) (Cache, error) {
-
-	//redis://[:password@]host[:port][/db-number][?option=value]
-	return &Bridge{newPool(en)}, nil
+func Connect(en *senv.Environment) Cache {
+	return &Bridge{newPool(en)}
 }
 
 type Cache interface {
 	Close() error
+	HealthCheck() error
 
 	// Auth
 

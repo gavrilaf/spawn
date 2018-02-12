@@ -39,7 +39,15 @@ func CreateServer(en *senv.Environment) *Server {
 	log.Infof("DB path: %v", en.GetDBOpts().DataSource)
 	log.Infof("Cache path: %v", en.GetRedisOpts().URL)
 
-	cache, err := cache.Connect(en)
+	cache := cache.Connect(en)
+
+	err := cache.HealthCheck()
+	for attempts := 0; err != nil && attempts < 10; attempts++ {
+		log.Errorf("Conect to cache, attempt %d, error %s", attempts, err)
+		time.Sleep(3 * 1000 * time.Millisecond)
+		err = cache.HealthCheck()
+	}
+
 	if err != nil {
 		log.Errorf("Could not connect to cache: %v", err)
 		return nil
@@ -47,6 +55,12 @@ func CreateServer(en *senv.Environment) *Server {
 	log.Infof("Cache connection, ok")
 
 	db, err := dbx.Connect(en)
+	for attempts := 0; err != nil && attempts < 10; attempts++ {
+		log.Errorf("Conect to database, attempt %d, error %s", attempts, err)
+		time.Sleep(3 * 1000 * time.Millisecond)
+		db, err = dbx.Connect(en)
+	}
+
 	if err != nil {
 		log.Errorf("Could not connect to database: %v", err)
 		return nil

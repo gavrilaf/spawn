@@ -2,35 +2,37 @@ version: '3.2'
 
 services:
 
-  sp-backend:
+  backend:
+    environment:
+      - ENV="Test"
+      - DB_PATH=postgresql://spawnuser:spawn-pg-test-password@postgres/spawn?sslmode=disable
+      - CACHE_PATH=redis://redis:6379
     restart: 'always'
     ports:
       - '7887:7887'
-    container_name: sp-backend
+    container_name: backend
     build:
       context: .
       dockerfile: ./Dockerfile.backend
     depends_on:
-      - sp-postgres
-      - sp-redis
+      - postgres
+      - redis
     links:
-      - sp-postgres
-      - sp-redis
+      - postgres
+      - redis
 
-  sp-postgres:
+  postgres:
     restart: 'always'
     ports:
       - '5432:5432'
-    container_name: sp-postgres
     environment:
-      - "POSTGRES_USER=spawnuser"
-      - "POSTGRES_DB=spawn"
-      - "POSTGRES_PASSWORD=spawn-pg-test-password"
+      - POSTGRES_USER=spawnuser
+      - POSTGRES_DB=spawn
+      - POSTGRES_PASSWORD=spawn-pg-test-password
     build: './scripts/db'
 
-  sp-redis:
+  redis:
     image: "redis:alpine"
-    container_name: sp-redis
     restart: 'always'
     ports:
       - '6379:6379'

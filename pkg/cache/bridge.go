@@ -12,6 +12,21 @@ type Bridge struct {
 	pool *redis.Pool
 }
 
+func (p *Bridge) Close() error {
+	if p == nil || p.pool == nil {
+		return nil
+	}
+
+	return p.pool.Close()
+}
+
+func (p *Bridge) HealthCheck() error {
+	_, err := p.get().Do("PING")
+	return err
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
 func newPool(en *senv.Environment) *redis.Pool {
 	return &redis.Pool{
 
@@ -31,14 +46,6 @@ func newPool(en *senv.Environment) *redis.Pool {
 			return err
 		},
 	}
-}
-
-func (p *Bridge) Close() error {
-	if p == nil || p.pool == nil {
-		return nil
-	}
-
-	return p.pool.Close()
 }
 
 func (p *Bridge) get() redis.Conn {

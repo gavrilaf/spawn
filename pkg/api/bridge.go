@@ -18,11 +18,12 @@ type Bridge struct {
 func CreateBridge(en *senv.Environment) *Bridge {
 	log.Infof("Starting api with environment: %v", en.GetName())
 
-	cache, err := cache.Connect(en)
-	if err != nil {
-		log.Errorf("Could not connect to the read  model: %v", err)
-		return nil
-	}
+	cache := cache.Connect(en)
+	// TODO: Add reconnect logic
+	//if err != nil {
+	//	log.Errorf("Could not connect to the read  model: %v", err)
+	//	return nil
+	//}
 	log.Infof("Read model connection, ok")
 
 	backend, err := pb.CreateClient(en)
