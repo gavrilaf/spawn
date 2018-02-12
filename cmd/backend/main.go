@@ -35,7 +35,7 @@ func main() {
 
 	log.Info("Spawn backend starting...")
 
-	lis, err := net.Listen("tcp", "localhost:7887")
+	lis, err := net.Listen("tcp", ":7887")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
