@@ -49,7 +49,7 @@ func CreateServer(en *senv.Environment) *Server {
 	_, err := utils.Repeat(func() (interface{}, error) {
 		err := cache.HealthCheck()
 		if err != nil {
-			log.Errorf("Cache healthcheck error: %s", err)
+			log.Errorf("Cache healthcheck error: %v", err)
 		}
 		return nil, err
 	}, 3, 3*time.Second)
@@ -66,7 +66,7 @@ func CreateServer(en *senv.Environment) *Server {
 	db, err := utils.Repeat(func() (interface{}, error) {
 		db, err := dbx.Connect(en)
 		if err != nil {
-			log.Errorf("Connect to db error: %s", err)
+			log.Errorf("Connect to db error: %v", err)
 		}
 		return db, err
 	}, 3, 3*time.Second)
