@@ -7,9 +7,6 @@ import (
 
 func GetEnvironment() *Environment {
 	name := getEnvVar("ENV_NAME", "Development")
-	//dbPath := getEnvVar("DB_PATH", "postgresql://spawnuser:spawn-pg-test-password@postgres/spawn?sslmode=disable")
-	//cachePath := getEnvVar("CACHE_PATH", "redis://redis:6379")
-	//backendPath := getEnvVar("BACKEND_PATH", "localhost:7887")
 
 	dbPath := getEnvVar("DB_PATH", "postgresql://spawnuser:spawn-pg-test-password@localhost/spawn?sslmode=disable")
 	cachePath := getEnvVar("CACHE_PATH", "redis://localhost:6379")

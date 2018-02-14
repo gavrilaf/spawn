@@ -2,6 +2,25 @@ version: '3.2'
 
 services:
 
+  rest:
+    environment:
+      - ENV="Test"
+      - BACKEND_PATH=backend:7887
+      - CACHE_PATH=redis://redis:6379
+    restart: 'always'
+    ports:
+      - '8080:8080'
+    container_name: rest
+    build:
+      context: .
+      dockerfile: ./Dockerfile.rest
+    depends_on:
+      - backend
+      - redis
+    links:
+      - backend
+      - redis
+
   backend:
     environment:
       - ENV="Test"

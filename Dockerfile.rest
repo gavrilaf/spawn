@@ -1,0 +1,19 @@
+FROM golang:1.9.2 AS build
+
+RUN go get github.com/golang/dep/cmd/dep
+
+COPY Gopkg.lock Gopkg.toml /go/src/github.com/gavrilaf/spawn/
+COPY ./pkg /go/src/github.com/gavrilaf/spawn/pkg/
+COPY ./cmd/rest /go/src/github.com/gavrilaf/spawn/
+
+WORKDIR /go/src/github.com/gavrilaf/spawn
+
+RUN dep ensure -vendor-only
+RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ./rest
+
+# Next start another building context
+FROM alpine:latest
+
+EXPOSE 8080
+COPY --from=build ./go/src/github.com/gavrilaf/spawn/rest ./rest
+ENTRYPOINT ["./rest"]
