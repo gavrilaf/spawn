@@ -3,9 +3,11 @@ package backend;
 import "google/protobuf/timestamp.proto";
 
 service Spawn {
+    rpc Ping(Empty) returns (Empty) {}
+
     rpc CreateUser(CreateUserRequest) returns (IDResponse) {}
     rpc AddDevice(AddDeviceRequest) returns(Empty) {}
-	rpc HandleLogin(LoginRequest) returns(Empty) {}
+    rpc HandleLogin(LoginRequest) returns(Empty) {}
 
     rpc DoConfirm(ConfirmRequest) returns(Empty) {}
     rpc DeleteDevice(DeleteDeviceRequest) returns(Empty) {}
@@ -18,6 +20,10 @@ message Empty {}
 
 message IDResponse {
   string ID = 1;
+}
+
+message ServerPingResponse {
+  int32 status = 1;
 }
 
 message Device {
