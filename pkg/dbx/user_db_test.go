@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
-	//"github.com/davecgh/go-spew/spew"
 	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/gavrilaf/spawn/pkg/utils"
+
 	"github.com/satori/go.uuid"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -260,8 +261,6 @@ func TestBridge_EditUserProfile(t *testing.T) {
 
 	pr1, err := db.GetUserProfile(profile.ID)
 	require.Nil(t, err)
-
-	//fmt.Printf("After ****\n%v\n", spew.Sdump(pr1))
 
 	assert.Equal(t, "en", pr1.Country)
 

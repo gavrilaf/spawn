@@ -5,8 +5,8 @@ services:
   rest:
     environment:
       - ENV="Test"
-      - BACKEND_PATH=backend:7887
-      - REDIS_URL=redis://redis:6379
+      - QUEUE_URL=amqp://rabbit:5672
+      - CACHE_URL=redis://redis:6379
     restart: 'always'
     ports:
       - '8080:8080'
@@ -25,7 +25,8 @@ services:
     environment:
       - ENV="Test"
       - DATABASE_URL=postgresql://spawnuser:spawn-pg-test-password@postgres/spawn?sslmode=disable
-      - REDIS_URL=redis://redis:6379
+      - QUEUE_URL=amqp://rabbit:5672
+      - CACHE_URL=redis://redis:6379
     restart: 'always'
     ports:
       - '7887:7887'
@@ -40,18 +41,18 @@ services:
       - postgres
       - redis
 
-  postgres:
-    restart: 'always'
-    ports:
-      - '5432:5432'
-    environment:
-      - POSTGRES_USER=spawnuser
-      - POSTGRES_DB=spawn
-      - POSTGRES_PASSWORD=spawn-pg-test-password
-    build: './scripts/db'
+#  postgres:
+#    restart: 'always'
+#    ports:
+#      - '5432:5432'
+#    environment:
+#      - POSTGRES_USER=spawnuser
+#      - POSTGRES_DB=spawn
+#      - POSTGRES_PASSWORD=spawn-pg-test-password
+#    build: './scripts/db'
 
-  redis:
-    image: "redis:alpine"
-    restart: 'always'
-    ports:
-      - '6379:6379'
+#  redis:
+#    image: "redis:alpine"
+#    restart: 'always'
+#    ports:
+#      - '6379:6379'
