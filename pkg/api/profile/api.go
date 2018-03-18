@@ -1,15 +1,13 @@
 package profile
 
 import (
-	"context"
 	"net/http"
-	"time"
+	//"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gavrilaf/spawn/pkg/api"
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
+
 	"github.com/gin-gonic/gin"
-	"github.com/golang/protobuf/ptypes"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -51,7 +49,7 @@ func (p ApiImpl) UpdateUserCountry(c *gin.Context) {
 
 	log.Infof("ProfileApi.UpdateUserCountry, for user %v country %v", session.UserID, req.Country)
 
-	_, err = p.WriteModel.Client.UpdateUserCountry(context.Background(), &pb.UserCountryRequest{
+	_, err = p.WriteModel.UpdateUserCountry(&pb.UserCountry{
 		UserID:  session.UserID,
 		Country: req.Country,
 	})
@@ -83,22 +81,20 @@ func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 		return
 	}
 
-	log.Infof("ProfileApi.UpdateUserPersonalInfo, for user %v: %v", session.UserID, spew.Sdump(req))
+	log.Infof("ProfileApi.UpdateUserPersonalInfo, for user %s", session.UserID)
 
-	t, err := time.Parse(time.RFC3339, req.BirthDate)
+	/*t, err := time.Parse(time.RFC3339, req.BirthDate)
 	if err != nil {
 		log.Errorf("ProfileApi.UpdateUserPersonalInfo, invalid BirthDate: %v", err)
 		p.HandleError(c, api.ErrScope, http.StatusUnauthorized, api.ErrSessionNotFound)
 		return
-	}
+	}*/
 
-	protoTime, _ := ptypes.TimestampProto(t)
-
-	_, err = p.WriteModel.Client.UpdateUserPersonalInfo(context.Background(), &pb.UserPersonalInfoRequest{
+	_, err = p.WriteModel.UpdateUserPersonalInfo(&pb.UserPersonalInfo{
 		UserID:    session.UserID,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
-		BirthDate: protoTime,
+		BirthDate: &pb.BirthDate{},
 	})
 
 	if err != nil {

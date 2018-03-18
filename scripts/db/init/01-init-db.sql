@@ -36,7 +36,7 @@ SET row_security = off;
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
 
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+-- CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
@@ -45,7 +45,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
 
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+-- COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
 SET search_path = public, pg_catalog;
@@ -68,7 +68,7 @@ CREATE TABLE "AccountMeta" (
 );
 
 
-ALTER TABLE "AccountMeta" OWNER TO postgres;
+-- ALTER TABLE "AccountMeta" OWNER TO postgres;
 
 --
 -- TOC entry 196 (class 1259 OID 32869)
@@ -84,7 +84,7 @@ CREATE TABLE "Accounts" (
 );
 
 
-ALTER TABLE "Accounts" OWNER TO postgres;
+-- ALTER TABLE "Accounts" OWNER TO postgres;
 
 --
 -- TOC entry 198 (class 1259 OID 32882)
@@ -100,7 +100,7 @@ CREATE TABLE "Clients" (
 );
 
 
-ALTER TABLE "Clients" OWNER TO postgres;
+-- ALTER TABLE "Clients" OWNER TO postgres;
 
 --
 -- TOC entry 199 (class 1259 OID 32891)
@@ -118,7 +118,7 @@ CREATE TABLE "Devices" (
 );
 
 
-ALTER TABLE "Devices" OWNER TO postgres;
+-- ALTER TABLE "Devices" OWNER TO postgres;
 
 --
 -- TOC entry 200 (class 1259 OID 32901)
@@ -136,7 +136,7 @@ CREATE TABLE "LoginsLog" (
 );
 
 
-ALTER TABLE "LoginsLog" OWNER TO postgres;
+-- ALTER TABLE "LoginsLog" OWNER TO postgres;
 
 --
 -- TOC entry 201 (class 1259 OID 32910)
@@ -161,7 +161,7 @@ CREATE TABLE "Users" (
 );
 
 
-ALTER TABLE "Users" OWNER TO postgres;
+-- ALTER TABLE "Users" OWNER TO postgres;
 
 --
 -- TOC entry 2907 (class 0 OID 32875)

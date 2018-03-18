@@ -16,4 +16,4 @@ FROM alpine:latest
 
 EXPOSE 8080
 COPY --from=build ./go/src/github.com/gavrilaf/spawn/rest ./rest
-ENTRYPOINT ["./rest"]
+CMD ["./rest"]

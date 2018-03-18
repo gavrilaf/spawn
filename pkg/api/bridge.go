@@ -1,40 +1,31 @@
 package api
 
 import (
-	"context"
-	"os"
 	"time"
 
+	"github.com/gavrilaf/amqp/rpc"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/cache"
 	rdm "github.com/gavrilaf/spawn/pkg/cache/mdl"
 	"github.com/gavrilaf/spawn/pkg/errx"
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/gavrilaf/spawn/pkg/utils"
 	"github.com/gin-gonic/gin"
+
 	log "github.com/sirupsen/logrus"
 )
 
 type Bridge struct {
 	ReadModel  cache.Cache
-	WriteModel *pb.BackendBridge
+	WriteModel pb.SpawnClient
 }
 
-func CreateBridge(en *senv.Environment) *Bridge {
+func CreateBridge(env *senv.Environment) *Bridge {
 	log.Info("Starting Spawn api ...")
-
-	log.Info("System environment:")
-	for _, e := range os.Environ() {
-		log.Info(e)
-	}
-
-	log.Infof("API environment type: %v", en.GetName())
-	log.Infof("Backend path: %v", en.GetRPCOpts().URL)
-	log.Infof("Cache path: %v", en.GetRedisOpts().URL)
 
 	log.Info("Connecting to cache...")
 
-	cache := cache.Connect(en)
+	cache := cache.Connect(env)
 
 	_, err := utils.Repeat(func() (interface{}, error) {
 		err := cache.HealthCheck()
@@ -54,15 +45,26 @@ func CreateBridge(en *senv.Environment) *Bridge {
 	log.Info("Connecting to backend...")
 
 	backend, err := utils.Repeat(func() (interface{}, error) {
-		p, err := pb.CreateClient(en)
-		if p != nil {
-			_, err = p.Client.Ping(context.Background(), &pb.Empty{})
-		}
+		srv, err := rpc.Connect(rpc.ClientConfig{
+			Url:         env.GetBackOpts().URL,
+			ServerQueue: env.GetBackOpts().QueueName,
+			Timeout:     env.GetBackOpts().Timeout})
+
 		if err != nil {
-			log.Errorf("Connect to the write model error: %v", err)
+			log.Errorf("Could not connect to rpc: %v", err)
+			return nil, err
 		}
 
-		return p, err
+		client := pb.NewSpawnClient(srv)
+
+		_, err = client.Ping(&pb.Empty{})
+		if err != nil {
+			client.Close()
+			log.Errorf("Ping error: %v", err)
+			return nil, err
+		}
+
+		return client, nil
 	}, 3, 3*time.Second)
 
 	if err != nil {
@@ -72,7 +74,7 @@ func CreateBridge(en *senv.Environment) *Bridge {
 
 	log.Infof("Write model connection ok")
 
-	return &Bridge{ReadModel: cache, WriteModel: backend.(*pb.BackendBridge)}
+	return &Bridge{ReadModel: cache, WriteModel: backend.(pb.SpawnClient)}
 }
 
 func (p *Bridge) Close() {

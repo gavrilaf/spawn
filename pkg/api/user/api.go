@@ -1,13 +1,14 @@
 package user
 
 import (
-	"context"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
+	"net/http"
+
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 )
 
 func (p ApiImpl) GetState(c *gin.Context) {
@@ -105,7 +106,7 @@ func (p ApiImpl) ConfirmDevice(c *gin.Context) {
 
 	log.Infof("ProfileApi.ConfirmDevice, confirm device (%v, %v) with code %v", session.UserID, session.DeviceID, req.Code)
 
-	_, err = p.WriteModel.Client.DoConfirm(context.Background(), &pb.ConfirmRequest{
+	_, err = p.WriteModel.DoConfirm(&pb.ConfirmDeviceReq{
 		Code: req.Code,
 		Kind: "device"})
 
@@ -121,7 +122,6 @@ func (p ApiImpl) ConfirmDevice(c *gin.Context) {
 }
 
 func (p ApiImpl) DeleteDevice(c *gin.Context) {
-
 	deviceID := c.Param("id")
 
 	session, err := p.GetSession(c)
@@ -137,7 +137,7 @@ func (p ApiImpl) DeleteDevice(c *gin.Context) {
 		return
 	}
 
-	_, err = p.Bridge.WriteModel.Client.DeleteDevice(context.Background(), &pb.DeleteDeviceRequest{
+	_, err = p.Bridge.WriteModel.DeleteDevice(&pb.UserDeviceID{
 		UserID:   session.UserID,
 		DeviceID: deviceID})
 

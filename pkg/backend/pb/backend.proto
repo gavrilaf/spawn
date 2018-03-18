@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package pb;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+option (gogoproto.goproto_stringer_all) = false;
+option (gogoproto.stringer_all) =  true;;
+option (gogoproto.equal_all) = true;
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.unmarshaler_all) = true;
+
+service Spawn {
+    rpc Ping(Empty) returns (ServerStatus) {}
+
+    rpc CreateUser(CreateUserReq) returns (ResID) {}
+    rpc AddDevice(UserDevice) returns(Empty) {}
+    rpc HandleLogin(LoginReq) returns(Empty) {}
+
+    rpc DoConfirm(ConfirmDeviceReq) returns(Empty) {}
+    rpc DeleteDevice(UserDeviceID) returns(Empty) {}
+
+    rpc UpdateUserCountry(UserCountry) returns(Empty) {}
+    rpc UpdateUserPersonalInfo(UserPersonalInfo) returns(Empty) {}
+}
+
+message Empty {}
+
+message ResID {
+  string ID = 1;
+}
+
+message BirthDate {
+  int32 year = 1;
+  int32 month = 2;
+  int32 day = 3;
+}
+
+message ServerStatus {
+  int32 status = 1;
+}
+
+message Device {
+  string ID = 1;
+  string name = 2;
+  string locale = 3;
+  string lang = 4;
+}
+
+message CreateUserReq {
+  string username = 1;
+  string passwordHash = 2;
+  Device device = 3;
+}
+
+message LoginReq {
+  string sessionID = 1;
+  string userID = 2;
+  Device device = 3;
+  string userAgent = 4;
+  string loginIP = 5;
+  string loginRegion = 6;
+}
+
+message UserDevice {
+	string userID = 1;
+	Device device = 2;
+}
+
+message UserDeviceID {
+	string userID = 1;
+	string deviceID = 2;
+}
+
+message ConfirmDeviceReq {
+  string kind = 1;
+  string sessionId = 2;
+  string userId = 3;
+  string deviceId = 4;
+  string code = 5;
+}
+
+message UserPersonalInfo {
+  string userID = 1;
+  string firstName = 2;
+  string lastName = 3;
+  BirthDate birthDate = 4;
+}
+
+message UserCountry {
+  string userID = 1;
+  string country = 2;
+}

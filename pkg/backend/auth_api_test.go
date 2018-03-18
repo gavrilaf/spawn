@@ -2,17 +2,14 @@ package backend
 
 import (
 	"fmt"
-	"testing"
-
-	"github.com/davecgh/go-spew/spew"
-	"github.com/gavrilaf/spawn/pkg/senv"
-	//mdl "github.com/gavrilaf/spawn/pkg/mdl"
 	"github.com/satori/go.uuid"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"testing"
 
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
-	"golang.org/x/net/context"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
+	"github.com/gavrilaf/spawn/pkg/senv"
 )
 
 func createServer(t *testing.T) *Server {
@@ -28,7 +25,7 @@ func TestServer_RegisterUser(t *testing.T) {
 
 	username := uuid.NewV4().String() + "@spawn.com"
 
-	req := pb.CreateUserRequest{
+	arg := pb.CreateUserReq{
 		Username:     username,
 		PasswordHash: "123456",
 		Device: &pb.Device{
@@ -38,7 +35,7 @@ func TestServer_RegisterUser(t *testing.T) {
 			Lang:   "es"},
 	}
 
-	res, err := srv.CreateUser(context.Background(), &req)
+	res, err := srv.CreateUser(&arg)
 	assert.Nil(t, err)
 
 	//fmt.Printf("Registered user: %v\n", spew.Sdump(res))
@@ -96,19 +93,17 @@ func TestServer_AddDevice(t *testing.T) {
 		Locale: "ru",
 		Lang:   "ru"}
 
-	req := pb.CreateUserRequest{
+	userArg := pb.CreateUserReq{
 		Username:     username,
 		PasswordHash: "123456",
 		Device:       &device,
 	}
 
-	user, err := srv.CreateUser(context.Background(), &req)
+	user, err := srv.CreateUser(&userArg)
 	assert.Nil(t, err)
 
 	device.ID = "d2"
-	_, err = srv.AddDevice(context.Background(), &pb.AddDeviceRequest{
-		UserID: user.ID,
-		Device: &device})
+	_, err = srv.AddDevice(&pb.UserDevice{UserID: user.ID, Device: &device})
 	assert.Nil(t, err)
 
 	code, err := srv.cache.GetConfirmCode("device", user.ID+device.ID)
@@ -144,18 +139,18 @@ func TestServer_HandleLogin(t *testing.T) {
 		Locale: "ru",
 		Lang:   "ru"}
 
-	user, err := srv.CreateUser(context.Background(), &pb.CreateUserRequest{
+	userID, err := srv.CreateUser(&pb.CreateUserReq{
 		Username:     username,
 		PasswordHash: "123456",
 		Device:       &device,
 	})
 	assert.Nil(t, err)
 
-	devices, err := srv.db.GetUserDevicesEx(user.ID)
+	devices, err := srv.db.GetUserDevicesEx(userID.ID)
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(devices))
 
-	fmt.Printf("Before: \n%v\n", spew.Sdump(devices))
+	//fmt.Printf("Before: \n%v\n", spew.Sdump(devices))
 
 	assert.Nil(t, devices[0].GetLoginTime())
 	assert.Equal(t, "", devices[0].GetUserAgent())
@@ -169,12 +164,12 @@ func TestServer_HandleLogin(t *testing.T) {
 	device.Locale = "en"
 	device.Name = "Updated"
 
-	req := pb.LoginRequest{SessionID: "", UserID: user.ID, Device: &device, UserAgent: "test", LoginIP: "127.0.0.1", LoginRegion: "ru"}
+	loginArg := pb.LoginReq{SessionID: "", UserID: userID.ID, Device: &device, UserAgent: "test", LoginIP: "127.0.0.1", LoginRegion: "ru"}
 
-	_, err = srv.HandleLogin(context.Background(), &req)
+	_, err = srv.HandleLogin(&loginArg)
 	assert.Nil(t, err)
 
-	devices, err = srv.db.GetUserDevicesEx(user.ID)
+	devices, err = srv.db.GetUserDevicesEx(userID.ID)
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(devices))
 	assert.Equal(t, "test", devices[0].GetUserAgent())
@@ -184,6 +179,5 @@ func TestServer_HandleLogin(t *testing.T) {
 	assert.Equal(t, "es", devices[0].Lang)
 	assert.Equal(t, "Updated", devices[0].Name)
 
-	fmt.Printf("After: \n%v\n", spew.Sdump(devices))
-
+	//fmt.Printf("After: \n%v\n", spew.Sdump(devices))
 }

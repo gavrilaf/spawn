@@ -1,12 +1,10 @@
 package auth
 
 import (
-	"context"
-
 	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,7 +23,7 @@ func (sb Bridge) GetClient(id string) (*db.Client, error) {
 }
 
 func (sb Bridge) RegisterUser(username string, password string, device db.DeviceInfo) error {
-	req := pb.CreateUserRequest{
+	req := pb.CreateUserReq{
 		Username:     username,
 		PasswordHash: password,
 		Device: &pb.Device{
@@ -35,7 +33,7 @@ func (sb Bridge) RegisterUser(username string, password string, device db.Device
 			Lang:   device.Lang},
 	}
 
-	resp, err := sb.WriteModel.Client.CreateUser(context.Background(), &req)
+	resp, err := sb.WriteModel.CreateUser(&req)
 	if err == nil && resp != nil {
 		log.Infof("Registered user (%v, %v)", username, resp.ID)
 	}
@@ -52,8 +50,7 @@ func (sb Bridge) GetDevice(userId string, deviceId string) (*mdl.AuthDevice, err
 }
 
 func (sb Bridge) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthDevice, error) {
-
-	req := pb.AddDeviceRequest{
+	req := pb.UserDevice{
 		UserID: userID,
 		Device: &pb.Device{
 			ID:     device.ID,
@@ -62,7 +59,7 @@ func (sb Bridge) AddDevice(userID string, device db.DeviceInfo) (*mdl.AuthDevice
 			Lang:   device.Lang},
 	}
 
-	_, err := sb.WriteModel.Client.AddDevice(context.Background(), &req)
+	_, err := sb.WriteModel.AddDevice(&req)
 	if err == nil {
 		log.Infof("Added device (%v, %v)", userID, device.ID)
 	}
@@ -89,8 +86,7 @@ func (sb Bridge) GetSession(id string) (*mdl.Session, error) {
 }
 
 func (sb Bridge) HandlerLogin(session mdl.Session, ctx LoginContext) error {
-
-	req := pb.LoginRequest{
+	req := pb.LoginReq{
 		SessionID: session.ID,
 		UserID:    session.UserID,
 		Device: &pb.Device{
@@ -102,7 +98,7 @@ func (sb Bridge) HandlerLogin(session mdl.Session, ctx LoginContext) error {
 		LoginIP:     ctx.IP,
 		LoginRegion: ctx.Region}
 
-	_, err := sb.WriteModel.Client.HandleLogin(context.Background(), &req)
+	_, err := sb.WriteModel.HandleLogin(&req)
 	if err != nil {
 		log.Errorf("Register login error, %v", err)
 	}

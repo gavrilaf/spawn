@@ -1,17 +1,16 @@
 package main
 
 import (
-	//"net/http"
-	//"os"
+	"os"
 
 	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/api/account"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
 	"github.com/gavrilaf/spawn/pkg/api/profile"
 	"github.com/gavrilaf/spawn/pkg/api/user"
 	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/gavrilaf/spawn/pkg/utils"
 
-	"github.com/gavrilaf/spawn/pkg/api/account"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -27,15 +26,22 @@ func main() {
 	router.Use(utils.Logger(log))
 	router.Use(gin.Recovery())
 
-	environment := senv.GetEnvironment()
-	if environment == nil {
-		panic("Could not read environment")
+	log.Info("System environment:")
+	for _, e := range os.Environ() {
+		log.Info(e)
 	}
 
+	env := senv.GetEnvironment()
+	if env == nil {
+		log.Fatal("Could not read environment")
+	}
+
+	log.Infof("Web service environment: %s", env.String())
+
 	//storage := auth.NewStorageMock(environment)
-	apiBridge := api.CreateBridge(environment)
+	apiBridge := api.CreateBridge(env)
 	if apiBridge == nil {
-		panic("Could not connect to the api bridge")
+		log.Info("Could not connect to the api bridge")
 	}
 
 	authMiddleware := auth.CreateMiddleware(apiBridge)

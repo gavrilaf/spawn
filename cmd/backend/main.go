@@ -1,51 +1,53 @@
 package main
 
 import (
-	"net"
-
+	"github.com/gavrilaf/amqp/rpc"
 	"github.com/gavrilaf/spawn/pkg/backend"
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/senv"
 	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
+	"os"
 )
 
-func newBackend() *backend.Server {
-	en := senv.GetEnvironment()
-	if en == nil {
-		panic("Could not read environment")
+func newBackend(env *senv.Environment) *backend.Server {
+	handler := backend.CreateServer(env)
+
+	if handler == nil {
+		log.Fatal("Could not create server")
 	}
 
-	srv := backend.CreateServer(en)
+	handler.StartServer()
 
-	if srv == nil {
-		panic("Could not create server")
+	if handler.GetServerState() != backend.StateOk {
+		log.Fatal("Could not start server")
 	}
 
-	srv.StartServer()
-
-	if srv.GetServerState() != backend.StateOk {
-		panic("Could not start server")
-	}
-
-	return srv
+	return handler
 }
 
 func main() {
 
 	log.Info("Spawn backend starting...")
 
-	lis, err := net.Listen("tcp", ":7887")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+	env := senv.GetEnvironment()
+
+	log.Info("System environment:")
+	for _, e := range os.Environ() {
+		log.Info(e)
 	}
-	var opts []grpc.ServerOption
 
-	grpcServer := grpc.NewServer(opts...)
+	log.Infof("Backend environment: %s", env.String())
 
-	backServer := newBackend()
+	srv, err := rpc.CreateServer(env.GetBackOpts().URL, env.GetBackOpts().QueueName)
+	if err != nil {
+		log.Fatalf("Failed to create RPC server: %v", err)
+	}
 
-	pb.RegisterSpawnServer(grpcServer, backServer)
+	defer srv.Close()
 
-	grpcServer.Serve(lis)
+	backend := newBackend(env)
+	defer backend.Close()
+
+	log.Infof("Run backend queue listener")
+	pb.RunServer(srv, backend)
 }

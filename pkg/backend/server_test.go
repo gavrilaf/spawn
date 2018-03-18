@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gavrilaf/spawn/pkg/senv"
@@ -16,13 +15,14 @@ func TestStartServer(t *testing.T) {
 
 	assert.Equal(t, StateCreated, srv.GetServerState())
 
-	_, err := srv.Ping(context.Background(), nil)
+	_, err := srv.Ping(nil)
 	assert.NotNil(t, err)
 
 	srv.StartServer()
 
 	assert.Equal(t, StateOk, srv.GetServerState())
 
-	_, err = srv.Ping(context.Background(), nil)
+	pingResult, err := srv.Ping(nil)
 	assert.Nil(t, err)
+	assert.Equal(t, int32(StateOk), pingResult.Status)
 }

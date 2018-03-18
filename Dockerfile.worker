@@ -16,4 +16,4 @@ FROM alpine:latest
 
 EXPOSE 7887
 COPY --from=build ./go/src/github.com/gavrilaf/spawn/backend ./backend
-ENTRYPOINT ["./backend"]
+CMD ["./backend"]

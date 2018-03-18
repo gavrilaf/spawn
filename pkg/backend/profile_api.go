@@ -1,27 +1,22 @@
 package backend
 
 import (
-	"github.com/davecgh/go-spew/spew"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
-	"github.com/golang/protobuf/ptypes"
+	"github.com/gavrilaf/spawn/pkg/utils"
+
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
+	"time"
 )
 
-func (srv *Server) UpdateUserPersonalInfo(ctx context.Context, req *pb.UserPersonalInfoRequest) (*pb.Empty, error) {
+func (srv *Server) UpdateUserPersonalInfo(arg *pb.UserPersonalInfo) (*pb.Empty, error) {
 	go func() {
-		log.Infof("UpdateUserPersonalInfo: %v", spew.Sdump(req))
+		log.Infof("UpdateUserPersonalInfo: %s", arg.String())
 
-		tm, err := ptypes.Timestamp(req.BirthDate)
-		if err != nil {
-			log.Errorf("Invalid birth date: %v", err)
-			return
-		}
-
-		err = srv.db.UpdateUserPersonalInfo(req.UserID, db.PersonalInfo{
-			FirstName: req.FirstName,
-			LastName:  req.LastName,
+		tm := utils.CreateDate(int(arg.BirthDate.Year), time.Month(arg.BirthDate.Month), int(arg.BirthDate.Day))
+		err := srv.db.UpdateUserPersonalInfo(arg.UserID, db.PersonalInfo{
+			FirstName: arg.FirstName,
+			LastName:  arg.LastName,
 			BirthDate: tm,
 		})
 
@@ -30,23 +25,23 @@ func (srv *Server) UpdateUserPersonalInfo(ctx context.Context, req *pb.UserPerso
 			return
 		}
 
-		srv.updateCachedUserProfile(req.UserID)
+		srv.updateCachedUserProfile(arg.UserID)
 	}()
 
 	return &pb.Empty{}, nil
-
 }
 
-func (srv *Server) UpdateUserCountry(ctx context.Context, req *pb.UserCountryRequest) (*pb.Empty, error) {
+func (srv *Server) UpdateUserCountry(arg *pb.UserCountry) (*pb.Empty, error) {
 	go func() {
-		log.Infof("UpdateUserCountry: %v", spew.Sdump(req))
-		err := srv.db.UpdateUserCountry(req.UserID, req.Country)
+		log.Infof("UpdateUserCountry: %s", arg.String())
+
+		err := srv.db.UpdateUserCountry(arg.UserID, arg.Country)
 		if err != nil {
 			log.Errorf("Could not update country in db: %v", err)
 			return
 		}
 
-		srv.updateCachedUserProfile(req.UserID)
+		srv.updateCachedUserProfile(arg.UserID)
 	}()
 
 	return &pb.Empty{}, nil

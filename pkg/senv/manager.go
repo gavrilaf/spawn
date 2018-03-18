@@ -8,19 +8,20 @@ import (
 func GetEnvironment() *Environment {
 	name := getEnvVar("ENV_NAME", "Development")
 
-	dbPath := getEnvVar("DB_PATH", "postgresql://spawnuser:spawn-pg-test-password@localhost/spawn?sslmode=disable")
-	cachePath := getEnvVar("CACHE_PATH", "redis://localhost:6379")
-	backendPath := getEnvVar("BACKEND_PATH", "localhost:7887")
+	dbPath := getEnvVar("DATABASE_URL", "postgresql://spawnuser:spawn-pg-test-password@localhost/spawn?sslmode=disable")
+	cachePath := getEnvVar("CACHE_URL", "redis://localhost:6379")
+	queuePath := getEnvVar("QUEUE_URL", "amqp://localhost:5672")
 
 	return &Environment{
 		name: name,
 
-		rpc: RPCOptions{
-			URL:     backendPath,
-			Timeout: time.Duration(3) * time.Second,
+		back: BackendOptions{
+			URL:       queuePath,
+			QueueName: "backend_queue",
+			Timeout:   time.Duration(3) * time.Second,
 		},
 
-		redis: RedisOptions{
+		cache: CacheOptions{
 			URL:         cachePath,
 			MaxIdle:     3,
 			IdleTimeout: time.Duration(240) * time.Second,

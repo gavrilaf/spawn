@@ -1,15 +1,14 @@
 package backend
 
 import (
-	"context"
-	"os"
+	//"os"
 	"sync"
 	"time"
 
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/cache"
 	"github.com/gavrilaf/spawn/pkg/dbx"
 	"github.com/gavrilaf/spawn/pkg/errx"
-	pb "github.com/gavrilaf/spawn/pkg/rpc"
 	"github.com/gavrilaf/spawn/pkg/senv"
 	"github.com/gavrilaf/spawn/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -33,14 +32,6 @@ type Server struct {
 
 func CreateServer(en *senv.Environment) *Server {
 	log.Info("Starting Spawn backened server...")
-	log.Info("System environment:")
-	for _, e := range os.Environ() {
-		log.Info(e)
-	}
-
-	log.Infof("Backend environment type: %v", en.GetName())
-	log.Infof("DB path: %v", en.GetDBOpts().DataSource)
-	log.Infof("Cache path: %v", en.GetRedisOpts().URL)
 
 	log.Info("Connecting to cache...")
 
@@ -122,13 +113,13 @@ func (srv *Server) Close() {
 }
 
 // API
-func (srv *Server) Ping(ctx context.Context, in *pb.Empty) (*pb.Empty, error) {
+func (srv *Server) Ping(arg *pb.Empty) (*pb.ServerStatus, error) {
 	state := srv.GetServerState()
 	if state != StateOk {
 		return nil, errx.ErrEnvironment(ErrScope, "Backed is not ready yet, current state: %d", state)
 	}
 
-	return &pb.Empty{}, nil
+	return &pb.ServerStatus{Status: int32(state)}, nil
 }
 
 // Private

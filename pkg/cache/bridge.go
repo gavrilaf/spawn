@@ -30,11 +30,11 @@ func (p *Bridge) HealthCheck() error {
 func newPool(en *senv.Environment) *redis.Pool {
 	return &redis.Pool{
 
-		MaxIdle:     en.GetRedisOpts().MaxIdle,
-		IdleTimeout: en.GetRedisOpts().IdleTimeout,
+		MaxIdle:     en.GetCacheOpts().MaxIdle,
+		IdleTimeout: en.GetCacheOpts().IdleTimeout,
 
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialURL(en.GetRedisOpts().URL)
+			c, err := redis.DialURL(en.GetCacheOpts().URL)
 			if err != nil {
 				return nil, err
 			}
