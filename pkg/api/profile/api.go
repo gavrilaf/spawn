@@ -6,6 +6,7 @@ import (
 
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
+	"github.com/gavrilaf/spawn/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -83,18 +84,12 @@ func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 
 	log.Infof("ProfileApi.UpdateUserPersonalInfo, for user %s", session.UserID)
 
-	/*t, err := time.Parse(time.RFC3339, req.BirthDate)
-	if err != nil {
-		log.Errorf("ProfileApi.UpdateUserPersonalInfo, invalid BirthDate: %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusUnauthorized, api.ErrSessionNotFound)
-		return
-	}*/
-
+	t := utils.ParseBirtdayDate(req.BirthDate)
 	_, err = p.WriteModel.UpdateUserPersonalInfo(&pb.UserPersonalInfo{
 		UserID:    session.UserID,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
-		BirthDate: &pb.BirthDate{},
+		BirthDate: &pb.BirthDate{Year: int32(t.Year()), Month: int32(t.Month()), Day: int32(t.Day())},
 	})
 
 	if err != nil {

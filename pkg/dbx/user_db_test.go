@@ -215,8 +215,6 @@ func TestBridge_EditUserProfile(t *testing.T) {
 	profile, err := db.RegisterUser(username, "password", device)
 	require.Nil(t, err)
 
-	//fmt.Printf("Before ****\n%v\n", spew.Sdump(profile))
-
 	assert.Empty(t, profile.Country)
 
 	phoneNumber := profile.PhoneNumber
@@ -293,8 +291,6 @@ func TestBridge_LoginLog(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, dex)
 
-	//fmt.Printf("Devices ex\n%v\n", spew.Sdump(dex))
-
 	assert.Equal(t, 1, len(dex))
 	assert.Equal(t, profile.ID, dex[0].UserID)
 	assert.Equal(t, device.ID, dex[0].ID)
@@ -311,8 +307,6 @@ func TestBridge_LoginLog(t *testing.T) {
 	dex, err = db.GetUserDevicesEx(profile.ID)
 	require.Nil(t, err)
 	require.NotNil(t, dex)
-
-	//fmt.Printf("Devices ex\n%v\n", spew.Sdump(dex))
 
 	assert.Equal(t, 1, len(dex))
 	assert.Equal(t, profile.ID, dex[0].UserID)

@@ -48,9 +48,6 @@ func TestBridge_UserProfile(t *testing.T) {
 	assert.Equal(t, "FirstName", pr1.FirstName)
 	assert.Equal(t, "067876123", pr1.PhoneNumber.Number)
 
-	//fmt.Printf("DB profile: %v\n", spew.Sdump(profile))
-	//fmt.Printf("Cache profile: %v\n", spew.Sdump(pr1))
-
 	assert.Equal(t, profile.BirthDate, pr1.GetBirthDate())
 }
 

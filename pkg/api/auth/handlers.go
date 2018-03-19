@@ -1,28 +1,25 @@
 package auth
 
 import (
-	"github.com/davecgh/go-spew/spew"
+	"encoding/hex"
+	"time"
+
+	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/errx"
+
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/dgrijalva/jwt-go.v3"
-
-	"encoding/hex"
-	"time"
-
-	"fmt"
-
-	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
 // HandleLogin handles sign in proccess
 // return AuthToken or error
 func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, error) {
-	log.Infof("auth.HandleLogin, %v, %v", spew.Sdump(p), spew.Sdump(ctx))
+	log.Infof("auth.HandleLogin, %v, %v", p, ctx)
 
 	p.FixLocale() // set 'en' locale & language if empty
 
@@ -46,7 +43,7 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 		return AuthTokenDTO{}, api.ErrUserUnknown
 	}
 
-	log.Infof("Found user: %v", spew.Sdump(user))
+	log.Infof("Found user: %v", user)
 
 	if !p.CheckPassword(user.PasswordHash) {
 		log.Errorf("auth.HandleLogin, invalid password for %v", p.Username)
@@ -78,9 +75,9 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 			return AuthTokenDTO{}, err
 		}
 
-		log.Infof("Added new device %v for user %v", spew.Sdump(device), user.ID)
+		log.Infof("Added new device %v for user %v", device, user.ID)
 	} else {
-		log.Infof("Login with registered device %v for user %v", spew.Sdump(device), user.ID)
+		log.Infof("Login with registered device %v for user %v", device, user.ID)
 	}
 
 	ctx.DeviceName = p.DeviceName
@@ -91,7 +88,7 @@ func (mw *Middleware) HandleLogin(p LoginDTO, ctx LoginContext) (AuthTokenDTO, e
 // HandleRegister handles register proccess. Function creates new user and makes signing in.
 // return AuthToken or error
 func (mw *Middleware) HandleRegister(p RegisterDTO, ctx LoginContext) (AuthTokenDTO, error) {
-	log.Infof("auth.HandleRegister, %v, %v", spew.Sdump(p), spew.Sdump(ctx))
+	log.Infof("auth.HandleRegister, %v, %v", p, ctx)
 
 	p.FixLocale() // set 'en' locale & language if empty
 
@@ -134,7 +131,7 @@ func (mw *Middleware) HandleRegister(p RegisterDTO, ctx LoginContext) (AuthToken
 		return AuthTokenDTO{}, err
 	}
 
-	log.Infof("Created new user: %v", spew.Sdump(user))
+	log.Infof("Created new user: %v", user)
 
 	device, err := mw.bridge.GetDevice(user.ID, p.DeviceID)
 	if err != nil {
@@ -153,7 +150,6 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	token, _ := mw.parseToken(p.AuthToken)
 	claims := token.Claims.(jwt.MapClaims)
 
-	fmt.Printf(spew.Sdump(claims))
 	sessionID := claims["session_id"].(string)
 	origIat := int64(claims["orig_iat"].(float64))
 	nonce := int64(claims["nonce"].(float64))

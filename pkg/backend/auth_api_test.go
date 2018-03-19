@@ -38,14 +38,10 @@ func TestServer_RegisterUser(t *testing.T) {
 	res, err := srv.CreateUser(&arg)
 	assert.Nil(t, err)
 
-	//fmt.Printf("Registered user: %v\n", spew.Sdump(res))
-
 	dbUser, err := srv.db.GetUserProfile(res.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, dbUser)
 	assert.Equal(t, username, dbUser.Username)
-
-	//fmt.Printf("Db user: %v\n", spew.Sdump(dbUser))
 
 	dbDevices, err := srv.db.GetUserDevices(res.ID)
 	assert.Nil(t, err)
@@ -58,15 +54,11 @@ func TestServer_RegisterUser(t *testing.T) {
 	assert.Equal(t, "es", dbDevices[0].Lang)
 	assert.Equal(t, true, dbDevices[0].IsConfirmed)
 
-	//fmt.Printf("Db devices: %v\n", spew.Sdump(dbDevices))
-
 	cacheUser, err := srv.cache.FindUserAuthInfo(username)
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheUser)
 	assert.Equal(t, username, cacheUser.Username)
 	assert.Equal(t, dbUser.ID, cacheUser.ID)
-
-	//fmt.Printf("Cache user: %v\n", spew.Sdump(cacheUser))
 
 	cacheDevice, err := srv.cache.GetDevice(res.ID, "device-1")
 	assert.Nil(t, err)
@@ -77,8 +69,6 @@ func TestServer_RegisterUser(t *testing.T) {
 	assert.Equal(t, "ru", cacheDevice.Locale)
 	assert.Equal(t, "es", cacheDevice.Lang)
 	assert.Equal(t, true, cacheDevice.IsConfirmed)
-
-	//fmt.Printf("Cache device: %v\n", spew.Sdump(cacheDevice))
 }
 
 func TestServer_AddDevice(t *testing.T) {
@@ -150,8 +140,6 @@ func TestServer_HandleLogin(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(devices))
 
-	//fmt.Printf("Before: \n%v\n", spew.Sdump(devices))
-
 	assert.Nil(t, devices[0].GetLoginTime())
 	assert.Equal(t, "", devices[0].GetUserAgent())
 	assert.Equal(t, "", devices[0].GetLoginIP())
@@ -178,6 +166,4 @@ func TestServer_HandleLogin(t *testing.T) {
 	assert.Equal(t, "en", devices[0].Locale)
 	assert.Equal(t, "es", devices[0].Lang)
 	assert.Equal(t, "Updated", devices[0].Name)
-
-	//fmt.Printf("After: \n%v\n", spew.Sdump(devices))
 }

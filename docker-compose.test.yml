@@ -37,6 +37,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - rabbit
     links:
       - postgres
       - redis
