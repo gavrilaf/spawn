@@ -1,12 +1,16 @@
 package main
 
 import (
+	"os"
+	"time"
+
 	"github.com/gavrilaf/amqp/rpc"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/gavrilaf/spawn/pkg/backend"
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/senv"
-	log "github.com/sirupsen/logrus"
-	"os"
+	"github.com/gavrilaf/spawn/pkg/utils"
 )
 
 func newBackend(env *senv.Environment) *backend.Server {
@@ -38,11 +42,19 @@ func main() {
 
 	log.Infof("Backend environment: %s", env.String())
 
-	srv, err := rpc.CreateServer(env.GetBackOpts().URL, env.GetBackOpts().QueueName)
+	p, err := utils.Repeat(func() (interface{}, error) {
+		srv, err := rpc.CreateServer(env.GetBackOpts().URL, env.GetBackOpts().QueueName)
+		if err != nil {
+			log.Errorf("%v", err)
+		}
+		return srv, err
+	}, 3, 3*time.Second)
+
 	if err != nil {
 		log.Fatalf("Failed to create RPC server: %v", err)
 	}
 
+	srv := p.(rpc.Server)
 	defer srv.Close()
 
 	backend := newBackend(env)
