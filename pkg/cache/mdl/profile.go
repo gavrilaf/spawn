@@ -8,11 +8,11 @@ import (
 )
 
 type PersonalInfo struct {
-	Country   string `structs:"country"`
-	FirstName string `structs:"first_name"`
-	LastName  string `structs:"last_name"`
-	BirthDate int64  `structs:"birth_date"`
-	db.PhoneNumber
+	Country        string `structs:"country"`
+	FirstName      string `structs:"first_name"`
+	LastName       string `structs:"last_name"`
+	BirthDate      int64  `structs:"birth_date"`
+	db.PhoneNumber `structs:"phone_number"`
 }
 
 type UserProfile struct {
