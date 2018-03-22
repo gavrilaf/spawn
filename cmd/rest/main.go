@@ -71,8 +71,8 @@ func main() {
 	{
 		profile.GET("/", profileAPI.GetUserProfile)
 
-		profile.PUT("/country", profileAPI.UpdateUserCountry)
-		profile.PUT("/personal", profileAPI.UpdateUserPersonalInfo)
+		profile.POST("/country", profileAPI.UpdateUserCountry)
+		profile.POST("/personal", profileAPI.UpdateUserPersonalInfo)
 	}
 
 	accounts := router.Group("accounts")

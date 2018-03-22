@@ -82,9 +82,9 @@ func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 		return
 	}
 
-	log.Infof("ProfileApi.UpdateUserPersonalInfo, for user %s", session.UserID)
+	log.Infof("ProfileApi.UpdateUserPersonalInfo, for user %s, %v", session.UserID, req)
 
-	t := utils.ParseBirtdayDate(req.BirthDate)
+	t := utils.ParseBirthdayDate(req.BirthDate)
 	_, err = p.WriteModel.UpdateUserPersonalInfo(&pb.UserPersonalInfo{
 		UserID:    session.UserID,
 		FirstName: req.FirstName,

@@ -1,10 +1,11 @@
 package mdl
 
 import (
+	"github.com/fatih/structs"
 	"time"
 
-	"github.com/fatih/structs"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/utils"
 )
 
 type PersonalInfo struct {
@@ -22,7 +23,7 @@ type UserProfile struct {
 }
 
 func (p UserProfile) GetBirthDate() time.Time {
-	return time.Unix(p.BirthDate, 0).UTC()
+	return utils.Unix2Time(p.BirthDate)
 }
 
 func CreateProfileFromDbModel(p db.UserProfile) UserProfile {
@@ -55,12 +56,10 @@ func (p UserProfile) ToMap() map[string]interface{} {
 	if ok {
 		switch m := personal.(type) {
 		case map[string]interface{}:
-			m["birth_date"] = p.GetBirthDate().Format(time.RFC3339)
+			m["birth_date"] = utils.FormatServerDate(p.GetBirthDate())
 			pm["personal_info"] = m
 		}
 	}
 
 	return pm
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////

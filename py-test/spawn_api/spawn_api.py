@@ -128,6 +128,35 @@ class SpawnApi:
         else:
             return False, json
 
-    
+    def get_profile(self):
+        resp = requests.get(self.endpoint + "/profile", headers={"Authorization": "Bearer " + self.auth_token})
+        json = resp.json()
+        if resp.status_code != 200:
+            return True, json["error"]
+        else:
+            return False, json
+
+    def update_personal_info(self, first_name, last_name, birth_date):
+        request = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "birth_date": birth_date
+        }
+        resp = requests.post(self.endpoint + '/profile/personal', json=request, headers={"Authorization": "Bearer " + self.auth_token})
+        if resp.status_code != 200:
+            return resp.json()["error"]
+        else:
+            return None
+
+    def update_country(self, country):
+        request = {
+            "country": country
+        }
+        resp = requests.post(self.endpoint + '/profile/country', json=request, headers={"Authorization": "Bearer " + self.auth_token})
+        if resp.status_code != 200:
+            return resp.json()["error"]
+        else:
+            return None
+
 # Client for test purposes
 TEST_CLEINT = Client("client-test-01", "~_7|cjU^L?l5JI/jqN)S7|-I;=wz6<")
