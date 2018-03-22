@@ -15,9 +15,14 @@ rebuild:
 run:
 	docker-compose -f docker-compose.yml -f docker-compose.test.yml up
 
-run-back:
+run-env:
 	docker-compose up -d
+
+run-back:
 	go run ./cmd/backend/main.go
+
+run-rest:
+	go run ./cmd/rest/main.go
 
 stop:
 	docker-compose down --remove-orphans
