@@ -31,6 +31,10 @@ make ptest
 # General architecture
 
 Redis for cache (read model), Postgres for storage (write model), RabbitMQ for communicating beetwen workers.
+
+* REST API - cmd/rest/main.go
+* Worker - cmd/backend/main.go
+
 ![](https://github.com/gavrilaf/spawn/blob/master/spawn-arch.png)
 
 # Future plans
@@ -40,5 +44,7 @@ Redis for cache (read model), Postgres for storage (write model), RabbitMQ for c
 * Deploy Spawn to the Heroku
 * Test coverage ~80%
 * Notificating worker (emails/pushes for mobile)
-* Account manager worker (based on Event Soursing pattern)
+* Account manager worker (based on Event Sourcing pattern)
 * Trade engine worker
+
+Perhaps, for some new workers I would use other programming language.
