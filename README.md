@@ -31,3 +31,4 @@ make ptest
 # General architecture
 
 Redis for cache (read model), Postgres for storage (write model), RabbitMQ for communicating beetwen workers.
+![](https://github.com/gavrilaf/spawn/blob/master/spawn-arch.png)
