@@ -32,3 +32,13 @@ make ptest
 
 Redis for cache (read model), Postgres for storage (write model), RabbitMQ for communicating beetwen workers.
 ![](https://github.com/gavrilaf/spawn/blob/master/spawn-arch.png)
+
+# Future plans
+
+* Finish with security/authentificating 
+* Write perfomance and stress tests
+* Deploy Spawn to the Heroku
+* Test coverage ~80%
+* Notificating worker (emails/pushes for mobile)
+* Account manager worker (based on Event Soursing pattern)
+* Trade engine worker
