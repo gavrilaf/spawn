@@ -1,34 +1,22 @@
 import unittest
-import spawn_api as spawn
-import uuid
+from .helper import SpawnConn
 
 
 class TestProfile(unittest.TestCase):
 
     def setUp(self):
-        self.client = spawn.TEST_CLEINT
-        self.endpoint = 'http://localhost:8080'
-        self.api = spawn.SpawnApi(self.endpoint, self.client)
-
-    @staticmethod
-    def get_name():
-        return str(uuid.uuid4()) + "@spawn.com"
+        self.cn = SpawnConn()
 
     # Register new user; query user profile
-    # Should user profile is empty
+    # Should: user profile is empty
     def testProfileForNewUser(self):
-        username = self.get_name()
-        device = spawn.Device("test-device-1", "test-device-1-name")
-        password = "password"
-
-        err = self.api.sign_up(username, password, device, "ru", "es")
+        err = self.cn.sign_up()
         self.assertIsNone(err)
 
-        is_error, profile = self.api.get_profile()
+        is_error, profile = self.cn.api.get_profile()
         self.assertFalse(is_error)
-        #print(profile)
 
-        self.assertEqual(username, profile["auth_info"]["username"])
+        self.assertEqual(self.cn.username, profile["auth_info"]["username"])
 
         # Empty personal info for new user
         personal_info = profile["personal_info"]
@@ -44,20 +32,16 @@ class TestProfile(unittest.TestCase):
 
     # Register new user; update profile & country
     def testUpdateUserPersonalInfo(self):
-        username = self.get_name()
-        device = spawn.Device("test-device-1", "test-device-1-name")
-        password = "password"
-
-        err = self.api.sign_up(username, password, device, "ru", "es")
+        err = self.cn.sign_up()
         self.assertIsNone(err)
 
-        error = self.api.update_personal_info("vasya", "pupkin", "1978-12-21")
+        error = self.cn.api.update_personal_info("vasya", "pupkin", "1978-12-21")
         self.assertIsNone(error)
 
-        error = self.api.update_country("US")
+        error = self.cn.api.update_country("US")
         self.assertIsNone(error)
 
-        is_error, profile = self.api.get_profile()
+        is_error, profile = self.cn.api.get_profile()
         self.assertFalse(is_error)
 
         personal_info = profile["personal_info"]
@@ -67,7 +51,6 @@ class TestProfile(unittest.TestCase):
         self.assertEqual('vasya', personal_info["first_name"])
         self.assertEqual('pupkin', personal_info["last_name"])
         self.assertEqual('1978-12-21', personal_info["birth_date"])
-
 
 
 if __name__ == '__main__':
