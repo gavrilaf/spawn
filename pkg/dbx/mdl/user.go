@@ -76,7 +76,7 @@ type Permissions struct {
 }
 
 func (p Permissions) String() string {
-	return fmt.Sprintf("Permissions{ Locked: %t, EmailConfirmed: %t, 2FARequired: %t, Scope: %d}",
+	return fmt.Sprintf("Permissions{Locked: %t, EmailConfirmed: %t, 2FARequired: %t, Scope: %d}",
 		p.IsLocked, p.IsEmailConfirmed, p.Is2FARequired, p.Scope)
 }
 

@@ -73,7 +73,7 @@ func TestTime_Birthday(t *testing.T) {
 	}
 
 	for i, ss := range s {
-		tt := ParseBirtdayDate(ss)
+		tt := ParseBirthdayDate(ss)
 		assert.Equal(t, tm[i], tt)
 	}
 }
