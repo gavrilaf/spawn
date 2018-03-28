@@ -18,6 +18,7 @@ type Middleware struct {
 	timeout    time.Duration
 	maxRefresh time.Duration
 	bridge     Bridge
+	checker    *accessChecker
 }
 
 func CreateMiddleware(bridge *api.Bridge) *Middleware {
@@ -25,10 +26,13 @@ func CreateMiddleware(bridge *api.Bridge) *Middleware {
 		return nil
 	}
 
+	checker := createAccessChecker()
+
 	return &Middleware{
 		timeout:    time.Hour,
 		maxRefresh: time.Hour * 24,
 		bridge:     Bridge{bridge},
+		checker:    checker,
 	}
 }
 
@@ -53,8 +57,8 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 			return
 		}
 
-		if !mw.CheckAccess(session.UserID, session.ClientID, c) {
-			mw.handleError(c, http.StatusForbidden, api.ErrAccessForbiden)
+		if err = mw.checker.checkAccess(session, c); err != nil {
+			mw.handleError(c, http.StatusForbidden, err)
 			return
 		}
 

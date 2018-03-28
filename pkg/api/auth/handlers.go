@@ -10,7 +10,6 @@ import (
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/errx"
 
-	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/dgrijalva/jwt-go.v3"
@@ -217,13 +216,6 @@ func (mw *Middleware) HandleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 			IsLocked:          session.IsLocked,
 			Scopes:            session.Scope,
 		}}, nil
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// TODO: user error instead of bool
-func (mw *Middleware) CheckAccess(userId string, clientId string, c *gin.Context) bool {
-	return true
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

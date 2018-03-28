@@ -2,6 +2,7 @@ package mdl
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
@@ -72,6 +73,11 @@ type Permissions struct {
 	IsEmailConfirmed bool  `db:"is_email_confirmed" structs:"is_email_confirmed"`
 	Is2FARequired    bool  `db:"is_2fa_required" structs:"is_2fa_required"`
 	Scope            int64 `db:"scope" structs:"scope"`
+}
+
+func (p Permissions) String() string {
+	return fmt.Sprintf("Permissions{ Locked: %t, EmailConfirmed: %t, 2FARequired: %t, Scope: %d}",
+		p.IsLocked, p.IsEmailConfirmed, p.Is2FARequired, p.Scope)
 }
 
 type AuthInfo struct {

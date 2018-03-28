@@ -21,7 +21,10 @@ var ErrUserAlreadyExist = errx.New(ErrScope, "user-already-exist")
 var ErrInvalidRequest = errx.New(ErrScope, "invalid-request")
 var ErrTokenExpired = errx.New(ErrScope, "token-expired")
 var ErrTokenInvalid = errx.New(ErrScope, "token-invalid")
+
 var ErrAccessForbiden = errx.New(ErrScope, "access-forbiden")
+var ErrUserLocked = errx.New(ErrScope, "user-locked")
+var ErrDeviceNotConfirmed = errx.New(ErrScope, "device-not-confirmed")
 
 var ErrAlreadyConfirmed = errx.New(ErrScope, "already-confirmed")
 

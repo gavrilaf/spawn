@@ -2,17 +2,16 @@ package auth
 
 import (
 	"testing"
-
-	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/senv"
-	//"github.com/stretchr/testify/assert"
 	"time"
 
-	"github.com/gavrilaf/spawn/pkg/cryptx"
-	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/cryptx"
+	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/senv"
 )
 
 const (

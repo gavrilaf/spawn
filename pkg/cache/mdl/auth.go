@@ -1,6 +1,7 @@
 package mdl
 
 import (
+	"fmt"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 )
 
@@ -16,6 +17,11 @@ type Session struct {
 	Locale            string
 	Lang              string
 	db.Permissions
+}
+
+func (p Session) String() string {
+	return fmt.Sprint("Session{ID: %s, Nonce: %d, Client: %s, User: %s, Device: %s, DeviceConfirmed: %t, Permissions: %s, Loc: %s, Lang: %s}",
+		p.ID, p.Nonce, p.ClientID, p.UserID, p.DeviceID, p.IsDeviceConfirmed, p.Permissions.String(), p.Locale, p.Lang)
 }
 
 type AuthUser struct {
