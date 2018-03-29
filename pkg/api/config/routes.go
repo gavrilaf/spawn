@@ -1,66 +1,36 @@
 package config
 
-/*auth := router.Group("/auth")
-{
-	auth.POST("/register", authMiddleware.RegisterHandler)
-	auth.POST("/login", authMiddleware.LoginHandler)
-	auth.POST("/refresh_token", authMiddleware.RefreshHandler)
+type Endpoint struct {
+	Path   string
+	Method string
 }
-
-user := router.Group("user")
-user.Use(authMiddleware.MiddlewareFunc())
-{
-	user.GET("/state", userAPI.GetState)
-	user.POST("/logout", userAPI.Logout)
-	user.GET("/devices", userAPI.GetDevices)
-	user.DELETE("/devices/:id", userAPI.DeleteDevice)
-}
-
-profile := router.Group("profile")
-profile.Use(authMiddleware.MiddlewareFunc())
-{
-	profile.GET("/", profileAPI.GetUserProfile)
-
-	profile.POST("/country", profileAPI.UpdateUserCountry)
-	profile.POST("/personal", profileAPI.UpdateUserPersonalInfo)
-}
-
-accounts := router.Group("accounts")
-accounts.Use(authMiddleware.MiddlewareFunc())
-{
-	accounts.GET("/", accountsApi.GetAccounts)
-	accounts.GET("/state/:id", accountsApi.GetAccountState)
-
-	accounts.POST("/register", accountsApi.RegisterAccount)
-
-	accounts.POST("/suspend/:id", accountsApi.SuspendAccount)
-	accounts.POST("/resume/:id", accountsApi.ResumeAccount)
-}
-*/
 
 const (
-	gAuth         = "auth"
-	eAuthRegister = "/register"
-	eAuthLogin    = "/login"
-	eAuthRefresh  = "/refresh_token"
+	gAuth     = "auth"
+	gUser     = "user"
+	gProfile  = "profile"
+	gAccounts = "accounts"
+)
 
-	gUser              = "user"
-	eUserState         = "/state"
-	eUserLogout        = "logout"
-	eUserDevices       = "/devices"
-	eUserDevicesDelete = "/devices/:id"
+var (
+	eAuthRegister = Endpoint{"/register", "PUT"}
+	eAuthLogin    = Endpoint{"/login", "POST"}
+	eAuthRefresh  = Endpoint{"/refresh_token", "POST"}
 
-	gProfile            = "profile"
-	eProfileGet         = "/"
-	eProfileUpdCountry  = "/country"
-	eProfileUpdPersonal = "/personal"
+	eUserState         = Endpoint{"/state", "GET"}
+	eUserLogout        = Endpoint{"logout", "POST"}
+	eUserDevices       = Endpoint{"/devices", "GET"}
+	eUserDevicesDelete = Endpoint{"/devices/:id", "DELETE"}
 
-	gAccounts         = "accounts"
-	eAccountsGet      = "/"
-	eAccountsState    = "/state/:id"
-	eAccountsRegister = "/register"
-	eAccountsSuspend  = "/suspend/:id"
-	eAccountsResume   = "/resume/:id"
+	eProfileGet         = Endpoint{"/", "GET"}
+	eProfileUpdCountry  = Endpoint{"/country", "POST"}
+	eProfileUpdPersonal = Endpoint{"/personal", "POST"}
+
+	eAccountsGet      = Endpoint{"/", "GET"}
+	eAccountsState    = Endpoint{"/state/:id", "GET"}
+	eAccountsRegister = Endpoint{"/register", "PUT"}
+	eAccountsSuspend  = Endpoint{"/suspend/:id", "POST"}
+	eAccountsResume   = Endpoint{"/resume/:id", "POST"}
 )
 
 /*type EndpointDesc struct {

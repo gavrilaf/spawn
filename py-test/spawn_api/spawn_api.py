@@ -51,7 +51,7 @@ class SpawnApi:
             "signature": self.signature(username, device.device_id)
         }
 
-        resp = requests.post(self.endpoint + '/auth/register', json=request)
+        resp = requests.put(self.endpoint + '/auth/register', json=request)
         return self.handle_login(resp)
 
     def sign_in(self, username, password, device, locale, lang):

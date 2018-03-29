@@ -19,35 +19,39 @@ func ConfigureRouter(router gin.IRouter, bridge *api.Bridge) {
 
 	auth := router.Group(gAuth)
 	{
-		auth.POST(eAuthRegister, authMiddleware.RegisterHandler)
-		auth.POST(eAuthLogin, authMiddleware.LoginHandler)
-		auth.POST(eAuthRefresh, authMiddleware.RefreshHandler)
+		addHandler(auth, eAuthRegister, authMiddleware.RegisterHandler)
+		addHandler(auth, eAuthLogin, authMiddleware.LoginHandler)
+		addHandler(auth, eAuthRefresh, authMiddleware.RefreshHandler)
 	}
 
 	user := router.Group(gUser)
 	user.Use(authMiddleware.MiddlewareFunc())
 	{
-		user.GET(eUserState, userAPI.GetState)
-		user.POST(eUserLogout, userAPI.Logout)
-		user.GET(eUserDevices, userAPI.GetDevices)
-		user.DELETE(eUserDevicesDelete, userAPI.DeleteDevice)
+		addHandler(user, eUserState, userAPI.GetState)
+		addHandler(user, eUserLogout, userAPI.Logout)
+		addHandler(user, eUserDevices, userAPI.GetDevices)
+		addHandler(user, eUserDevicesDelete, userAPI.DeleteDevice)
 	}
 
 	profile := router.Group(gProfile)
 	profile.Use(authMiddleware.MiddlewareFunc())
 	{
-		profile.GET(eProfileGet, profileAPI.GetUserProfile)
-		profile.POST(eProfileUpdCountry, profileAPI.UpdateUserCountry)
-		profile.POST(eProfileUpdPersonal, profileAPI.UpdateUserPersonalInfo)
+		addHandler(profile, eProfileGet, profileAPI.GetUserProfile)
+		addHandler(profile, eProfileUpdCountry, profileAPI.UpdateUserCountry)
+		addHandler(profile, eProfileUpdPersonal, profileAPI.UpdateUserPersonalInfo)
 	}
 
 	accounts := router.Group(gAccounts)
 	accounts.Use(authMiddleware.MiddlewareFunc())
 	{
-		accounts.GET(eAccountsGet, accountsApi.GetAccounts)
-		accounts.GET(eAccountsState, accountsApi.GetAccountState)
-		accounts.POST(eAccountsRegister, accountsApi.RegisterAccount)
-		accounts.POST(eAccountsSuspend, accountsApi.SuspendAccount)
-		accounts.POST(eAccountsResume, accountsApi.ResumeAccount)
+		addHandler(accounts, eAccountsGet, accountsApi.GetAccounts)
+		addHandler(accounts, eAccountsState, accountsApi.GetAccountState)
+		addHandler(accounts, eAccountsRegister, accountsApi.RegisterAccount)
+		addHandler(accounts, eAccountsSuspend, accountsApi.SuspendAccount)
+		addHandler(accounts, eAccountsResume, accountsApi.ResumeAccount)
 	}
+}
+
+func addHandler(g *gin.RouterGroup, e Endpoint, f gin.HandlerFunc) {
+	g.Handle(e.Method, e.Path, f)
 }

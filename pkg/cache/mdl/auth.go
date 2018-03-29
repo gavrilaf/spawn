@@ -20,7 +20,7 @@ type Session struct {
 }
 
 func (p Session) String() string {
-	return fmt.Sprint("Session{ID: %s, Nonce: %d, Client: %s, User: %s, Device: %s, DeviceConfirmed: %t, Permissions: %s, Loc: %s, Lang: %s}",
+	return fmt.Sprintf("Session{ID: %s, Nonce: %d, Client: %s, User: %s, Device: %s, DeviceConfirmed: %t, Permissions: %s, Loc: %s, Lang: %s}",
 		p.ID, p.Nonce, p.ClientID, p.UserID, p.DeviceID, p.IsDeviceConfirmed, p.Permissions.String(), p.Locale, p.Lang)
 }
 
