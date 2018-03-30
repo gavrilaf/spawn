@@ -1,9 +1,6 @@
 package config
 
-type Endpoint struct {
-	Path   string
-	Method string
-}
+import "github.com/gavrilaf/spawn/pkg/api/types"
 
 const (
 	gAuth     = "auth"
@@ -13,39 +10,22 @@ const (
 )
 
 var (
-	eAuthRegister = Endpoint{"/register", "PUT"}
-	eAuthLogin    = Endpoint{"/login", "POST"}
-	eAuthRefresh  = Endpoint{"/refresh_token", "POST"}
+	eAuthRegister = types.Endpoint{Path: "/register", Method: "PUT"}
+	eAuthLogin    = types.Endpoint{Path: "/login", Method: "POST"}
+	eAuthRefresh  = types.Endpoint{Path: "/refresh_token", Method: "POST"}
 
-	eUserState         = Endpoint{"/state", "GET"}
-	eUserLogout        = Endpoint{"logout", "POST"}
-	eUserDevices       = Endpoint{"/devices", "GET"}
-	eUserDevicesDelete = Endpoint{"/devices/:id", "DELETE"}
+	eUserState         = types.Endpoint{Path: "/state", Method: "GET"}
+	eUserLogout        = types.Endpoint{Path: "logout", Method: "POST"}
+	eUserDevices       = types.Endpoint{Path: "/devices", Method: "GET"}
+	eUserDevicesDelete = types.Endpoint{Path: "/devices/:id", Method: "DELETE"}
 
-	eProfileGet         = Endpoint{"/", "GET"}
-	eProfileUpdCountry  = Endpoint{"/country", "POST"}
-	eProfileUpdPersonal = Endpoint{"/personal", "POST"}
+	eProfileGet         = types.Endpoint{Path: "/", Method: "GET"}
+	eProfileUpdCountry  = types.Endpoint{Path: "/country", Method: "POST"}
+	eProfileUpdPersonal = types.Endpoint{Path: "/personal", Method: "POST"}
 
-	eAccountsGet      = Endpoint{"/", "GET"}
-	eAccountsState    = Endpoint{"/state/:id", "GET"}
-	eAccountsRegister = Endpoint{"/register", "PUT"}
-	eAccountsSuspend  = Endpoint{"/suspend/:id", "POST"}
-	eAccountsResume   = Endpoint{"/resume/:id", "POST"}
+	eAccountsGet      = types.Endpoint{Path: "/", Method: "GET"}
+	eAccountsState    = types.Endpoint{Path: "/state/:id", Method: "GET"}
+	eAccountsRegister = types.Endpoint{Path: "/register", Method: "PUT"}
+	eAccountsSuspend  = types.Endpoint{Path: "/suspend/:id", Method: "POST"}
+	eAccountsResume   = types.Endpoint{Path: "/resume/:id", Method: "POST"}
 )
-
-/*type EndpointDesc struct {
-	Path       string
-	Method     string
-	NeedDevice bool
-	NeedEmail  bool
-	MinScope   int
-}
-
-var apiConfig = map[string]map[int]EndpointDesc{
-	"auth": map[int]EndpointDesc{
-		eAuthRegister: {"register", "POST", false, false, 0},
-	},
-	"user": map[int]EndpointDesc{
-		eUserState: {"/state", "GET", true, false, 0},
-	},
-}*/

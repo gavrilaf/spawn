@@ -4,7 +4,7 @@ import (
 	"net/http"
 	//"time"
 
-	"github.com/gavrilaf/spawn/pkg/api"
+	types "github.com/gavrilaf/spawn/pkg/api/types"
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/utils"
 
@@ -16,15 +16,15 @@ import (
 func (p ApiImpl) GetUserProfile(c *gin.Context) {
 	session, err := p.GetSession(c)
 	if err != nil {
-		log.Errorf("ProfileApi.GetUserProfile, could not find session, %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusUnauthorized, api.ErrSessionNotFound)
+		log.Errorf("Profiletypes.GetUserProfile, could not find session, %v", err)
+		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
 		return
 	}
 
 	profile, err := p.ReadModel.GetUserProfile(session.UserID)
 	if err != nil {
-		log.Errorf("ProfileApi.GetUserProfile, read profile %v error, %v", session.UserID, err)
-		p.HandleError(c, api.ErrScope, http.StatusInternalServerError, err)
+		log.Errorf("Profiletypes.GetUserProfile, read profile %v error, %v", session.UserID, err)
+		p.HandleError(c, types.ErrScope, http.StatusInternalServerError, err)
 	}
 
 	c.JSON(http.StatusOK, profile.ToMap())
@@ -36,19 +36,19 @@ func (p ApiImpl) UpdateUserCountry(c *gin.Context) {
 
 	err := c.Bind(&req)
 	if err != nil {
-		log.Errorf("ProfileApi.UpdateUserCountry, could not bind, %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusBadRequest, api.ErrInvalidRequest)
+		log.Errorf("Profiletypes.UpdateUserCountry, could not bind, %v", err)
+		p.HandleError(c, types.ErrScope, http.StatusBadRequest, types.ErrInvalidRequest)
 		return
 	}
 
 	session, err := p.GetSession(c)
 	if err != nil {
-		log.Errorf("ProfileApi.UpdateUserCountry, could not find session, %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusUnauthorized, api.ErrSessionNotFound)
+		log.Errorf("Profiletypes.UpdateUserCountry, could not find session, %v", err)
+		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
 		return
 	}
 
-	log.Infof("ProfileApi.UpdateUserCountry, for user %v country %v", session.UserID, req.Country)
+	log.Infof("Profiletypes.UpdateUserCountry, for user %v country %v", session.UserID, req.Country)
 
 	_, err = p.WriteModel.UpdateUserCountry(&pb.UserCountry{
 		UserID:  session.UserID,
@@ -56,12 +56,12 @@ func (p ApiImpl) UpdateUserCountry(c *gin.Context) {
 	})
 
 	if err != nil {
-		log.Errorf("ProfileApi.UpdateUserCountry, backend error: %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusInternalServerError, err)
+		log.Errorf("Profiletypes.UpdateUserCountry, backend error: %v", err)
+		p.HandleError(c, types.ErrScope, http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(200, api.EmptySuccessResponse)
+	c.JSON(200, types.EmptySuccessResponse)
 }
 
 // UpdateUserPersonalInfo - update current user personal info
@@ -70,19 +70,19 @@ func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 
 	err := c.Bind(&req)
 	if err != nil {
-		log.Errorf("ProfileApi.UpdateUserPersonalInfo, could not bind: %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusUnauthorized, api.ErrSessionNotFound)
+		log.Errorf("Profiletypes.UpdateUserPersonalInfo, could not bind: %v", err)
+		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
 		return
 	}
 
 	session, err := p.GetSession(c)
 	if err != nil {
-		log.Errorf("ProfileApi.UpdateUserPersonalInfo, could not find session: %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusUnauthorized, api.ErrSessionNotFound)
+		log.Errorf("Profiletypes.UpdateUserPersonalInfo, could not find session: %v", err)
+		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
 		return
 	}
 
-	log.Infof("ProfileApi.UpdateUserPersonalInfo, for user %s, %v", session.UserID, req)
+	log.Infof("Profiletypes.UpdateUserPersonalInfo, for user %s, %v", session.UserID, req)
 
 	t := utils.ParseBirthdayDate(req.BirthDate)
 	_, err = p.WriteModel.UpdateUserPersonalInfo(&pb.UserPersonalInfo{
@@ -93,10 +93,10 @@ func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 	})
 
 	if err != nil {
-		log.Errorf("ProfileApi.UpdateUserPersonalInfo, backend error: %v", err)
-		p.HandleError(c, api.ErrScope, http.StatusInternalServerError, err)
+		log.Errorf("Profiletypes.UpdateUserPersonalInfo, backend error: %v", err)
+		p.HandleError(c, types.ErrScope, http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(200, api.EmptySuccessResponse)
+	c.JSON(200, types.EmptySuccessResponse)
 }

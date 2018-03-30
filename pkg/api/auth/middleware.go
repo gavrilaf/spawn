@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/api/types"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/errx"
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ type Middleware struct {
 	timeout    time.Duration
 	maxRefresh time.Duration
 	bridge     Bridge
-	checker    *accessChecker
+	checker    types.AccessChecker
 }
 
 func CreateMiddleware(bridge *api.Bridge) *Middleware {
@@ -26,13 +27,11 @@ func CreateMiddleware(bridge *api.Bridge) *Middleware {
 		return nil
 	}
 
-	checker := createAccessChecker()
-
 	return &Middleware{
 		timeout:    time.Hour,
 		maxRefresh: time.Hour * 24,
 		bridge:     Bridge{bridge},
-		checker:    checker,
+		checker:    nil,
 	}
 }
 
@@ -57,10 +56,11 @@ func (mw *Middleware) MiddlewareFunc() gin.HandlerFunc {
 			return
 		}
 
-		if err = mw.checker.checkAccess(session, c); err != nil {
+		// TODO: Add later
+		/*if err = mw.checker.CheckAccess(session, c); err != nil {
 			mw.handleError(c, http.StatusForbidden, err)
 			return
-		}
+		}*/
 
 		c.Set("session_id", session.ID)
 		c.Set("client_id", session.ClientID)
@@ -133,7 +133,7 @@ func (mw *Middleware) RegisterHandler(c *gin.Context) {
 func (mw *Middleware) handleError(c *gin.Context, httpCode int, err error) {
 	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 	log.Errorf("auth error, code=%d, err=%v", httpCode, err)
-	c.JSON(httpCode, gin.H{"error": errx.Error2Map(err, api.ErrScope)})
+	c.JSON(httpCode, gin.H{"error": errx.Error2Map(err, types.ErrScope)})
 	c.Abort()
 }
 
@@ -155,12 +155,12 @@ func (mw *Middleware) jwtFromHeader(c *gin.Context, key string) (string, error) 
 	authHeader := c.Request.Header.Get(key)
 
 	if authHeader == "" {
-		return "", api.ErrInvalidRequest
+		return "", types.ErrInvalidRequest
 	}
 
 	parts := strings.SplitN(authHeader, " ", 2)
 	if !(len(parts) == 2 && parts[0] == TokenHeadName) {
-		return "", api.ErrInvalidRequest
+		return "", types.ErrInvalidRequest
 	}
 
 	return parts[1], nil

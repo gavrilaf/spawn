@@ -5,6 +5,7 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api/account"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
 	"github.com/gavrilaf/spawn/pkg/api/profile"
+	t "github.com/gavrilaf/spawn/pkg/api/types"
 	"github.com/gavrilaf/spawn/pkg/api/user"
 
 	"github.com/gin-gonic/gin"
@@ -52,6 +53,6 @@ func ConfigureRouter(router gin.IRouter, bridge *api.Bridge) {
 	}
 }
 
-func addHandler(g *gin.RouterGroup, e Endpoint, f gin.HandlerFunc) {
+func addHandler(g *gin.RouterGroup, e t.Endpoint, f gin.HandlerFunc) {
 	g.Handle(e.Method, e.Path, f)
 }

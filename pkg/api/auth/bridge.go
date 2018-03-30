@@ -2,9 +2,11 @@ package auth
 
 import (
 	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/api/types"
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -79,7 +81,7 @@ func (sb Bridge) GetSession(id string) (*mdl.Session, error) {
 	session, err := sb.ReadModel.GetSession(id)
 	if err != nil {
 		log.Errorf("Can't find session with id %v, error: %v", id, err)
-		return nil, api.ErrSessionNotFound
+		return nil, types.ErrSessionNotFound
 	}
 
 	return session, nil
