@@ -9,16 +9,6 @@ import (
 	mdl "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 )
 
-const (
-	Realm = "Spawn"
-
-	TokenHeadName    = "Bearer"
-	SigningAlgorithm = "HS256"
-	TokenLookup      = "Authorization"
-
-	AuthTypeSimple = "simple"
-)
-
 type LoginDTO struct {
 	ClientID   string `json:"client_id" form:"client_id" binding:"required"`
 	DeviceID   string `json:"device_id" form:"device_id" binding:"required"`
@@ -105,7 +95,8 @@ func (p *LoginDTO) CheckDevice(devices []string) bool {
 }
 
 func (p *LoginDTO) String() string {
-	return fmt.Sprintf("LoginDTO(%v, %v, %v, %v, %v)", p.ClientID, p.DeviceID, p.AuthType, p.Username, p.Signature)
+	return fmt.Sprintf("LoginDTO(%s, %s, %s, %s, %s, %s, %s, %s)",
+		p.ClientID, p.DeviceID, p.DeviceID, p.DeviceName, p.AuthType, p.Username, p.Locale, p.Lang)
 }
 
 func (p *LoginDTO) CreateDevice() mdl.DeviceInfo {
@@ -140,7 +131,8 @@ func (p *RegisterDTO) CheckSignature(key []byte) error {
 }
 
 func (p *RegisterDTO) String() string {
-	return fmt.Sprintf("RegisterDTO(%v, %v, %v, %v)", p.ClientID, p.DeviceID, p.Username, p.Signature)
+	return fmt.Sprintf("RegisterDTO(%s, %s, %s, %s, %s, %s)",
+		p.ClientID, p.DeviceID, p.DeviceName, p.Username, p.Locale, p.Lang)
 }
 
 func (p *RegisterDTO) CreateDevice() mdl.DeviceInfo {
@@ -158,4 +150,10 @@ func (p *AuthTokenDTO) ToMap() map[string]interface{} {
 	pm := structs.Map(*p)
 	pm["expire"] = p.Expire.Format(time.RFC3339) // Fixed time format
 	return pm
+}
+
+////////////////////////////////////////////////////////////////////////
+
+func (p *LoginContext) String() string {
+	return fmt.Sprintf("LoginContext(%s, %s, %s, %s)", p.UserAgent, p.IP, p.Region, p.DeviceName)
 }

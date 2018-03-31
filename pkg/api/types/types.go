@@ -5,6 +5,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	Realm = "Spawn"
+
+	TokenHeadName    = "Bearer"
+	SigningAlgorithm = "HS256"
+	TokenLookup      = "Authorization"
+
+	AuthTypeSimple = "simple"
+)
+
 type Endpoint struct {
 	Path   string
 	Method string

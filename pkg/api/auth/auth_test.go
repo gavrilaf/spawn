@@ -21,23 +21,23 @@ const (
 	tPsw      = "password"
 )
 
-func getMiddleware(t *testing.T) *Middleware {
+func getApi(t *testing.T) ApiImpl {
 	bridge := api.CreateBridge(senv.GetEnvironment())
 	require.NotNil(t, bridge)
-	return CreateMiddleware(bridge)
+	return CreateApi(bridge)
 }
 
-func getClient(t *testing.T, mw *Middleware) *db.Client {
-	p, err := mw.getClient(tClientID)
+func getClient(t *testing.T, api ApiImpl) *db.Client {
+	p, err := api.getClient(tClientID)
 	require.Nil(t, err)
 	return p
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-func TestAuth_Register(t *testing.T) {
-	mw := getMiddleware(t)
-	client := getClient(t, mw)
+func Test_SignUp(t *testing.T) {
+	api := getApi(t)
+	client := getClient(t, api)
 	username := uuid.NewV4().String()
 	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
 	dto := RegisterDTO{
@@ -47,7 +47,7 @@ func TestAuth_Register(t *testing.T) {
 		Password:  tPsw,
 		Signature: sign}
 
-	token, err := mw.HandleRegister(dto, LoginContext{IP: "127.0.0.1", Region: "SF"})
+	token, err := api.handleSignUp(dto, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	require.Nil(t, err)
 
 	assert.NotEmpty(t, token.AuthToken)
@@ -59,20 +59,18 @@ func TestAuth_Register(t *testing.T) {
 	assert.Equal(t, true, token.Permissions.IsDeviceConfirmed)
 
 	// Already registered
-	_, err = mw.HandleRegister(dto, LoginContext{})
+	_, err = api.handleSignUp(dto, LoginContext{})
 	require.Equal(t, types.ErrUserAlreadyExist, err)
 
 	// Invalid signature
 	dto.Signature += "111"
-	_, err = mw.HandleRegister(dto, LoginContext{})
+	_, err = api.handleSignUp(dto, LoginContext{})
 	require.Equal(t, types.ErrInvalidSignature, err)
 }
 
-func TestAuth_Login(t *testing.T) {
-	mw := getMiddleware(t)
-	require.NotNil(t, mw)
-
-	client := getClient(t, mw)
+func Test_SignIn(t *testing.T) {
+	api := getApi(t)
+	client := getClient(t, api)
 	username := uuid.NewV4().String()
 	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
 	regDto := RegisterDTO{
@@ -82,19 +80,19 @@ func TestAuth_Login(t *testing.T) {
 		Password:  tPsw,
 		Signature: sign}
 
-	_, err := mw.HandleRegister(regDto, LoginContext{IP: "127.0.0.1", Region: "SF"})
+	_, err := api.handleSignUp(regDto, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	require.Nil(t, err)
 
 	sign2 := cryptx.GenerateSignature(client.ID+tDeviveID+"111"+username, client.Secret)
 	logingDto := LoginDTO{
 		ClientID:  client.ID,
 		DeviceID:  tDeviveID + "111",
-		AuthType:  AuthTypeSimple,
+		AuthType:  types.AuthTypeSimple,
 		Username:  username,
 		Password:  tPsw,
 		Signature: sign2}
 
-	token, err := mw.HandleLogin(logingDto, LoginContext{IP: "127.0.0.1", Region: "SF"})
+	token, err := api.handleSignIn(logingDto, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	assert.Nil(t, err)
 	assert.NotNil(t, token)
 
@@ -110,19 +108,17 @@ func TestAuth_Login(t *testing.T) {
 
 	logingDto.Username += "111"
 	logingDto.Signature = cryptx.GenerateSignature(logingDto.ClientID+logingDto.DeviceID+logingDto.Username, client.Secret)
-	_, err = mw.HandleLogin(logingDto, LoginContext{})
+	_, err = api.handleSignIn(logingDto, LoginContext{})
 	assert.Equal(t, types.ErrUserUnknown, err)
 
 	logingDto.Signature += "111"
-	_, err = mw.HandleLogin(logingDto, LoginContext{})
+	_, err = api.handleSignIn(logingDto, LoginContext{})
 	require.Equal(t, types.ErrInvalidSignature, err)
 }
 
-func TestAuth_Refresh(t *testing.T) {
-	mw := getMiddleware(t)
-	require.NotNil(t, mw)
-
-	client := getClient(t, mw)
+func Test_RefreshToken(t *testing.T) {
+	api := getApi(t)
+	client := getClient(t, api)
 	username := uuid.NewV4().String()
 	sign := cryptx.GenerateSignature(client.ID+tDeviveID+username, client.Secret)
 	dto := RegisterDTO{
@@ -132,7 +128,7 @@ func TestAuth_Refresh(t *testing.T) {
 		Password:  tPsw,
 		Signature: sign}
 
-	token, err := mw.HandleRegister(dto, LoginContext{IP: "127.0.0.1", Region: "SF"})
+	token, err := api.handleSignUp(dto, LoginContext{IP: "127.0.0.1", Region: "SF"})
 	require.Nil(t, err)
 
 	refreshDto := RefreshDTO{
@@ -140,7 +136,7 @@ func TestAuth_Refresh(t *testing.T) {
 		RefreshToken: token.RefreshToken,
 	}
 
-	auth, err := mw.HandleRefresh(refreshDto)
+	auth, err := api.handleRefresh(refreshDto)
 	assert.Nil(t, err)
 	require.NotNil(t, auth)
 

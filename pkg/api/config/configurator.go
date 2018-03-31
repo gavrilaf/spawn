@@ -2,27 +2,31 @@ package config
 
 import (
 	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/api/middleware"
+	"github.com/gavrilaf/spawn/pkg/api/types"
+
 	"github.com/gavrilaf/spawn/pkg/api/account"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
 	"github.com/gavrilaf/spawn/pkg/api/profile"
-	t "github.com/gavrilaf/spawn/pkg/api/types"
 	"github.com/gavrilaf/spawn/pkg/api/user"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ConfigureRouter(router gin.IRouter, bridge *api.Bridge) {
-	authMiddleware := auth.CreateMiddleware(bridge)
 
+	authMiddleware := middleware.CreateAuthMiddleware(bridge)
+
+	authAPI := auth.CreateApi(bridge)
 	profileAPI := profile.CreateApi(bridge)
 	userAPI := user.CreateApi(bridge)
 	accountsApi := account.CreateApi(bridge)
 
 	auth := router.Group(gAuth)
 	{
-		addHandler(auth, eAuthRegister, authMiddleware.RegisterHandler)
-		addHandler(auth, eAuthLogin, authMiddleware.LoginHandler)
-		addHandler(auth, eAuthRefresh, authMiddleware.RefreshHandler)
+		addHandler(auth, eAuthRegister, authAPI.SignUp)
+		addHandler(auth, eAuthLogin, authAPI.SignIn)
+		addHandler(auth, eAuthRefresh, authAPI.RefreshToken)
 	}
 
 	user := router.Group(gUser)
@@ -53,6 +57,6 @@ func ConfigureRouter(router gin.IRouter, bridge *api.Bridge) {
 	}
 }
 
-func addHandler(g *gin.RouterGroup, e t.Endpoint, f gin.HandlerFunc) {
+func addHandler(g *gin.RouterGroup, e types.Endpoint, f gin.HandlerFunc) {
 	g.Handle(e.Method, e.Path, f)
 }
