@@ -1,4 +1,4 @@
-package utils
+package ginx
 
 import (
 	"strings"
@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
-	"github.com/gavrilaf/spawn/pkg/api/types"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
 )
 
 type Claims struct {
@@ -41,12 +41,12 @@ func JwtFromHeader(c *gin.Context, key string) (string, error) {
 	authHeader := c.Request.Header.Get(key)
 
 	if authHeader == "" {
-		return "", types.ErrInvalidRequest
+		return "", defs.ErrInvalidRequest
 	}
 
 	parts := strings.SplitN(authHeader, " ", 2)
-	if !(len(parts) == 2 && parts[0] == types.TokenHeadName) {
-		return "", types.ErrInvalidRequest
+	if !(len(parts) == 2 && parts[0] == defs.TokenHeadName) {
+		return "", defs.ErrInvalidRequest
 	}
 
 	return parts[1], nil

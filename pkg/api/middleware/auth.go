@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/api/types"
-	"github.com/gavrilaf/spawn/pkg/api/utils"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
+	"github.com/gavrilaf/spawn/pkg/api/ginx"
 )
 
 type Auth struct {
@@ -20,12 +20,12 @@ func CreateAuth(bridge *api.Bridge) Auth {
 
 func (self Auth) MiddlewareFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := utils.JwtFromHeader(c, types.TokenLookup)
+		tokenStr, err := ginx.JwtFromHeader(c, defs.TokenLookup)
 		if err != nil {
-			utils.HandleAuthError(c, http.StatusBadRequest, err)
+			ginx.HandleAuthError(c, http.StatusBadRequest, err)
 		}
 
-		token, err := utils.ParseToken(tokenStr, func(id string) (interface{}, error) {
+		token, err := ginx.ParseToken(tokenStr, func(id string) (interface{}, error) {
 			cl, err := self.ReadModel.FindClient(id)
 			if err != nil {
 				return nil, err
@@ -34,21 +34,18 @@ func (self Auth) MiddlewareFunc() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			utils.HandleAuthError(c, http.StatusUnauthorized, err)
+			ginx.HandleAuthError(c, http.StatusUnauthorized, err)
 			return
 		}
 
-		claims := utils.ClaimsFromToken(token)
+		claims := ginx.ClaimsFromToken(token)
 		session, err := self.ReadModel.GetSession(claims.SessionID())
 		if err != nil {
-			utils.HandleAuthError(c, http.StatusUnauthorized, types.ErrSessionNotFound)
+			ginx.HandleAuthError(c, http.StatusUnauthorized, defs.ErrSessionNotFound)
 			return
 		}
 
-		c.Set("session_id", session.ID)
-		c.Set("client_id", session.ClientID)
-		c.Set("user_id", session.UserID)
-		c.Set("device_id", session.DeviceID)
+		c.Set(defs.SessionKey, session)
 
 		c.Next()
 	}

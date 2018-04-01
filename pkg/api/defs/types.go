@@ -1,4 +1,4 @@
-package types
+package defs
 
 const (
 	Realm = "Spawn"
@@ -10,6 +10,7 @@ const (
 	AuthTypeSimple = "simple"
 
 	EndpointKey = "EnpointKey"
+	SessionKey  = "Session"
 )
 
 var EmptySuccessResponse = map[string]interface{}{"success": true}

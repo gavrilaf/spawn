@@ -2,29 +2,29 @@ package profile
 
 import (
 	"net/http"
-	//"time"
-
-	types "github.com/gavrilaf/spawn/pkg/api/types"
-	"github.com/gavrilaf/spawn/pkg/backend/pb"
-	"github.com/gavrilaf/spawn/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/gavrilaf/spawn/pkg/api/defs"
+	"github.com/gavrilaf/spawn/pkg/api/ginx"
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
+	"github.com/gavrilaf/spawn/pkg/utils"
 )
 
 // GetUserProfile - return current user profile
 func (p ApiImpl) GetUserProfile(c *gin.Context) {
-	session, err := p.GetSession(c)
+	session, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("Profiletypes.GetUserProfile, could not find session, %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
 	profile, err := p.ReadModel.GetUserProfile(session.UserID)
 	if err != nil {
 		log.Errorf("Profiletypes.GetUserProfile, read profile %v error, %v", session.UserID, err)
-		p.HandleError(c, types.ErrScope, http.StatusInternalServerError, err)
+		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
 	}
 
 	c.JSON(http.StatusOK, profile.ToMap())
@@ -37,18 +37,18 @@ func (p ApiImpl) UpdateUserCountry(c *gin.Context) {
 	err := c.Bind(&req)
 	if err != nil {
 		log.Errorf("Profiletypes.UpdateUserCountry, could not bind, %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusBadRequest, types.ErrInvalidRequest)
+		ginx.HandleError(c, defs.ErrScope, http.StatusBadRequest, defs.ErrInvalidRequest)
 		return
 	}
 
-	session, err := p.GetSession(c)
+	session, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("Profiletypes.UpdateUserCountry, could not find session, %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
-	log.Infof("Profiletypes.UpdateUserCountry, for user %v country %v", session.UserID, req.Country)
+	log.Infof("Profiletypes.UpdateUserCountry, for user %s country %s", session.UserID, req.Country)
 
 	_, err = p.WriteModel.UpdateUserCountry(&pb.UserCountry{
 		UserID:  session.UserID,
@@ -57,11 +57,11 @@ func (p ApiImpl) UpdateUserCountry(c *gin.Context) {
 
 	if err != nil {
 		log.Errorf("Profiletypes.UpdateUserCountry, backend error: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusInternalServerError, err)
+		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(200, types.EmptySuccessResponse)
+	c.JSON(200, defs.EmptySuccessResponse)
 }
 
 // UpdateUserPersonalInfo - update current user personal info
@@ -71,14 +71,14 @@ func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 	err := c.Bind(&req)
 	if err != nil {
 		log.Errorf("Profiletypes.UpdateUserPersonalInfo, could not bind: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, defs.ErrSessionNotFound)
 		return
 	}
 
-	session, err := p.GetSession(c)
+	session, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("Profiletypes.UpdateUserPersonalInfo, could not find session: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, defs.ErrSessionNotFound)
 		return
 	}
 
@@ -94,9 +94,9 @@ func (p ApiImpl) UpdateUserPersonalInfo(c *gin.Context) {
 
 	if err != nil {
 		log.Errorf("Profiletypes.UpdateUserPersonalInfo, backend error: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusInternalServerError, err)
+		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(200, types.EmptySuccessResponse)
+	c.JSON(200, defs.EmptySuccessResponse)
 }

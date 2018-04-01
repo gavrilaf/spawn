@@ -6,8 +6,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/dgrijalva/jwt-go.v3"
 
-	"github.com/gavrilaf/spawn/pkg/api/types"
-	"github.com/gavrilaf/spawn/pkg/api/utils"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
+	"github.com/gavrilaf/spawn/pkg/api/ginx"
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
@@ -36,21 +36,21 @@ func (self ApiImpl) handleSignIn(p LoginDTO, ctx LoginContext) (AuthTokenDTO, er
 	// Check signature
 	if err = p.CheckSignature(client.Secret); err != nil {
 		log.Errorf("auth.handleSignIn, invalid signature for %s", p.Username)
-		return AuthTokenDTO{}, types.ErrInvalidSignature
+		return AuthTokenDTO{}, defs.ErrInvalidSignature
 	}
 
 	// Check user
 	user, err := self.findUser(p.Username)
 	if err != nil {
 		log.Errorf("auth.handleSignIn, find user error: (%v)", err)
-		return AuthTokenDTO{}, types.ErrUserUnknown
+		return AuthTokenDTO{}, defs.ErrUserUnknown
 	}
 
 	log.Infof("Found user: %s, $s", user.ID, user.Username)
 
 	if !p.CheckPassword(user.PasswordHash) {
 		log.Errorf("auth.handleSignIn, invalid password for %s", p.Username)
-		return AuthTokenDTO{}, types.ErrUserUnknown
+		return AuthTokenDTO{}, defs.ErrUserUnknown
 	}
 
 	// Check device
@@ -105,14 +105,14 @@ func (self ApiImpl) handleSignUp(p RegisterDTO, ctx LoginContext) (AuthTokenDTO,
 	// Check signature
 	if p.CheckSignature(client.Secret) != nil {
 		log.Errorf("auth.handleSignUp, invalid signature for %s", p.Username)
-		return AuthTokenDTO{}, types.ErrInvalidSignature
+		return AuthTokenDTO{}, defs.ErrInvalidSignature
 	}
 
 	// Check user already registered
 	alredyExist, _ := self.findUser(p.Username)
 	if alredyExist != nil {
 		log.Errorf("auth.handleSignUp, user %s already exists", p.Username)
-		return AuthTokenDTO{}, types.ErrUserAlreadyExist
+		return AuthTokenDTO{}, defs.ErrUserAlreadyExist
 	}
 
 	// Create password hash
@@ -150,7 +150,7 @@ func (self ApiImpl) handleSignUp(p RegisterDTO, ctx LoginContext) (AuthTokenDTO,
 // handleRefresh -
 // return AuthToken (with empty RefreshToken) or error
 func (self ApiImpl) handleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
-	token, _ := utils.ParseToken(p.AuthToken, func(id string) (interface{}, error) {
+	token, _ := ginx.ParseToken(p.AuthToken, func(id string) (interface{}, error) {
 		cl, err := self.getClient(id)
 		if err != nil {
 			return nil, err
@@ -159,15 +159,12 @@ func (self ApiImpl) handleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 	})
 
 	claims := token.Claims.(jwt.MapClaims)
-
 	sessionID := claims["session_id"].(string)
 	origIat := int64(claims["orig_iat"].(float64))
 	nonce := int64(claims["nonce"].(float64))
 
-	log.Infof("auth.handleRefresh, sesson = %s, iat = %d, nonce = %d", sessionID, origIat, nonce)
-
 	if origIat < time.Now().Add(-TokenMaxRefresh).Unix() {
-		return AuthTokenDTO{}, types.ErrTokenExpired
+		return AuthTokenDTO{}, defs.ErrTokenExpired
 	}
 
 	session, err := self.getSession(sessionID)
@@ -178,16 +175,16 @@ func (self ApiImpl) handleRefresh(p RefreshDTO) (AuthTokenDTO, error) {
 
 	if p.RefreshToken != session.RefreshToken {
 		log.Errorf("auth.handleRefresh, invalid refresh token")
-		return AuthTokenDTO{}, types.ErrTokenInvalid
+		return AuthTokenDTO{}, defs.ErrTokenInvalid
 	}
 
 	if nonce != session.Nonce {
 		log.Errorf("auth.handleRefresh, invalid nonce %d, required %d", nonce, session.Nonce)
-		return AuthTokenDTO{}, types.ErrTokenExpired
+		return AuthTokenDTO{}, defs.ErrTokenExpired
 	}
 
 	// Create the token
-	newToken := jwt.New(jwt.GetSigningMethod(types.SigningAlgorithm))
+	newToken := jwt.New(jwt.GetSigningMethod(defs.SigningAlgorithm))
 	newClaims := newToken.Claims.(jwt.MapClaims)
 
 	// Copy claims from original token
@@ -254,7 +251,7 @@ func (self ApiImpl) makeLogin(client *db.Client, user *mdl.AuthUser, device *mdl
 	}
 
 	// Create the token
-	token := jwt.New(jwt.GetSigningMethod(types.SigningAlgorithm))
+	token := jwt.New(jwt.GetSigningMethod(defs.SigningAlgorithm))
 	claims := token.Claims.(jwt.MapClaims)
 
 	now := time.Now()
@@ -263,7 +260,7 @@ func (self ApiImpl) makeLogin(client *db.Client, user *mdl.AuthUser, device *mdl
 	claims["aud"] = session.ClientID
 	claims["exp"] = expire.Unix()
 	claims["orig_iat"] = now.Unix()
-	claims["iss"] = types.Realm
+	claims["iss"] = defs.Realm
 	claims["nonce"] = int64(1)
 
 	// Add custom claims here

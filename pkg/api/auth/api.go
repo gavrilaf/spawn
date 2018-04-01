@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/gavrilaf/spawn/pkg/api/utils"
+	"github.com/gavrilaf/spawn/pkg/api/ginx"
 )
 
 // SignIn -
@@ -14,13 +14,13 @@ func (self ApiImpl) SignIn(c *gin.Context) {
 
 	err := c.Bind(&loginVals)
 	if err != nil {
-		utils.HandleAuthError(c, http.StatusBadRequest, err)
+		ginx.HandleAuthError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	token, err := self.handleSignIn(loginVals, createLoginContext(c))
 	if err != nil {
-		utils.HandleAuthError(c, http.StatusUnauthorized, err)
+		ginx.HandleAuthError(c, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -33,13 +33,13 @@ func (self ApiImpl) SignUp(c *gin.Context) {
 
 	err := c.Bind(&registerVals)
 	if err != nil {
-		utils.HandleAuthError(c, http.StatusBadRequest, err)
+		ginx.HandleAuthError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	token, err := self.handleSignUp(registerVals, createLoginContext(c))
 	if err != nil {
-		utils.HandleAuthError(c, http.StatusInternalServerError, err)
+		ginx.HandleAuthError(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -52,13 +52,13 @@ func (self ApiImpl) RefreshToken(c *gin.Context) {
 
 	err := c.Bind(&refreshVals)
 	if err != nil {
-		utils.HandleAuthError(c, http.StatusUnauthorized, err)
+		ginx.HandleAuthError(c, http.StatusUnauthorized, err)
 		return
 	}
 
 	token, err := self.handleRefresh(refreshVals)
 	if err != nil {
-		utils.HandleAuthError(c, http.StatusUnauthorized, err)
+		ginx.HandleAuthError(c, http.StatusUnauthorized, err)
 		return
 	}
 

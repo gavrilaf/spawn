@@ -1,6 +1,6 @@
 package config
 
-import "github.com/gavrilaf/spawn/pkg/api/types"
+import "github.com/gavrilaf/spawn/pkg/api/defs"
 
 const (
 	gAuth     = "auth"
@@ -10,22 +10,22 @@ const (
 )
 
 var (
-	eAuthRegister = types.Endpoint{Path: "/register", Method: "PUT"}
-	eAuthLogin    = types.Endpoint{Path: "/login", Method: "POST"}
-	eAuthRefresh  = types.Endpoint{Path: "/refresh_token", Method: "POST"}
+	eAuthRegister = defs.Endpoint{Path: "/register", Method: "PUT"}
+	eAuthLogin    = defs.Endpoint{Path: "/login", Method: "POST"}
+	eAuthRefresh  = defs.Endpoint{Path: "/refresh_token", Method: "POST"}
 
-	eUserState         = types.Endpoint{Path: "/state", Method: "GET"}
-	eUserLogout        = types.Endpoint{Path: "/logout", Method: "POST"}
-	eUserDevices       = types.Endpoint{Path: "/devices", Method: "GET"}
-	eUserDevicesDelete = types.Endpoint{Path: "/devices/:id", Method: "DELETE"}
+	eUserState         = defs.Endpoint{Path: "/state", Method: "GET"}
+	eUserLogout        = defs.Endpoint{Path: "/logout", Method: "POST"}
+	eUserDevices       = defs.Endpoint{Path: "/devices", Method: "GET"}
+	eUserDevicesDelete = defs.Endpoint{Path: "/devices/:id", Method: "DELETE"}
 
-	eProfileGet         = types.Endpoint{Path: "/", Method: "GET"}
-	eProfileUpdCountry  = types.Endpoint{Path: "/country", Method: "POST"}
-	eProfileUpdPersonal = types.Endpoint{Path: "/personal", Method: "POST"}
+	eProfileGet         = defs.Endpoint{Path: "/", Method: "GET"}
+	eProfileUpdCountry  = defs.Endpoint{Path: "/country", Method: "POST"}
+	eProfileUpdPersonal = defs.Endpoint{Path: "/personal", Method: "POST"}
 
-	eAccountsGet      = types.Endpoint{Path: "/", Method: "GET"}
-	eAccountsState    = types.Endpoint{Path: "/state/:id", Method: "GET"}
-	eAccountsRegister = types.Endpoint{Path: "/register", Method: "PUT"}
-	eAccountsSuspend  = types.Endpoint{Path: "/suspend/:id", Method: "POST"}
-	eAccountsResume   = types.Endpoint{Path: "/resume/:id", Method: "POST"}
+	eAccountsGet      = defs.Endpoint{Path: "/", Method: "GET"}
+	eAccountsState    = defs.Endpoint{Path: "/state/:id", Method: "GET"}
+	eAccountsRegister = defs.Endpoint{Path: "/register", Method: "PUT"}
+	eAccountsSuspend  = defs.Endpoint{Path: "/suspend/:id", Method: "POST"}
+	eAccountsResume   = defs.Endpoint{Path: "/resume/:id", Method: "POST"}
 )

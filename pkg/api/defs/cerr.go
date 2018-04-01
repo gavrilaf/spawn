@@ -1,4 +1,4 @@
-package types
+package defs
 
 import (
 	"github.com/gavrilaf/spawn/pkg/errx"

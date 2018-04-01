@@ -7,26 +7,26 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/api/types"
-	"github.com/gavrilaf/spawn/pkg/api/utils"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
+	"github.com/gavrilaf/spawn/pkg/api/ginx"
 )
 
 type Access struct {
 	*api.Bridge
-	defAccess types.Access
-	acl       map[string]types.Access
+	defAccess defs.Access
+	acl       map[string]defs.Access
 }
 
-func CreateAccess(bridge *api.Bridge, defAccess types.Access, acl []types.EndpointAccess) Access {
-	p := Access{Bridge: bridge, defAccess: defAccess, acl: make(map[string]types.Access)}
+func CreateAccess(bridge *api.Bridge, defAccess defs.Access, acl []defs.EndpointAccess) Access {
+	p := Access{Bridge: bridge, defAccess: defAccess, acl: make(map[string]defs.Access)}
 	for _, acc := range acl {
-		p.acl[types.GetEndpointKey(acc.Group, acc.Endpoint)] = acc.Access
+		p.acl[defs.GetEndpointKey(acc.Group, acc.Endpoint)] = acc.Access
 	}
 	return p
 }
 
 func (self *Access) checkAccess(c *gin.Context) error {
-	log.Infof("Check access for handler: %s", c.GetString(types.EndpointKey))
+	log.Infof("Check access for handler: %s", c.GetString(defs.EndpointKey))
 	return nil
 }
 
@@ -34,7 +34,7 @@ func (self Access) MiddlewareFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		err := self.checkAccess(c)
 		if err != nil {
-			utils.HandleAuthError(c, http.StatusForbidden, err)
+			ginx.HandleAuthError(c, http.StatusForbidden, err)
 		}
 		return
 	}

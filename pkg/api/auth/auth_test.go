@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/gavrilaf/spawn/pkg/api"
-	"github.com/gavrilaf/spawn/pkg/api/types"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
 	"github.com/gavrilaf/spawn/pkg/senv"
@@ -60,12 +60,12 @@ func Test_SignUp(t *testing.T) {
 
 	// Already registered
 	_, err = api.handleSignUp(dto, LoginContext{})
-	require.Equal(t, types.ErrUserAlreadyExist, err)
+	require.Equal(t, defs.ErrUserAlreadyExist, err)
 
 	// Invalid signature
 	dto.Signature += "111"
 	_, err = api.handleSignUp(dto, LoginContext{})
-	require.Equal(t, types.ErrInvalidSignature, err)
+	require.Equal(t, defs.ErrInvalidSignature, err)
 }
 
 func Test_SignIn(t *testing.T) {
@@ -87,7 +87,7 @@ func Test_SignIn(t *testing.T) {
 	logingDto := LoginDTO{
 		ClientID:  client.ID,
 		DeviceID:  tDeviveID + "111",
-		AuthType:  types.AuthTypeSimple,
+		AuthType:  defs.AuthTypeSimple,
 		Username:  username,
 		Password:  tPsw,
 		Signature: sign2}
@@ -109,11 +109,11 @@ func Test_SignIn(t *testing.T) {
 	logingDto.Username += "111"
 	logingDto.Signature = cryptx.GenerateSignature(logingDto.ClientID+logingDto.DeviceID+logingDto.Username, client.Secret)
 	_, err = api.handleSignIn(logingDto, LoginContext{})
-	assert.Equal(t, types.ErrUserUnknown, err)
+	assert.Equal(t, defs.ErrUserUnknown, err)
 
 	logingDto.Signature += "111"
 	_, err = api.handleSignIn(logingDto, LoginContext{})
-	require.Equal(t, types.ErrInvalidSignature, err)
+	require.Equal(t, defs.ErrInvalidSignature, err)
 }
 
 func Test_RefreshToken(t *testing.T) {

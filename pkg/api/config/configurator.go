@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
 	"github.com/gavrilaf/spawn/pkg/api/middleware"
-	"github.com/gavrilaf/spawn/pkg/api/types"
 
 	"github.com/gavrilaf/spawn/pkg/api/account"
 	"github.com/gavrilaf/spawn/pkg/api/auth"
@@ -58,11 +58,11 @@ func ConfigureEngine(engine *gin.Engine, bridge *api.Bridge) {
 	}
 }
 
-func addHandler(g *gin.RouterGroup, e types.Endpoint, access *middleware.Access, f gin.HandlerFunc) {
+func addHandler(g *gin.RouterGroup, e defs.Endpoint, access *middleware.Access, f gin.HandlerFunc) {
 	if access != nil {
-		key := types.GetEndpointKey(g.BasePath(), e)
+		key := defs.GetEndpointKey(g.BasePath(), e)
 		addRoute := func(c *gin.Context) {
-			c.Set(types.EndpointKey, key)
+			c.Set(defs.EndpointKey, key)
 		}
 
 		g.Handle(e.Method, e.Path, addRoute, access.MiddlewareFunc(), f)

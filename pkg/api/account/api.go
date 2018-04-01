@@ -3,7 +3,8 @@ package account
 import (
 	"net/http"
 
-	types "github.com/gavrilaf/spawn/pkg/api/types"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
+	"github.com/gavrilaf/spawn/pkg/api/ginx"
 	"github.com/gavrilaf/spawn/pkg/errx"
 
 	"github.com/gin-gonic/gin"
@@ -11,10 +12,10 @@ import (
 )
 
 func (p ApiImpl) GetAccounts(c *gin.Context) {
-	session, err := p.GetSession(c)
+	session, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("AccountsApi.GetAccounts, could not find session: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -23,7 +24,7 @@ func (p ApiImpl) GetAccounts(c *gin.Context) {
 	accounts, err := p.ReadModel.GetUserAccounts(userID)
 	if err != nil {
 		log.Errorf("AccountsApi.GetAccounts, could not read accounts: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusInternalServerError, err)
+		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -33,45 +34,45 @@ func (p ApiImpl) GetAccounts(c *gin.Context) {
 }
 
 func (p ApiImpl) GetAccountState(c *gin.Context) {
-	_, err := p.GetSession(c)
+	_, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("AccountsApi.GetAccountState, could not find session: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
-	p.HandleError(c, types.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(types.ErrScope, "GetAccountState"))
+	ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(defs.ErrScope, "GetAccountState"))
 }
 
 func (p ApiImpl) RegisterAccount(c *gin.Context) {
-	_, err := p.GetSession(c)
+	_, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("AccountsApi.RegisterAccount, could not find session: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
-	p.HandleError(c, types.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(types.ErrScope, "RegisterAccount"))
+	ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(defs.ErrScope, "RegisterAccount"))
 }
 
 func (p ApiImpl) SuspendAccount(c *gin.Context) {
-	_, err := p.GetSession(c)
+	_, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("AccountsApi.SuspendAccount, could not find session: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
-	p.HandleError(c, types.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(types.ErrScope, "SuspendAccount"))
+	ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(defs.ErrScope, "SuspendAccount"))
 }
 
 func (p ApiImpl) ResumeAccount(c *gin.Context) {
-	_, err := p.GetSession(c)
+	_, err := ginx.GetContextSession(c)
 	if err != nil {
 		log.Errorf("AccountsApi.ResumeAccount, could not find session: %v", err)
-		p.HandleError(c, types.ErrScope, http.StatusUnauthorized, types.ErrSessionNotFound)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
-	p.HandleError(c, types.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(types.ErrScope, "ResumeAccount"))
+	ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, errx.ErrNotImplemented(defs.ErrScope, "ResumeAccount"))
 }

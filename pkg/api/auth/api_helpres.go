@@ -7,7 +7,7 @@ import (
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/gavrilaf/spawn/pkg/api/types"
+	"github.com/gavrilaf/spawn/pkg/api/defs"
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
@@ -89,7 +89,7 @@ func (self ApiImpl) getSession(id string) (*mdl.Session, error) {
 	session, err := self.ReadModel.GetSession(id)
 	if err != nil {
 		log.Errorf("Can't find session with id %s, error: %v", id, err)
-		return nil, types.ErrSessionNotFound
+		return nil, defs.ErrSessionNotFound
 	}
 
 	return session, nil
