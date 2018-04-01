@@ -15,7 +15,7 @@ var (
 	eAuthRefresh  = types.Endpoint{Path: "/refresh_token", Method: "POST"}
 
 	eUserState         = types.Endpoint{Path: "/state", Method: "GET"}
-	eUserLogout        = types.Endpoint{Path: "logout", Method: "POST"}
+	eUserLogout        = types.Endpoint{Path: "/logout", Method: "POST"}
 	eUserDevices       = types.Endpoint{Path: "/devices", Method: "GET"}
 	eUserDevicesDelete = types.Endpoint{Path: "/devices/:id", Method: "DELETE"}
 

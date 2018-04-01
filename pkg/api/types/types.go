@@ -1,10 +1,5 @@
 package types
 
-import (
-	"github.com/gavrilaf/spawn/pkg/cache/mdl"
-	"github.com/gin-gonic/gin"
-)
-
 const (
 	Realm = "Spawn"
 
@@ -13,7 +8,11 @@ const (
 	TokenLookup      = "Authorization"
 
 	AuthTypeSimple = "simple"
+
+	EndpointKey = "EnpointKey"
 )
+
+var EmptySuccessResponse = map[string]interface{}{"success": true}
 
 type Endpoint struct {
 	Path   string
@@ -32,9 +31,6 @@ type EndpointAccess struct {
 	Access
 }
 
-type AccessChecker interface {
-	Init(routes *gin.RoutesInfo, defAccess Access, acl []EndpointAccess)
-	CheckAccess(session *mdl.Session, c *gin.Context) error
+func GetEndpointKey(group string, endpoint Endpoint) string {
+	return group + endpoint.Path + ":" + endpoint.Method
 }
-
-var EmptySuccessResponse = map[string]interface{}{"success": true}

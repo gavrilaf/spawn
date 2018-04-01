@@ -1,6 +1,8 @@
 package config
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/api/middleware"
 	"github.com/gavrilaf/spawn/pkg/api/types"
@@ -9,54 +11,62 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api/auth"
 	"github.com/gavrilaf/spawn/pkg/api/profile"
 	"github.com/gavrilaf/spawn/pkg/api/user"
-
-	"github.com/gin-gonic/gin"
 )
 
-func ConfigureRouter(router gin.IRouter, bridge *api.Bridge) {
+func ConfigureEngine(engine *gin.Engine, bridge *api.Bridge) {
 
-	authMiddleware := middleware.CreateAuthMiddleware(bridge)
+	authMiddleware := middleware.CreateAuth(bridge)
+	accessMiddleware := middleware.CreateAccess(bridge, ApiDefaultAccess, ApiAccessConfig)
 
 	authAPI := auth.CreateApi(bridge)
 	profileAPI := profile.CreateApi(bridge)
 	userAPI := user.CreateApi(bridge)
 	accountsApi := account.CreateApi(bridge)
 
-	auth := router.Group(gAuth)
+	auth := engine.Group(gAuth)
 	{
-		addHandler(auth, eAuthRegister, authAPI.SignUp)
-		addHandler(auth, eAuthLogin, authAPI.SignIn)
-		addHandler(auth, eAuthRefresh, authAPI.RefreshToken)
+		addHandler(auth, eAuthRegister, nil, authAPI.SignUp)
+		addHandler(auth, eAuthLogin, nil, authAPI.SignIn)
+		addHandler(auth, eAuthRefresh, nil, authAPI.RefreshToken)
 	}
 
-	user := router.Group(gUser)
+	user := engine.Group(gUser)
 	user.Use(authMiddleware.MiddlewareFunc())
 	{
-		addHandler(user, eUserState, userAPI.GetState)
-		addHandler(user, eUserLogout, userAPI.Logout)
-		addHandler(user, eUserDevices, userAPI.GetDevices)
-		addHandler(user, eUserDevicesDelete, userAPI.DeleteDevice)
+		addHandler(user, eUserState, &accessMiddleware, userAPI.GetState)
+		addHandler(user, eUserLogout, &accessMiddleware, userAPI.Logout)
+		addHandler(user, eUserDevices, &accessMiddleware, userAPI.GetDevices)
+		addHandler(user, eUserDevicesDelete, &accessMiddleware, userAPI.DeleteDevice)
 	}
 
-	profile := router.Group(gProfile)
+	profile := engine.Group(gProfile)
 	profile.Use(authMiddleware.MiddlewareFunc())
 	{
-		addHandler(profile, eProfileGet, profileAPI.GetUserProfile)
-		addHandler(profile, eProfileUpdCountry, profileAPI.UpdateUserCountry)
-		addHandler(profile, eProfileUpdPersonal, profileAPI.UpdateUserPersonalInfo)
+		addHandler(profile, eProfileGet, &accessMiddleware, profileAPI.GetUserProfile)
+		addHandler(profile, eProfileUpdCountry, &accessMiddleware, profileAPI.UpdateUserCountry)
+		addHandler(profile, eProfileUpdPersonal, &accessMiddleware, profileAPI.UpdateUserPersonalInfo)
 	}
 
-	accounts := router.Group(gAccounts)
+	accounts := engine.Group(gAccounts)
 	accounts.Use(authMiddleware.MiddlewareFunc())
 	{
-		addHandler(accounts, eAccountsGet, accountsApi.GetAccounts)
-		addHandler(accounts, eAccountsState, accountsApi.GetAccountState)
-		addHandler(accounts, eAccountsRegister, accountsApi.RegisterAccount)
-		addHandler(accounts, eAccountsSuspend, accountsApi.SuspendAccount)
-		addHandler(accounts, eAccountsResume, accountsApi.ResumeAccount)
+		addHandler(accounts, eAccountsGet, &accessMiddleware, accountsApi.GetAccounts)
+		addHandler(accounts, eAccountsState, &accessMiddleware, accountsApi.GetAccountState)
+		addHandler(accounts, eAccountsRegister, &accessMiddleware, accountsApi.RegisterAccount)
+		addHandler(accounts, eAccountsSuspend, &accessMiddleware, accountsApi.SuspendAccount)
+		addHandler(accounts, eAccountsResume, &accessMiddleware, accountsApi.ResumeAccount)
 	}
 }
 
-func addHandler(g *gin.RouterGroup, e types.Endpoint, f gin.HandlerFunc) {
-	g.Handle(e.Method, e.Path, f)
+func addHandler(g *gin.RouterGroup, e types.Endpoint, access *middleware.Access, f gin.HandlerFunc) {
+	if access != nil {
+		key := types.GetEndpointKey(g.BasePath(), e)
+		addRoute := func(c *gin.Context) {
+			c.Set(types.EndpointKey, key)
+		}
+
+		g.Handle(e.Method, e.Path, addRoute, access.MiddlewareFunc(), f)
+	} else {
+		g.Handle(e.Method, e.Path, f)
+	}
 }

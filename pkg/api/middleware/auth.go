@@ -10,15 +10,15 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api/utils"
 )
 
-type AuthMiddleware struct {
+type Auth struct {
 	*api.Bridge
 }
 
-func CreateAuthMiddleware(bridge *api.Bridge) AuthMiddleware {
-	return AuthMiddleware{Bridge: bridge}
+func CreateAuth(bridge *api.Bridge) Auth {
+	return Auth{Bridge: bridge}
 }
 
-func (self AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
+func (self Auth) MiddlewareFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := utils.JwtFromHeader(c, types.TokenLookup)
 		if err != nil {
@@ -44,12 +44,6 @@ func (self AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 			utils.HandleAuthError(c, http.StatusUnauthorized, types.ErrSessionNotFound)
 			return
 		}
-
-		// TODO: Add later
-		/*if err = mw.checker.CheckAccess(session, c); err != nil {
-			mw.handleError(c, http.StatusForbidden, err)
-			return
-		}*/
 
 		c.Set("session_id", session.ID)
 		c.Set("client_id", session.ClientID)

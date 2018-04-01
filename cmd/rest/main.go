@@ -35,12 +35,12 @@ func main() {
 		log.Info("Could not connect to the api bridge")
 	}
 
-	router := gin.New()
+	engine := gin.New()
 
-	router.Use(gin.Recovery())
-	router.Use(middleware.Logger(log))
+	engine.Use(gin.Recovery())
+	engine.Use(middleware.Logger(log))
 
-	config.ConfigureRouter(router, apiBridge)
+	config.ConfigureEngine(engine, apiBridge)
 
-	router.Run()
+	engine.Run()
 }
