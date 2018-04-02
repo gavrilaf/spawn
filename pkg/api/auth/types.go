@@ -38,11 +38,11 @@ type RefreshDTO struct {
 }
 
 type PermissionsDTO struct {
-	IsDeviceConfirmed bool  `structs:"is_device_confirmed"`
-	IsEmailConfirmed  bool  `structs:"is_email_confirmed"`
-	Is2FARequired     bool  `structs:"is_2fa_required"`
-	IsLocked          bool  `structs:"is_locked"`
-	Scopes            int64 `structs:"scopes"`
+	IsDeviceConfirmed bool `structs:"is_device_confirmed"`
+	IsEmailConfirmed  bool `structs:"is_email_confirmed"`
+	Is2FARequired     bool `structs:"is_2fa_required"`
+	IsLocked          bool `structs:"is_locked"`
+	Scopes            int  `structs:"scopes"`
 }
 
 type AuthTokenDTO struct {

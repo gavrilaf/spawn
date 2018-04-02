@@ -21,9 +21,10 @@ type Endpoint struct {
 }
 
 type Access struct {
-	NeedDevice bool
-	NeedEmail  bool
-	MinScope   int
+	Locked bool
+	Device bool
+	Email  bool
+	Scope  int
 }
 
 type EndpointAccess struct {

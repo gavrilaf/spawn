@@ -150,7 +150,7 @@ CREATE TABLE "Users" (
     is_locked boolean DEFAULT false NOT NULL,
     is_email_confirmed boolean DEFAULT false NOT NULL,
     is_2fa_required boolean DEFAULT false NOT NULL,
-    scope bigint DEFAULT 0 NOT NULL,
+    scope integer DEFAULT 0 NOT NULL,
     first_name text DEFAULT ''::text NOT NULL,
     last_name text DEFAULT ''::text NOT NULL,
     birth_date date DEFAULT '1800-01-01'::date NOT NULL,

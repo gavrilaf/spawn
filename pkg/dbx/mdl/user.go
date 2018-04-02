@@ -69,10 +69,10 @@ func (d DeviceInfoEx) GetLoginRegion() string {
 // User profile
 
 type Permissions struct {
-	IsLocked         bool  `db:"is_locked" structs:"is_locked"`
-	IsEmailConfirmed bool  `db:"is_email_confirmed" structs:"is_email_confirmed"`
-	Is2FARequired    bool  `db:"is_2fa_required" structs:"is_2fa_required"`
-	Scope            int64 `db:"scope" structs:"scope"`
+	IsLocked         bool `db:"is_locked" structs:"is_locked"`
+	IsEmailConfirmed bool `db:"is_email_confirmed" structs:"is_email_confirmed"`
+	Is2FARequired    bool `db:"is_2fa_required" structs:"is_2fa_required"`
+	Scope            int  `db:"scope" structs:"scope"`
 }
 
 func (p Permissions) String() string {

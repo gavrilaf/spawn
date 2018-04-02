@@ -9,6 +9,7 @@ import (
 	"github.com/gavrilaf/spawn/pkg/api"
 	"github.com/gavrilaf/spawn/pkg/api/defs"
 	"github.com/gavrilaf/spawn/pkg/api/ginx"
+	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 )
 
 type Access struct {
@@ -25,9 +26,22 @@ func CreateAccess(bridge *api.Bridge, defAccess defs.Access, acl []defs.Endpoint
 	return p
 }
 
-func (self *Access) checkAccess(c *gin.Context) error {
-	log.Infof("Check access for handler: %s", c.GetString(defs.EndpointKey))
-	return nil
+func (self Access) checkAccess(c *gin.Context) error {
+	endpoint := c.GetString(defs.EndpointKey)
+	log.Infof("Check access for endpoint: %s", endpoint)
+
+	session, err := ginx.GetContextSession(c)
+	if err != nil {
+		return err
+	}
+
+	if acl, found := self.acl[endpoint]; found {
+		log.Infof("Found acl for: %s, %v", endpoint, acl)
+		return isAccessAllowed(session, acl)
+	} else {
+		log.Infof("Use default acl for: %s", endpoint)
+		return isAccessAllowed(session, self.defAccess)
+	}
 }
 
 func (self Access) MiddlewareFunc() gin.HandlerFunc {
@@ -38,4 +52,24 @@ func (self Access) MiddlewareFunc() gin.HandlerFunc {
 		}
 		return
 	}
+}
+
+func isAccessAllowed(session *mdl.Session, endpointCfg defs.Access) error {
+	if session.IsLocked && !endpointCfg.Locked {
+		return defs.ErrUserLocked
+	}
+
+	if !session.IsDeviceConfirmed && endpointCfg.Device {
+		return defs.ErrDeviceNotConfirmed
+	}
+
+	if session.IsEmailConfirmed && endpointCfg.Email {
+		return defs.ErrEmailNotConfirmed
+	}
+
+	if int(session.Scope) < endpointCfg.Scope {
+		return defs.ErrAccessForbiden
+	}
+
+	return nil
 }
