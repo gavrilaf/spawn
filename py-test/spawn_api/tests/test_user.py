@@ -35,7 +35,7 @@ class TestUser(unittest.TestCase):
         self.assertTrue(is_error)
         self.assertEqual("session-not-found", err["reason"])
 
-    # Register new user; login with new device; query devices list
+    # Register new user; login with new device; query devices list from first device
     # Should: two devices in list; first is confirmed; second is current (active session)
     def testGetDevices(self):
         err = self.cn.sign_up()
@@ -51,7 +51,7 @@ class TestUser(unittest.TestCase):
         err = cn2.sign_in()
         self.assertIsNone(err)
 
-        is_error, devices = cn2.api.get_devices()
+        is_error, devices = self.cn.api.get_devices()
         self.assertFalse(is_error)
 
         devices = devices["devices"]
@@ -62,7 +62,7 @@ class TestUser(unittest.TestCase):
 
         self.assertEqual(self.cn.device.name, first[0]["device_name"])
         self.assertEqual(True, first[0]["is_confirmed"])
-        self.assertEqual(False, first[0]["is_current"])
+        self.assertEqual(True, first[0]["is_current"]) # active session
         self.assertEqual("ru", first[0]["locale"])
         self.assertEqual("es", first[0]["lang"])
         self.assertIsNotNone(first[0]["login_ip"])
@@ -75,7 +75,7 @@ class TestUser(unittest.TestCase):
 
         self.assertEqual("test-device-1-name-new", current[0]["device_name"])
         self.assertEqual(False, current[0]["is_confirmed"])  # new device, not confirmed
-        self.assertEqual(True, current[0]["is_current"])  # active session
+        self.assertEqual(False, current[0]["is_current"])
         self.assertEqual("us", current[0]["locale"])
         self.assertEqual("it", current[0]["lang"])
         self.assertIsNotNone(current[0]["login_ip"])
@@ -83,9 +83,10 @@ class TestUser(unittest.TestCase):
         self.assertIsNotNone(current[0]["login_time"])
         self.assertIsNotNone(current[0]["user_agent"])
 
-    # Register new user; login with new device; try to delete current device; try to delete first device
-    # Should: could not delete current device (delete-current-device),
-    # after deleting first device only one device in devices list
+    # Register new user; login with new device;
+    # try to delete current device from first session; try to delete second device
+    # Should: not delete current device (delete-current-device),
+    # after deleting second device only one device in devices list
     def testDeleteDevice(self):
         err = self.cn.sign_up()
         self.assertIsNone(err)
@@ -104,11 +105,11 @@ class TestUser(unittest.TestCase):
         devices = devices["devices"]
         self.assertEqual(2, len(devices))
 
-        err = cn2.api.delete_device("device-2") # try to delete form device-2 session
+        err = self.cn.api.delete_device("test-device-1") # try to delete current device
         self.assertIsNotNone(err)
         self.assertEqual(err["reason"], "delete-current-device")
 
-        err = self.cn.api.delete_device("device-2")  # try to delete form device-1 session
+        err = self.cn.api.delete_device("device-2")  # try to delete second device
         self.assertIsNone(err)
 
         is_error, devices = self.cn.api.get_devices()
@@ -119,7 +120,8 @@ class TestUser(unittest.TestCase):
         self.assertEqual(self.cn.device.device_id, devices[0]["device_id"])
         self.assertEqual(self.cn.device.name, devices[0]["device_name"])
 
-    # Register new user; login with new device; delete first device; check first session state
+    # Register new user; login with new device;
+    # delete second device; check second session state
     # Should: device session is invalidated when device is deleted
     def testDeleteDeviceInvalidateSession(self):
         err = self.cn.sign_up()
@@ -143,6 +145,32 @@ class TestUser(unittest.TestCase):
         # session 2 is invalidated
         is_error, _ = cn2.api.get_state()
         self.assertTrue(is_error)
+
+    # Register new user; login with new device;
+    # check access with new device
+    # Should: only get_state function is working, other returns error
+    def testDeviceUnconfirmed(self):
+        err = self.cn.sign_up()
+        self.assertIsNone(err)
+
+        cn2 = SpawnConn()
+        cn2.username = self.cn.username
+        cn2.password = self.cn.password
+        cn2.device = spawn.Device("device-2", "device-2-name")
+
+        err = cn2.sign_in()
+        self.assertIsNone(err)
+
+        is_error, _ = cn2.api.get_state()
+        self.assertFalse(is_error) # allowed
+
+        is_error, err = cn2.api.get_accounts()
+        self.assertTrue(is_error) # access denied
+        self.assertEqual(err["reason"], "device-not-confirmed")
+
+        is_error, err = cn2.api.get_devices()
+        self.assertTrue(is_error)  # access denied
+        self.assertEqual(err["reason"], "device-not-confirmed")
 
 
 if __name__ == '__main__':
