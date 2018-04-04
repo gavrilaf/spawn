@@ -17,7 +17,7 @@ service Spawn {
     rpc AddDevice(UserDevice) returns(Empty) {}
     rpc HandleLogin(LoginReq) returns(Empty) {}
 
-    rpc DoConfirm(ConfirmDeviceReq) returns(Empty) {}
+    rpc ConfirmDevice(ConfirmDeviceReq) returns(Empty) {}
     rpc DeleteDevice(UserDeviceID) returns(Empty) {}
 
     rpc UpdateUserCountry(UserCountry) returns(Empty) {}
@@ -73,11 +73,8 @@ message UserDeviceID {
 }
 
 message ConfirmDeviceReq {
-  string kind = 1;
-  string sessionId = 2;
-  string userId = 3;
-  string deviceId = 4;
-  string code = 5;
+  string sessionId = 1;
+  string code = 2;
 }
 
 message UserPersonalInfo {

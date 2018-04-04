@@ -63,7 +63,7 @@ func (srv *Server) AddDevice(arg *pb.UserDevice) (*pb.Empty, error) {
 
 	// Generate confirm code
 	code := cryptx.GenerateConfimCode()
-	if err := srv.cache.AddConfirmCode("device", arg.UserID+arg.Device.ID, code); err != nil {
+	if err := srv.cache.AddDeviceConfirmCode(arg.UserID, arg.Device.ID, code); err != nil {
 		log.Errorf("Storing confirm code error, %v", err)
 		return nil, err
 	}

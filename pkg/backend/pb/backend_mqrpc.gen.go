@@ -41,7 +41,7 @@ type SpawnServer interface {
 	CreateUser(arg *CreateUserReq) (*ResID, error)
 	AddDevice(arg *UserDevice) (*Empty, error)
 	HandleLogin(arg *LoginReq) (*Empty, error)
-	DoConfirm(arg *ConfirmDeviceReq) (*Empty, error)
+	ConfirmDevice(arg *ConfirmDeviceReq) (*Empty, error)
 	DeleteDevice(arg *UserDeviceID) (*Empty, error)
 	UpdateUserCountry(arg *UserCountry) (*Empty, error)
 	UpdateUserPersonalInfo(arg *UserPersonalInfo) (*Empty, error)
@@ -59,8 +59,8 @@ func RunServer(srv rpc.Server, handler SpawnServer) {
 			return _Handle_AddDevice(handler, arg)
 		case Functions_HandleLogin:
 			return _Handle_HandleLogin(handler, arg)
-		case Functions_DoConfirm:
-			return _Handle_DoConfirm(handler, arg)
+		case Functions_ConfirmDevice:
+			return _Handle_ConfirmDevice(handler, arg)
 		case Functions_DeleteDevice:
 			return _Handle_DeleteDevice(handler, arg)
 		case Functions_UpdateUserCountry:
@@ -80,7 +80,7 @@ type SpawnClient interface {
 	CreateUser(arg *CreateUserReq) (*ResID, error)
 	AddDevice(arg *UserDevice) (*Empty, error)
 	HandleLogin(arg *LoginReq) (*Empty, error)
-	DoConfirm(arg *ConfirmDeviceReq) (*Empty, error)
+	ConfirmDevice(arg *ConfirmDeviceReq) (*Empty, error)
 	DeleteDevice(arg *UserDeviceID) (*Empty, error)
 	UpdateUserCountry(arg *UserCountry) (*Empty, error)
 	UpdateUserPersonalInfo(arg *UserPersonalInfo) (*Empty, error)
@@ -100,7 +100,7 @@ const (
 	Functions_CreateUser             int32 = 1
 	Functions_AddDevice              int32 = 2
 	Functions_HandleLogin            int32 = 3
-	Functions_DoConfirm              int32 = 4
+	Functions_ConfirmDevice          int32 = 4
 	Functions_DeleteDevice           int32 = 5
 	Functions_UpdateUserCountry      int32 = 6
 	Functions_UpdateUserPersonalInfo int32 = 7
@@ -155,13 +155,13 @@ func _Handle_HandleLogin(handler interface{}, arg []byte) ([]byte, error) {
 	}
 	return resp.Marshal()
 }
-func _Handle_DoConfirm(handler interface{}, arg []byte) ([]byte, error) {
+func _Handle_ConfirmDevice(handler interface{}, arg []byte) ([]byte, error) {
 	var req ConfirmDeviceReq
 	err := req.Unmarshal(arg)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := handler.(SpawnServer).DoConfirm(&req)
+	resp, err := handler.(SpawnServer).ConfirmDevice(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -260,12 +260,12 @@ func (this *spawnClient) HandleLogin(arg *LoginReq) (*Empty, error) {
 	err = resp.Unmarshal(respData)
 	return &resp, err
 }
-func (this *spawnClient) DoConfirm(arg *ConfirmDeviceReq) (*Empty, error) {
+func (this *spawnClient) ConfirmDevice(arg *ConfirmDeviceReq) (*Empty, error) {
 	request, err := arg.Marshal()
 	if err != nil {
 		return nil, err
 	}
-	respData, err := this.cc.RemoteCall(rpc.Request{FuncID: Functions_DoConfirm, Body: request})
+	respData, err := this.cc.RemoteCall(rpc.Request{FuncID: Functions_ConfirmDevice, Body: request})
 	if err != nil {
 		return nil, err
 	}

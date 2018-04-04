@@ -12,10 +12,10 @@ import (
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
 )
 
-func (p ApiImpl) GetState(c *gin.Context) {
+func (self ApiImpl) GetState(c *gin.Context) {
 	session, err := ginx.GetContextSession(c)
 	if err != nil {
-		log.Errorf("Usertypes.GetState, could not find session: %v", err)
+		log.Errorf("User.GetState, could not find session: %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
@@ -36,17 +36,17 @@ func (p ApiImpl) GetState(c *gin.Context) {
 	c.JSON(http.StatusOK, state.ToMap())
 }
 
-func (p ApiImpl) Logout(c *gin.Context) {
+func (self ApiImpl) Logout(c *gin.Context) {
 	session, err := ginx.GetContextSession(c)
 	if err != nil {
-		log.Errorf("Usertypes.GetState, could not find session: %v", err)
+		log.Errorf("User.GetState, could not find session: %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, defs.ErrSessionNotFound)
 		return
 	}
 
-	err = p.ReadModel.DeleteSession(session.ID)
+	err = self.ReadModel.DeleteSession(session.ID)
 	if err != nil {
-		log.Errorf("Usertypes.GetState, could not invalidate session: %v", err)
+		log.Errorf("User.GetState, could not invalidate session: %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
 		return
 	}
@@ -56,17 +56,17 @@ func (p ApiImpl) Logout(c *gin.Context) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-func (p ApiImpl) GetDevices(c *gin.Context) {
+func (self ApiImpl) GetDevices(c *gin.Context) {
 	session, err := ginx.GetContextSession(c)
 	if err != nil {
-		log.Errorf("Usertypes.GetDevices, could not find session: %v", err)
+		log.Errorf("User.GetDevices, could not find session: %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
-	devices, err := p.ReadModel.GetUserDevicesInfo(session.UserID)
+	devices, err := self.ReadModel.GetUserDevicesInfo(session.UserID)
 	if err != nil {
-		log.Errorf("Usertypes.GetDevices, could not read devices: %v", err)
+		log.Errorf("User.GetDevices, could not read devices: %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
 		return
 	}
@@ -81,34 +81,34 @@ func (p ApiImpl) GetDevices(c *gin.Context) {
 	c.JSON(http.StatusOK, d.ToMap())
 }
 
-func (p ApiImpl) ConfirmDevice(c *gin.Context) {
-	var req ConfirmDeviceRequest
+func (self ApiImpl) ConfirmDevice(c *gin.Context) {
+	var req ConfirmDeviceCode
 
 	err := c.Bind(&req)
 	if err != nil {
-		log.Errorf("Profiletypes.ConfirmDevice, could not bind, %v", err)
+		log.Errorf("User.ConfirmDevice, could not bind, %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusBadRequest, err)
 		return
 	}
 
 	session, err := ginx.GetContextSession(c)
 	if err != nil {
-		log.Errorf("Profiletypes.ConfirmDevice, could not find session, %v", err)
+		log.Errorf("User.ConfirmDevice, could not find session, %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
 	}
 
 	if session.IsDeviceConfirmed {
-		log.Errorf("Profiletypes.ConfirmDevice, device (%s, %s) already confirmed", session.UserID, session.DeviceID)
+		log.Errorf("User.User, device (%s, %s) already confirmed", session.UserID, session.DeviceID)
 		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, defs.ErrAlreadyConfirmed)
 		return
 	}
 
-	log.Infof("Profiletypes.ConfirmDevice, confirm device (%s, %s) with code %s", session.UserID, session.DeviceID, req.Code)
+	log.Infof("User.ConfirmDevice, confirm device (%s, %s) with code %s", session.UserID, session.DeviceID, req.Code)
 
-	_, err = p.WriteModel.DoConfirm(&pb.ConfirmDeviceReq{
-		Code: req.Code,
-		Kind: "device"})
+	_, err = self.WriteModel.ConfirmDevice(&pb.ConfirmDeviceReq{
+		SessionId: session.ID,
+		Code:      req.Code})
 
 	if err != nil {
 		log.Errorf("User.ConfirmDevice, confirm device (%s, %s) error %v", session.UserID, session.DeviceID, err)
@@ -120,7 +120,18 @@ func (p ApiImpl) ConfirmDevice(c *gin.Context) {
 	c.JSON(200, defs.EmptySuccessResponse)
 }
 
-func (p ApiImpl) DeleteDevice(c *gin.Context) {
+func (self ApiImpl) GetConfirmCode(c *gin.Context) {
+	/*session, err := ginx.GetContextSession(c)
+	if err != nil {
+		log.Errorf("User.ConfirmDevice, could not find session, %v", err)
+		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
+		return
+	}*/
+
+	c.JSON(200, defs.EmptySuccessResponse)
+}
+
+func (self ApiImpl) DeleteDevice(c *gin.Context) {
 	deviceID := c.Param("id")
 
 	session, err := ginx.GetContextSession(c)
@@ -136,7 +147,7 @@ func (p ApiImpl) DeleteDevice(c *gin.Context) {
 		return
 	}
 
-	_, err = p.Bridge.WriteModel.DeleteDevice(&pb.UserDeviceID{
+	_, err = self.Bridge.WriteModel.DeleteDevice(&pb.UserDeviceID{
 		UserID:   session.UserID,
 		DeviceID: deviceID})
 
@@ -146,6 +157,7 @@ func (p ApiImpl) DeleteDevice(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Profiletypes.DeleteDevice, device (%s, %s) is delete", session.UserID, deviceID)
+	log.Infof("User.DeleteDevice, device (%s, %s) is delete", session.UserID, deviceID)
+
 	c.JSON(200, defs.EmptySuccessResponse)
 }

@@ -1,12 +1,31 @@
 package backend
 
 import (
-	"github.com/gavrilaf/spawn/pkg/backend/pb"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/gavrilaf/spawn/pkg/backend/pb"
+	"github.com/gavrilaf/spawn/pkg/errx"
 )
 
-func (srv *Server) DoConfirm(arg *pb.ConfirmDeviceReq) (*pb.Empty, error) {
-	log.Infof("DoConfirm: %s", arg.String())
+func (srv *Server) ConfirmDevice(arg *pb.ConfirmDeviceReq) (*pb.Empty, error) {
+	log.Infof("ConfirmDevice: %s", arg.String())
+
+	session, err := srv.cache.GetSession(arg.SessionId)
+	if err != nil {
+		log.Errorf("Could not read session from the read model, %v", err)
+		return nil, err
+	}
+
+	code, err := srv.cache.GetDeviceConfirmCode(session.UserID, session.DeviceID)
+	if err != nil {
+		log.Errorf("Could not read confirm code from the read model, %v", err)
+		return nil, err
+	}
+
+	if len(code) == 0 || code != arg.Code {
+		return nil, errx.ErrNotFound(ErrScope, "Could not find confirmation code")
+	}
+
 	return &pb.Empty{}, nil
 }
 

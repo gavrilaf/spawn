@@ -9,9 +9,10 @@ type Api interface {
 	GetState(c *gin.Context)
 	Logout(c *gin.Context)
 
-	ConfirmDevice(c *gin.Context)
 	GetDevices(c *gin.Context)
 	DeleteDevice(c *gin.Context)
+	GetConfirmCode(c *gin.Context)
+	ConfirmDevice(c *gin.Context)
 }
 
 ///////////////////////////////////////////////////////////////////////////////

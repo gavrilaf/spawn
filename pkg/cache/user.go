@@ -85,28 +85,29 @@ func (br *Bridge) deleteUserDevicesInfo(userID string) error {
 }
 
 // Confirm code
-func (br *Bridge) AddConfirmCode(kind string, id string, code string) error {
+
+func (br *Bridge) AddDeviceConfirmCode(userID string, deviceID string, code string) error {
 	conn := br.get()
 	defer conn.Close()
 
-	key := "confirm:" + kind + id
+	key := "confirm:" + userID + ":" + deviceID
 	_, err := conn.Do("SETEX", key, confirmExpiration, code)
 	return err
 }
 
-func (br *Bridge) GetConfirmCode(kind string, id string) (string, error) {
+func (br *Bridge) GetDeviceConfirmCode(userID string, deviceID string) (string, error) {
 	conn := br.get()
 	defer conn.Close()
 
-	key := "confirm:" + kind + id
+	key := "confirm:" + userID + ":" + deviceID
 	return redis.String(conn.Do("GET", key))
 }
 
-func (br *Bridge) DeleteConfirmCode(kind string, id string) error {
+func (br *Bridge) DeleteConfirmCode(userID string, deviceID string) error {
 	conn := br.get()
 	defer conn.Close()
 
-	key := "confirm:" + kind + id
+	key := "confirm:" + userID + ":" + deviceID
 	_, err := conn.Do("DEL", key)
 	return err
 }

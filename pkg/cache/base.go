@@ -55,9 +55,9 @@ type Cache interface {
 	SetUserDevicesInfo(userID string, devices []db.DeviceInfoEx) error
 	GetUserDevicesInfo(userID string) ([]mdl.UserDeviceInfo, error)
 
-	AddConfirmCode(kind string, id string, code string) error
-	GetConfirmCode(kind string, id string) (string, error)
-	DeleteConfirmCode(kind string, id string) error
+	AddDeviceConfirmCode(userID string, deviceID string, code string) error
+	GetDeviceConfirmCode(userID string, deviceID string) (string, error)
+	DeleteConfirmCode(userID string, deviceID string) error
 
 	// User profile
 

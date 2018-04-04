@@ -15,17 +15,17 @@ func TestBridge_ConfirmCode(t *testing.T) {
 	cache := getTestCache(t)
 	defer cache.Close()
 
-	err := cache.AddConfirmCode("device", "d-id-1", "123456")
+	err := cache.AddDeviceConfirmCode("user-1", "devive-1", "123456")
 	assert.Nil(t, err)
 
-	code, err := cache.GetConfirmCode("device", "d-id-1")
+	code, err := cache.GetDeviceConfirmCode("user-1", "devive-1")
 	assert.Nil(t, err)
 	assert.Equal(t, "123456", code)
 
-	err = cache.DeleteConfirmCode("device", "d-id-1")
+	err = cache.DeleteConfirmCode("user-1", "devive-1")
 	assert.Nil(t, err)
 
-	code, _ = cache.GetConfirmCode("device", "d-id-1")
+	code, _ = cache.GetDeviceConfirmCode("user-1", "devive-1")
 	assert.Equal(t, "", code)
 }
 

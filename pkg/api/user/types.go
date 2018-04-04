@@ -6,8 +6,12 @@ import (
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 )
 
-type ConfirmDeviceRequest struct {
-	Code string `json:"code" form:"code" binding:"required"`
+type ConfirmDeviceCode struct {
+	Code string `json:"code" form:"code" binding:"required" structs:"code"`
+}
+
+func (s ConfirmDeviceCode) ToMap() map[string]interface{} {
+	return structs.Map(s)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
