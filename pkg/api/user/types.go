@@ -6,6 +6,12 @@ import (
 	"github.com/gavrilaf/spawn/pkg/cache/mdl"
 )
 
+type GetConfirmCodeRequest struct {
+	DeviceID string `json:"device_id" form:"device_id" binding:"required"`
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
 type ConfirmDeviceCode struct {
 	Code string `json:"code" form:"code" binding:"required" structs:"code"`
 }

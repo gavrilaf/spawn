@@ -96,7 +96,7 @@ func TestServer_AddDevice(t *testing.T) {
 	_, err = srv.AddDevice(&pb.UserDevice{UserID: user.ID, Device: &device})
 	assert.Nil(t, err)
 
-	code, err := srv.cache.GetConfirmCode("device", user.ID+device.ID)
+	code, err := srv.cache.GetDeviceConfirmCode(user.ID, device.ID)
 	assert.NotEmpty(t, code)
 	assert.Nil(t, err)
 

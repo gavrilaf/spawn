@@ -116,19 +116,34 @@ func (self ApiImpl) ConfirmDevice(c *gin.Context) {
 		return
 	}
 
-	log.Infof("Profiletypes.ConfirmDevice, device (%s, %s) is confirmed", session.UserID, session.DeviceID)
+	log.Infof("User.ConfirmDevice, device (%s, %s) is confirmed", session.UserID, session.DeviceID)
 	c.JSON(200, defs.EmptySuccessResponse)
 }
 
 func (self ApiImpl) GetConfirmCode(c *gin.Context) {
-	/*session, err := ginx.GetContextSession(c)
+	var req GetConfirmCodeRequest
+
+	err := c.Bind(&req)
 	if err != nil {
-		log.Errorf("User.ConfirmDevice, could not find session, %v", err)
+		log.Errorf("User.GetConfirmCode, could not bind, %v", err)
+		ginx.HandleError(c, defs.ErrScope, http.StatusBadRequest, defs.ErrInvalidRequest)
+		return
+	}
+
+	session, err := ginx.GetContextSession(c)
+	if err != nil {
+		log.Errorf("User.GetConfirmCode, could not find session, %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusUnauthorized, err)
 		return
-	}*/
+	}
 
-	c.JSON(200, defs.EmptySuccessResponse)
+	code, error := self.ReadModel.GetDeviceConfirmCode(session.UserID, req.DeviceID)
+	if error != nil {
+		log.Errorf("User.GetConfirmCode, could not find code, %v", err)
+		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
+	}
+
+	c.JSON(200, ConfirmDeviceCode{Code: code}.ToMap())
 }
 
 func (self ApiImpl) DeleteDevice(c *gin.Context) {

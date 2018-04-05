@@ -226,7 +226,7 @@ func TestBridge_EditUserProfile(t *testing.T) {
 	assert.False(t, permissions.Is2FARequired)
 	assert.False(t, permissions.IsLocked)
 	assert.False(t, permissions.IsEmailConfirmed)
-	assert.Equal(t, int64(0), permissions.Scope)
+	assert.Equal(t, 0, permissions.Scope)
 
 	personal := profile.PersonalInfo
 	assert.Empty(t, personal.FirstName)
@@ -265,7 +265,7 @@ func TestBridge_EditUserProfile(t *testing.T) {
 	assert.True(t, pr1.Is2FARequired)
 	assert.True(t, pr1.IsLocked)
 	assert.True(t, pr1.IsEmailConfirmed)
-	assert.Equal(t, int64(2), pr1.Scope)
+	assert.Equal(t, 2, pr1.Scope)
 
 	assert.Equal(t, "FirstName", pr1.FirstName)
 	assert.Equal(t, "LastName", pr1.LastName)
