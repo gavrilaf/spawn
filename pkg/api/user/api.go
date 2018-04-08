@@ -121,14 +121,7 @@ func (self ApiImpl) ConfirmDevice(c *gin.Context) {
 }
 
 func (self ApiImpl) GetConfirmCode(c *gin.Context) {
-	var req GetConfirmCodeRequest
-
-	err := c.Bind(&req)
-	if err != nil {
-		log.Errorf("User.GetConfirmCode, could not bind, %v", err)
-		ginx.HandleError(c, defs.ErrScope, http.StatusBadRequest, defs.ErrInvalidRequest)
-		return
-	}
+	deviceID := c.Param("id")
 
 	session, err := ginx.GetContextSession(c)
 	if err != nil {
@@ -137,7 +130,7 @@ func (self ApiImpl) GetConfirmCode(c *gin.Context) {
 		return
 	}
 
-	code, error := self.ReadModel.GetDeviceConfirmCode(session.UserID, req.DeviceID)
+	code, error := self.ReadModel.GetDeviceConfirmCode(session.UserID, deviceID)
 	if error != nil {
 		log.Errorf("User.GetConfirmCode, could not find code, %v", err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)

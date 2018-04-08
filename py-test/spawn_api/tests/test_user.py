@@ -172,6 +172,38 @@ class TestUser(unittest.TestCase):
         self.assertTrue(is_error)  # access denied
         self.assertEqual(err["reason"], "device-not-confirmed")
 
+    # Register new user; login with new device;
+    # get confirm code for second device; confirm second device; check device state
+    # Should: second device confirmed; all functions are working
+    def testConfirmDevice(self):
+        err = self.cn.sign_up()
+        self.assertIsNone(err)
+
+        cn2 = SpawnConn()
+        cn2.username = self.cn.username
+        cn2.password = self.cn.password
+        cn2.device = spawn.Device("device-2", "device-2-name")
+
+        err = cn2.sign_in()
+        self.assertIsNone(err)
+
+        is_error, second_state = cn2.api.get_state()
+        self.assertFalse(is_error)
+        self.assertEqual(False, second_state["permissions"]["is_device_confirmed"])  # new device, not confirmed
+
+        is_error, code = self.cn.api.get_device_confirm_code("device-2")
+        self.assertFalse(is_error)
+
+        err = cn2.api.confirm_device(code)
+        self.assertIsNone(err)
+
+        is_error, second_state = cn2.api.get_state()
+        self.assertFalse(is_error)
+        self.assertEqual(True, second_state["permissions"]["is_device_confirmed"])  # now confirmed
+
+        is_error, err = cn2.api.get_accounts()
+        self.assertFalse(is_error)  # access for api is allowed
+
 
 if __name__ == '__main__':
     unittest.main()

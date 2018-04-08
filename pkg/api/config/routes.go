@@ -14,10 +14,12 @@ var (
 	eAuthLogin    = defs.Endpoint{Path: "/login", Method: "POST"}
 	eAuthRefresh  = defs.Endpoint{Path: "/refresh_token", Method: "POST"}
 
-	eUserState         = defs.Endpoint{Path: "/state", Method: "GET"}
-	eUserLogout        = defs.Endpoint{Path: "/logout", Method: "POST"}
-	eUserDevices       = defs.Endpoint{Path: "/devices", Method: "GET"}
-	eUserDevicesDelete = defs.Endpoint{Path: "/devices/:id", Method: "DELETE"}
+	eUserState                = defs.Endpoint{Path: "/state", Method: "GET"}
+	eUserLogout               = defs.Endpoint{Path: "/logout", Method: "POST"}
+	eUserDevices              = defs.Endpoint{Path: "/devices", Method: "GET"}
+	eUserDevicesDelete        = defs.Endpoint{Path: "/devices/:id", Method: "DELETE"}
+	eUserDeviceGetConfirmCode = defs.Endpoint{Path: "/devices/:id/code", Method: "GET"}
+	eUserDeviceConfirm        = defs.Endpoint{Path: "/devices/confirm", Method: "POST"}
 
 	eProfileGet         = defs.Endpoint{Path: "/", Method: "GET"}
 	eProfileUpdCountry  = defs.Endpoint{Path: "/country", Method: "POST"}

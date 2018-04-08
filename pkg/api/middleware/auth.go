@@ -14,8 +14,8 @@ type Auth struct {
 	*api.Bridge
 }
 
-func CreateAuth(bridge *api.Bridge) Auth {
-	return Auth{Bridge: bridge}
+func CreateAuth(bridge *api.Bridge) *Auth {
+	return &Auth{Bridge: bridge}
 }
 
 func (self Auth) MiddlewareFunc() gin.HandlerFunc {

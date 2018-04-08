@@ -33,28 +33,30 @@ func ConfigureEngine(engine *gin.Engine, bridge *api.Bridge) {
 	user := engine.Group(gUser)
 	user.Use(authMiddleware.MiddlewareFunc())
 	{
-		addHandler(user, eUserState, &accessMiddleware, userAPI.GetState)
-		addHandler(user, eUserLogout, &accessMiddleware, userAPI.Logout)
-		addHandler(user, eUserDevices, &accessMiddleware, userAPI.GetDevices)
-		addHandler(user, eUserDevicesDelete, &accessMiddleware, userAPI.DeleteDevice)
+		addHandler(user, eUserState, accessMiddleware, userAPI.GetState)
+		addHandler(user, eUserLogout, accessMiddleware, userAPI.Logout)
+		addHandler(user, eUserDevices, accessMiddleware, userAPI.GetDevices)
+		addHandler(user, eUserDevicesDelete, accessMiddleware, userAPI.DeleteDevice)
+		addHandler(user, eUserDeviceGetConfirmCode, accessMiddleware, userAPI.GetConfirmCode)
+		addHandler(user, eUserDeviceConfirm, accessMiddleware, userAPI.ConfirmDevice)
 	}
 
 	profile := engine.Group(gProfile)
 	profile.Use(authMiddleware.MiddlewareFunc())
 	{
-		addHandler(profile, eProfileGet, &accessMiddleware, profileAPI.GetUserProfile)
-		addHandler(profile, eProfileUpdCountry, &accessMiddleware, profileAPI.UpdateUserCountry)
-		addHandler(profile, eProfileUpdPersonal, &accessMiddleware, profileAPI.UpdateUserPersonalInfo)
+		addHandler(profile, eProfileGet, accessMiddleware, profileAPI.GetUserProfile)
+		addHandler(profile, eProfileUpdCountry, accessMiddleware, profileAPI.UpdateUserCountry)
+		addHandler(profile, eProfileUpdPersonal, accessMiddleware, profileAPI.UpdateUserPersonalInfo)
 	}
 
 	accounts := engine.Group(gAccounts)
 	accounts.Use(authMiddleware.MiddlewareFunc())
 	{
-		addHandler(accounts, eAccountsGet, &accessMiddleware, accountsApi.GetAccounts)
-		addHandler(accounts, eAccountsState, &accessMiddleware, accountsApi.GetAccountState)
-		addHandler(accounts, eAccountsRegister, &accessMiddleware, accountsApi.RegisterAccount)
-		addHandler(accounts, eAccountsSuspend, &accessMiddleware, accountsApi.SuspendAccount)
-		addHandler(accounts, eAccountsResume, &accessMiddleware, accountsApi.ResumeAccount)
+		addHandler(accounts, eAccountsGet, accessMiddleware, accountsApi.GetAccounts)
+		addHandler(accounts, eAccountsState, accessMiddleware, accountsApi.GetAccountState)
+		addHandler(accounts, eAccountsRegister, accessMiddleware, accountsApi.RegisterAccount)
+		addHandler(accounts, eAccountsSuspend, accessMiddleware, accountsApi.SuspendAccount)
+		addHandler(accounts, eAccountsResume, accessMiddleware, accountsApi.ResumeAccount)
 	}
 }
 

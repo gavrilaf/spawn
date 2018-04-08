@@ -18,8 +18,8 @@ type Access struct {
 	acl       map[string]defs.Access
 }
 
-func CreateAccess(bridge *api.Bridge, defAccess defs.Access, acl []defs.EndpointAccess) Access {
-	p := Access{Bridge: bridge, defAccess: defAccess, acl: make(map[string]defs.Access)}
+func CreateAccess(bridge *api.Bridge, defAccess defs.Access, acl []defs.EndpointAccess) *Access {
+	p := &Access{Bridge: bridge, defAccess: defAccess, acl: make(map[string]defs.Access)}
 	for _, acc := range acl {
 		endpointKey := defs.GetEndpointKey("/"+acc.Group, acc.Endpoint)
 		log.Infof("Acl for: %s, %v", endpointKey, acc.Access)

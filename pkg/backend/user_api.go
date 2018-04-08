@@ -26,6 +26,32 @@ func (srv *Server) ConfirmDevice(arg *pb.ConfirmDeviceReq) (*pb.Empty, error) {
 		return nil, errx.ErrNotFound(ErrScope, "Could not find confirmation code")
 	}
 
+	device, err := srv.db.GetUserDevice(session.UserID, session.DeviceID)
+	if err != nil {
+		log.Errorf("Could not find device, %v", err)
+		return nil, err
+	}
+
+	device.IsConfirmed = true
+	err = srv.db.UpdateDevice(*device)
+	if err != nil {
+		log.Errorf("Could not update device, %v", err)
+		return nil, err
+	}
+
+	err = srv.updateCachedUserDevices(session.UserID)
+	if err != nil {
+		log.Errorf("Could not update devices list in the read model, %v", err)
+		return nil, err
+	}
+
+	session.IsDeviceConfirmed = true
+	err = srv.cache.SetSession(*session)
+	if err != nil {
+		log.Errorf("Could not update session in the read model, %v", err)
+		return nil, err
+	}
+
 	return &pb.Empty{}, nil
 }
 

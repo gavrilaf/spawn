@@ -112,6 +112,25 @@ class SpawnApi:
         else:
             return False, json
 
+    def get_device_confirm_code(self, id):
+        url = "/user/devices/{}/code".format(id)
+        resp = requests.get(self.endpoint + url, headers={"Authorization": "Bearer " + self.auth_token})
+        json = resp.json()
+        if resp.status_code != 200:
+            return True, json["error"]
+        else:
+            return False, json["code"]
+
+    def confirm_device(self, code):
+        request = {
+            "Code": code
+        }
+        resp = requests.post(self.endpoint + '/user/devices/confirm', json=request, headers={"Authorization": "Bearer " + self.auth_token})
+        if resp.status_code != 200:
+            return resp.json()["error"]
+        else:
+            return None
+
     def delete_device(self, id):
         resp = requests.delete(self.endpoint + "/user/devices/" + id, headers={"Authorization": "Bearer " + self.auth_token})
         json = resp.json()
