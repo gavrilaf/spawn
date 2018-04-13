@@ -101,12 +101,12 @@ func (srv *Server) GetServerState() ServerState {
 func (srv *Server) Close() {
 	if srv.db != nil {
 		err := srv.db.Close()
-		log.Info("Closed database with err: %v", err)
+		log.Infof("Closed database with err: %v", err)
 	}
 
 	if srv.cache != nil {
 		err := srv.cache.Close()
-		log.Info("Closed read model with err: %v", err)
+		log.Infof("Closed read model with err: %v", err)
 	}
 
 	srv.state = StateCreated

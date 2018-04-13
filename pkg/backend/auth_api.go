@@ -2,8 +2,8 @@ package backend
 
 import (
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
-	"github.com/gavrilaf/spawn/pkg/cryptx"
-	mdl "github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -37,40 +37,6 @@ func (srv *Server) CreateUser(arg *pb.CreateUserReq) (*pb.ResID, error) {
 	log.Infof("User created, %s, %s", arg.Username, profile.ID)
 
 	return &pb.ResID{ID: profile.ID}, nil
-}
-
-func (srv *Server) AddDevice(arg *pb.UserDevice) (*pb.Empty, error) {
-	log.Infof("AddDevice, %s", arg.String())
-
-	device := mdl.DeviceInfo{
-		ID:          arg.Device.ID,
-		UserID:      arg.UserID,
-		Name:        arg.Device.Name,
-		IsConfirmed: false,
-		Locale:      arg.Device.Locale,
-		Lang:        arg.Device.Lang,
-	}
-
-	if err := srv.db.AddDevice(device); err != nil {
-		log.Errorf("Could not add device to the db, %v", err)
-		return nil, err
-	}
-
-	if err := srv.cache.SetDevice(device); err != nil {
-		log.Errorf("Could not add device to the cache, %v", err)
-		return nil, err
-	}
-
-	// Generate confirm code
-	code := cryptx.GenerateConfimCode()
-	if err := srv.cache.AddDeviceConfirmCode(arg.UserID, arg.Device.ID, code); err != nil {
-		log.Errorf("Storing confirm code error, %v", err)
-		return nil, err
-	}
-
-	log.Infof("Device %s for user %s added. Confirm code %s", arg.UserID, arg.Device.ID, code)
-
-	return &pb.Empty{}, nil
 }
 
 func (srv *Server) HandleLogin(arg *pb.LoginReq) (*pb.Empty, error) {

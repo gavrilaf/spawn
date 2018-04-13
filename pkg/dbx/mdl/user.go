@@ -38,11 +38,11 @@ type DeviceInfoEx struct {
 	DeviceInfo
 }
 
-func (d DeviceInfoEx) GetLoginTime() *time.Time {
+func (d DeviceInfoEx) GetLoginTime() time.Time {
 	if d.LoginTime.Valid {
-		return &d.LoginTime.Time
+		return d.LoginTime.Time
 	}
-	return nil
+	return time.Unix(0, 0)
 }
 
 func (d DeviceInfoEx) GetLoginIP() string {

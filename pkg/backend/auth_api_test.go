@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"fmt"
 	"github.com/satori/go.uuid"
 
 	"github.com/stretchr/testify/assert"
@@ -9,18 +8,10 @@ import (
 	"testing"
 
 	"github.com/gavrilaf/spawn/pkg/backend/pb"
-	"github.com/gavrilaf/spawn/pkg/senv"
 )
 
-func createServer(t *testing.T) *Server {
-	en := senv.GetEnvironment()
-	srv := CreateServer(en)
-	require.NotNil(t, srv)
-	return srv
-}
-
 func TestServer_RegisterUser(t *testing.T) {
-	srv := createServer(t)
+	srv := createTestSrv(t)
 	defer srv.Close()
 
 	username := uuid.NewV4().String() + "@spawn.com"
@@ -38,11 +29,13 @@ func TestServer_RegisterUser(t *testing.T) {
 	res, err := srv.CreateUser(&arg)
 	assert.Nil(t, err)
 
+	// User profile is saved to the db
 	dbUser, err := srv.db.GetUserProfile(res.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, dbUser)
 	assert.Equal(t, username, dbUser.Username)
 
+	// Device is added
 	dbDevices, err := srv.db.GetUserDevices(res.ID)
 	assert.Nil(t, err)
 
@@ -54,12 +47,14 @@ func TestServer_RegisterUser(t *testing.T) {
 	assert.Equal(t, "es", dbDevices[0].Lang)
 	assert.Equal(t, true, dbDevices[0].IsConfirmed)
 
+	// User auth info stores to the cache
 	cacheUser, err := srv.cache.FindUserAuthInfo(username)
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheUser)
 	assert.Equal(t, username, cacheUser.Username)
 	assert.Equal(t, dbUser.ID, cacheUser.ID)
 
+	// Device info stores to the cache
 	cacheDevice, err := srv.cache.GetDevice(res.ID, "device-1")
 	assert.Nil(t, err)
 	assert.NotNil(t, cacheDevice)
@@ -71,76 +66,17 @@ func TestServer_RegisterUser(t *testing.T) {
 	assert.Equal(t, true, cacheDevice.IsConfirmed)
 }
 
-func TestServer_AddDevice(t *testing.T) {
-	srv := createServer(t)
-	defer srv.Close()
-
-	username := uuid.NewV4().String() + "@spawn.com"
-
-	device := pb.Device{
-		ID:     "d1",
-		Name:   "Test device",
-		Locale: "ru",
-		Lang:   "ru"}
-
-	userArg := pb.CreateUserReq{
-		Username:     username,
-		PasswordHash: "123456",
-		Device:       &device,
-	}
-
-	user, err := srv.CreateUser(&userArg)
-	assert.Nil(t, err)
-
-	device.ID = "d2"
-	_, err = srv.AddDevice(&pb.UserDevice{UserID: user.ID, Device: &device})
-	assert.Nil(t, err)
-
-	code, err := srv.cache.GetDeviceConfirmCode(user.ID, device.ID)
-	assert.NotEmpty(t, code)
-	assert.Nil(t, err)
-
-	fmt.Printf("Confirmation code is %v\n", code)
-
-	dbDevices, err := srv.db.GetUserDevices(user.ID)
-	assert.Nil(t, err)
-	assert.Equal(t, 2, len(dbDevices))
-
-	cacheDevice, err := srv.cache.GetDevice(user.ID, "d2")
-	assert.Nil(t, err)
-	assert.NotNil(t, cacheDevice)
-
-	assert.Equal(t, "d2", cacheDevice.DeviceID)
-	assert.Equal(t, user.ID, cacheDevice.UserID)
-	assert.Equal(t, "ru", cacheDevice.Locale)
-	assert.Equal(t, "ru", cacheDevice.Lang)
-	assert.Equal(t, false, cacheDevice.IsConfirmed)
-}
-
 func TestServer_HandleLogin(t *testing.T) {
-	srv := createServer(t)
+	srv := createTestSrv(t)
 	defer srv.Close()
 
-	username := uuid.NewV4().String() + "@spawn.com"
+	userID := regTestUser(t, srv, testDevice)
 
-	device := pb.Device{
-		ID:     "d1",
-		Name:   "Test device",
-		Locale: "ru",
-		Lang:   "ru"}
-
-	userID, err := srv.CreateUser(&pb.CreateUserReq{
-		Username:     username,
-		PasswordHash: "123456",
-		Device:       &device,
-	})
-	assert.Nil(t, err)
-
-	devices, err := srv.db.GetUserDevicesEx(userID.ID)
+	// After registration user sign in log is empty
+	devices, err := srv.db.GetUserDevicesEx(userID)
 	require.Nil(t, err)
-	assert.Equal(t, 1, len(devices))
 
-	assert.Nil(t, devices[0].GetLoginTime())
+	assert.Equal(t, int64(0), devices[0].GetLoginTime().Unix())
 	assert.Equal(t, "", devices[0].GetUserAgent())
 	assert.Equal(t, "", devices[0].GetLoginIP())
 	assert.Equal(t, "", devices[0].GetLoginRegion())
@@ -148,16 +84,20 @@ func TestServer_HandleLogin(t *testing.T) {
 	assert.Equal(t, "ru", devices[0].Lang)
 	assert.Equal(t, "Test device", devices[0].Name)
 
-	device.Lang = "es"
-	device.Locale = "en"
-	device.Name = "Updated"
+	device := pb.Device{
+		ID:     testDevice.ID,
+		Name:   "Updated",
+		Locale: "en",
+		Lang:   "es"}
 
-	loginArg := pb.LoginReq{SessionID: "", UserID: userID.ID, Device: &device, UserAgent: "test", LoginIP: "127.0.0.1", LoginRegion: "ru"}
+	loginArg := pb.LoginReq{SessionID: "", UserID: userID, Device: &device, UserAgent: "test", LoginIP: "127.0.0.1", LoginRegion: "ru"}
 
+	// Handle user sign in
 	_, err = srv.HandleLogin(&loginArg)
 	assert.Nil(t, err)
 
-	devices, err = srv.db.GetUserDevicesEx(userID.ID)
+	// User sign in log is updated
+	devices, err = srv.db.GetUserDevicesEx(userID)
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(devices))
 	assert.Equal(t, "test", devices[0].GetUserAgent())
