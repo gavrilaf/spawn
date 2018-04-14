@@ -40,7 +40,7 @@ func TestBridge_SetUserDevicesInfo(t *testing.T) {
 			UserAgent:   sql.NullString{String: "test-22", Valid: true},
 			LoginRegion: sql.NullString{String: "USA", Valid: true},
 			DeviceInfo: db.DeviceInfo{
-				ID:          "d1",
+				DeviceID:    "d1",
 				IsConfirmed: true,
 				Locale:      "en",
 				Lang:        "en",
@@ -52,7 +52,7 @@ func TestBridge_SetUserDevicesInfo(t *testing.T) {
 			UserAgent:   sql.NullString{String: "test", Valid: true},
 			LoginRegion: sql.NullString{String: "USA", Valid: true},
 			DeviceInfo: db.DeviceInfo{
-				ID:          "d2",
+				DeviceID:    "d2",
 				IsConfirmed: true,
 				Locale:      "es",
 				Lang:        "es",

@@ -22,8 +22,7 @@ func TestBridge_AddAccount(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
 
-	user, _ := createTestUser(db)
-	require.NotNil(t, user)
+	user := createTestUser(t, db)
 
 	acc1, err := db.AddAccount(user.ID, "BTC", "BTC test wallet")
 	assert.Nil(t, err)
@@ -47,8 +46,7 @@ func TestBridge_GetUserAccounts(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
 
-	user, _ := createTestUser(db)
-	require.NotNil(t, user)
+	user := createTestUser(t, db)
 
 	allowed, err := db.GetAccountsAllowedForUser(user.ID)
 	assert.Nil(t, err)

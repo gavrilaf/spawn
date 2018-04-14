@@ -40,7 +40,7 @@ func TestServer_RegisterUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, 1, len(dbDevices))
-	assert.Equal(t, "device-1", dbDevices[0].ID)
+	assert.Equal(t, "device-1", dbDevices[0].DeviceID)
 	assert.Equal(t, "Test device", dbDevices[0].Name)
 	assert.Equal(t, dbUser.ID, dbDevices[0].UserID)
 	assert.Equal(t, "ru", dbDevices[0].Locale)

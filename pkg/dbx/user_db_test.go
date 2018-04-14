@@ -1,18 +1,17 @@
 package dbx
 
 import (
-	"fmt"
-	"testing"
 	"time"
-
-	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
-	"github.com/gavrilaf/spawn/pkg/errx"
-	"github.com/gavrilaf/spawn/pkg/utils"
 
 	"github.com/satori/go.uuid"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"testing"
+
+	"github.com/gavrilaf/spawn/pkg/dbx/mdl"
+	"github.com/gavrilaf/spawn/pkg/errx"
+	"github.com/gavrilaf/spawn/pkg/utils"
 )
 
 func TestBridge_GetClients(t *testing.T) {
@@ -24,11 +23,11 @@ func TestBridge_GetClients(t *testing.T) {
 	assert.NotEmpty(t, clients)
 }
 
-func TestBridge_ProfileNotFound(t *testing.T) {
+func TestBridge_UserNotFound(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
 
-	new_id := uuid.NewV4().String()
+	newID := uuid.NewV4().String()
 
 	check := func(e error) {
 		scope, reason := errx.GetErrorReason(e)
@@ -36,17 +35,17 @@ func TestBridge_ProfileNotFound(t *testing.T) {
 		assert.Equal(t, errx.ReasonNotFound, reason)
 	}
 
-	p, err := db.GetUserProfile(new_id)
+	p, err := db.GetUserProfile(newID)
 	assert.Nil(t, p)
 	require.NotNil(t, err)
 	check(err)
 
-	p, err = db.FindUserProfile(new_id)
+	p, err = db.FindUserProfile(newID)
 	assert.Nil(t, p)
 	require.NotNil(t, err)
 	check(err)
 
-	pd, err := db.GetUserDevice(new_id, new_id)
+	pd, err := db.GetUserDevice(newID, newID)
 	assert.Nil(t, pd)
 	require.NotNil(t, err)
 	check(err)
@@ -58,7 +57,7 @@ func TestBridge_RegisterProfile(t *testing.T) {
 
 	username := uuid.NewV4().String()
 
-	device := mdl.DeviceInfo{ID: "d1", Name: "d1-name", IsConfirmed: true}
+	device := testDevice
 
 	profile, err := db.RegisterUser(username, "password", device)
 	require.Nil(t, err)
@@ -85,16 +84,20 @@ func TestBridge_RegisterProfile(t *testing.T) {
 	require.NotNil(t, devices)
 
 	assert.Equal(t, 1, len(devices))
-	assert.Equal(t, devices[0].ID, device.ID)
-	assert.Equal(t, devices[0].UserID, profile.ID)
+
+	device.UserID = profile.ID
+	assert.Equal(t, device, devices[0])
 }
 
 func TestBridge_ReadAllProfiles(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
-	profiles, errs := db.ReadAllUserProfiles()
 
+	createTestUser(t, db)
+
+	profiles, errs := db.ReadAllUserProfiles()
 	counter := 0
+
 readLoop:
 	for {
 		select {
@@ -103,7 +106,6 @@ readLoop:
 				break readLoop
 			}
 			counter++
-			continue readLoop
 		case e := <-errs:
 			assert.Truef(t, false, "Read profiles error: %v", e)
 			break readLoop
@@ -113,55 +115,38 @@ readLoop:
 		}
 	}
 
-	fmt.Printf("Readed %d profiles\n", counter)
+	assert.True(t, counter > 0)
+	//fmt.Printf("Readed %d profiles\n", counter)
 }
 
 func TestBridge_DeviceManagement(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
 
-	username := uuid.NewV4().String()
+	profile := createTestUser(t, db)
 
-	d1 := mdl.DeviceInfo{ID: "d1", Name: "d1-name", IsConfirmed: true, Lang: "ru", Locale: "es"}
+	// Check update device
+	d1, _ := db.GetUserDevice(profile.ID, testDevice.DeviceID)
 
-	profile, err := db.RegisterUser(username, "password", d1)
-	require.Nil(t, err)
+	err := db.SetDeviceFingerprint(profile.ID, d1.DeviceID, []byte("fingerprint"))
+	assert.Nil(t, err)
 
-	d2 := mdl.DeviceInfo{ID: "d2", UserID: profile.ID, Name: "d2-name", IsConfirmed: false}
-	d3 := mdl.DeviceInfo{ID: "d3", UserID: profile.ID, Name: "d3-name", IsConfirmed: false}
-
-	devices, err := db.GetUserDevices(profile.ID)
-	require.Nil(t, err)
-
-	assert.Equal(t, 1, len(devices))
-	assert.Equal(t, true, devices[0].IsConfirmed)
-	assert.Equal(t, "d1-name", devices[0].Name)
-	assert.Equal(t, "ru", devices[0].Lang)
-	assert.Equal(t, "es", devices[0].Locale)
-
-	d1.UserID = profile.ID
 	d1.Name = "d1-new-name"
 	d1.Lang = "it"
 	d1.Locale = "en"
 
-	assert.Equal(t, []byte(nil), d1.Fingerprint)
-
-	err = db.SetDeviceFingerprint(profile.ID, "d1", []byte("fingerprint"))
+	err = db.UpdateDevice(*d1)
 	assert.Nil(t, err)
 
-	err = db.UpdateDevice(d1)
-	assert.Nil(t, err)
+	dd1, _ := db.GetUserDevice(profile.ID, testDevice.DeviceID)
 
-	dd1, err := db.GetUserDevice(profile.ID, "d1")
-	assert.Nil(t, err)
-	require.NotNil(t, dd1)
+	d1.Fingerprint = []byte("fingerprint")
 
-	assert.Equal(t, true, dd1.IsConfirmed)
-	assert.Equal(t, "d1-new-name", dd1.Name)
-	assert.Equal(t, "it", dd1.Lang)
-	assert.Equal(t, "en", dd1.Locale)
+	assert.Equal(t, d1, dd1)
 
-	assert.Equal(t, []byte("fingerprint"), dd1.Fingerprint)
+	// Check add/remove devices
+	d2 := mdl.DeviceInfo{DeviceID: "d2", UserID: profile.ID, Name: "d2-name", IsConfirmed: false}
+	d3 := mdl.DeviceInfo{DeviceID: "d3", UserID: profile.ID, Name: "d3-name", IsConfirmed: false}
 
 	err = db.AddDevice(d2)
 	require.Nil(t, err)
@@ -169,11 +154,11 @@ func TestBridge_DeviceManagement(t *testing.T) {
 	err = db.AddDevice(d3)
 	require.Nil(t, err)
 
-	devices, _ = db.GetUserDevices(profile.ID)
+	devices, _ := db.GetUserDevices(profile.ID)
 
 	assert.Equal(t, 3, len(devices))
 	for _, d := range devices {
-		if d.ID == "d2" || d.ID == "d3" {
+		if d.DeviceID == "d2" || d.DeviceID == "d3" {
 			assert.Equal(t, false, d.IsConfirmed)
 		}
 	}
@@ -191,12 +176,12 @@ func TestBridge_DeviceManagement(t *testing.T) {
 		assert.Equal(t, true, d.IsConfirmed)
 	}
 
-	db.RemoveDevice(profile.ID, "d1")
+	db.RemoveDevice(profile.ID, d1.DeviceID)
 	db.RemoveDevice(profile.ID, "d2")
 
 	devices, _ = db.GetUserDevices(profile.ID)
 	assert.Equal(t, 1, len(devices))
-	assert.Equal(t, "d3", devices[0].ID)
+	assert.Equal(t, "d3", devices[0].DeviceID)
 
 	db.RemoveDevice(profile.ID, "d3")
 
@@ -208,12 +193,7 @@ func TestBridge_EditUserProfile(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
 
-	username := uuid.NewV4().String()
-
-	device := mdl.DeviceInfo{ID: "devive", Name: "d-name", IsConfirmed: true}
-
-	profile, err := db.RegisterUser(username, "password", device)
-	require.Nil(t, err)
+	profile := createTestUser(t, db)
 
 	assert.Empty(t, profile.Country)
 
@@ -233,7 +213,7 @@ func TestBridge_EditUserProfile(t *testing.T) {
 	assert.Empty(t, personal.LastName)
 	assert.Equal(t, utils.EmptyBirthdayDate, personal.BirthDate)
 
-	err = db.UpdateUserCountry(profile.ID, "en")
+	err := db.UpdateUserCountry(profile.ID, "en")
 	assert.Nil(t, err)
 
 	permissions.Is2FARequired = true
@@ -280,12 +260,7 @@ func TestBridge_LoginLog(t *testing.T) {
 	db := getBridge(t)
 	defer db.Close()
 
-	username := uuid.NewV4().String()
-
-	device := mdl.DeviceInfo{ID: "device", Name: "d-name", IsConfirmed: true}
-
-	profile, err := db.RegisterUser(username, "password", device)
-	require.Nil(t, err)
+	profile := createTestUser(t, db)
 
 	dex, err := db.GetUserDevicesEx(profile.ID)
 	require.Nil(t, err)
@@ -293,15 +268,15 @@ func TestBridge_LoginLog(t *testing.T) {
 
 	assert.Equal(t, 1, len(dex))
 	assert.Equal(t, profile.ID, dex[0].UserID)
-	assert.Equal(t, device.ID, dex[0].ID)
+	assert.Equal(t, testDevice.DeviceID, dex[0].DeviceID)
 	assert.Empty(t, dex[0].GetLoginIP())
 
-	err = db.LogUserLogin(profile.ID, "device", "user-agent", "127.0.0.1", "")
+	err = db.LogUserLogin(profile.ID, testDevice.DeviceID, "user-agent", "127.0.0.1", "")
 	assert.Nil(t, err)
 
 	time.Sleep(time.Second)
 
-	err = db.LogUserLogin(profile.ID, "device", "user-agent", "127.0.0.1", "")
+	err = db.LogUserLogin(profile.ID, testDevice.DeviceID, "user-agent", "127.0.0.1", "")
 	assert.Nil(t, err)
 
 	dex, err = db.GetUserDevicesEx(profile.ID)
@@ -310,6 +285,6 @@ func TestBridge_LoginLog(t *testing.T) {
 
 	assert.Equal(t, 1, len(dex))
 	assert.Equal(t, profile.ID, dex[0].UserID)
-	assert.Equal(t, device.ID, dex[0].ID)
+	assert.Equal(t, testDevice.DeviceID, dex[0].DeviceID)
 	assert.Equal(t, "127.0.0.1", dex[0].GetLoginIP())
 }

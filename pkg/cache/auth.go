@@ -218,7 +218,7 @@ func (br *Bridge) SetDevice(device db.DeviceInfo) error {
 	defer conn.Close()
 
 	ad := mdl.CreateAuthDeviceFromDevice(device)
-	_, err := conn.Do("HMSET", redis.Args{}.Add(authDeviceID(device.UserID, device.ID)).AddFlat(&ad)...)
+	_, err := conn.Do("HMSET", redis.Args{}.Add(authDeviceID(device.UserID, device.DeviceID)).AddFlat(&ad)...)
 	return err
 }
 

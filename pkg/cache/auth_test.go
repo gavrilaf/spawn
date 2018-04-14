@@ -206,8 +206,8 @@ func TestBridge_SetUserAuthInfo(t *testing.T) {
 			LastName:  "LastName"}}
 
 	devices := []db.DeviceInfo{
-		db.DeviceInfo{ID: "d1"},
-		db.DeviceInfo{ID: "id2", Fingerprint: []byte("fingerpring")},
+		db.DeviceInfo{DeviceID: "d1"},
+		db.DeviceInfo{DeviceID: "id2", Fingerprint: []byte("fingerpring")},
 	}
 
 	err := cache.SetUserAuthInfo(profile, devices)
@@ -243,8 +243,8 @@ func TestBridge_SetDevice(t *testing.T) {
 				Is2FARequired:    false}}}
 
 	devices := []db.DeviceInfo{
-		db.DeviceInfo{ID: "d1", IsConfirmed: false, Locale: "ru", Lang: "ru"},
-		db.DeviceInfo{ID: "d2", IsConfirmed: true, Fingerprint: []byte("fingerprint"), Locale: "en", Lang: "en"},
+		db.DeviceInfo{DeviceID: "d1", IsConfirmed: false, Locale: "ru", Lang: "ru"},
+		db.DeviceInfo{DeviceID: "d2", IsConfirmed: true, Fingerprint: []byte("fingerprint"), Locale: "en", Lang: "en"},
 	}
 
 	err := cache.SetUserAuthInfo(profile, devices)
@@ -268,7 +268,7 @@ func TestBridge_SetDevice(t *testing.T) {
 	dd1, _ := cache.GetDevice(profile.ID, "d1")
 	assert.Nil(t, dd1)
 
-	err = cache.SetDevice(db.DeviceInfo{ID: "d3", UserID: profile.ID})
+	err = cache.SetDevice(db.DeviceInfo{DeviceID: "d3", UserID: profile.ID})
 	assert.Nil(t, err)
 
 	d3, _ := cache.GetDevice(profile.ID, "d3")

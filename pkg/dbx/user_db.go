@@ -116,7 +116,7 @@ func (db *Bridge) RegisterUser(username string, password string, device mdl.Devi
 	}
 
 	_, err = tx.Exec(addDevice,
-		device.ID,
+		device.DeviceID,
 		userID,
 		device.Name,
 		device.IsConfirmed,
@@ -231,7 +231,7 @@ func (db *Bridge) ReadAllUserProfiles() (<-chan *mdl.UserProfile, <-chan error) 
 // AddDevice
 func (db *Bridge) AddDevice(device mdl.DeviceInfo) error {
 	_, err := db.conn.Exec(addDevice,
-		device.ID,
+		device.DeviceID,
 		device.UserID,
 		device.Name,
 		device.IsConfirmed,
@@ -250,7 +250,7 @@ func (db *Bridge) ConfirmDevice(userID string, deviceID string) error {
 // UpdateDevice
 func (db *Bridge) UpdateDevice(device mdl.DeviceInfo) error {
 	_, err := db.conn.Exec(updateDevice,
-		device.ID,
+		device.DeviceID,
 		device.UserID,
 		device.Name,
 		device.Locale,

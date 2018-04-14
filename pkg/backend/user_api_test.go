@@ -13,8 +13,9 @@ func TestServer_AddDevice(t *testing.T) {
 	defer srv.Close()
 
 	userID := regTestUser(t, srv, testDevice)
+	deviceID := "d2"
 
-	device := pb.Device{ID: "d2",
+	device := pb.Device{ID: deviceID,
 		Name:   "Test device",
 		Locale: "ru",
 		Lang:   "es"}
@@ -28,9 +29,13 @@ func TestServer_AddDevice(t *testing.T) {
 	assert.Nil(t, err)
 
 	// New device added to the db
-	dbDevices, err := srv.db.GetUserDevices(userID)
+	dbDevice, err := srv.db.GetUserDevice(userID, deviceID)
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(dbDevices))
+	assert.NotNil(t, dbDevice)
+
+	assert.Equal(t, "d2", dbDevice.DeviceID)
+	assert.Equal(t, "Test device", dbDevice.Name)
+	assert.Equal(t, false, dbDevice.IsConfirmed)
 
 	// and cache
 	cacheDevice, err := srv.cache.GetDevice(userID, "d2")
@@ -78,10 +83,41 @@ func TestServer_ConfirmDevice(t *testing.T) {
 	assert.True(t, session.IsDeviceConfirmed) // Device is confirmed now
 
 	// Should be removed confrim code
-	code, err = srv.cache.GetDeviceConfirmCode(userID, device.ID)
+	_, err = srv.cache.GetDeviceConfirmCode(userID, device.ID)
 	assert.NotNil(t, err)
 }
 
 func TestServer_DeleteDevice(t *testing.T) {
+	srv := createTestSrv(t)
+	defer srv.Close()
 
+	userID := regTestUser(t, srv, testDevice)
+	deviceID := "d2"
+
+	device := pb.Device{ID: deviceID,
+		Name:   "Test device",
+		Locale: "ru",
+		Lang:   "es"}
+
+	_, err := srv.AddDevice(&pb.UserDevice{UserID: userID, Device: &device})
+	assert.Nil(t, err)
+
+	sessionID := makeFakeSession(t, srv, userID, deviceID, false)
+
+	_, err = srv.DeleteDevice(&pb.UserDeviceID{UserID: userID, DeviceID: deviceID})
+	assert.Nil(t, err)
+
+	// Should invalidate session
+	_, err = srv.cache.GetSession(sessionID)
+	assert.NotNil(t, err)
+
+	// Should remove device from db
+	_, err = srv.db.GetUserDevice(userID, deviceID)
+	assert.NotNil(t, err)
+
+	// FIX IT: !!!
+	// Should remove device from cache
+	ddd, err := srv.cache.GetDevice(userID, deviceID)
+	assert.NotNil(t, err)
+	assert.Nil(t, ddd)
 }

@@ -13,7 +13,7 @@ func (self *Server) AddDevice(arg *pb.UserDevice) (*pb.Empty, error) {
 	log.Infof("AddDevice, %s", arg.String())
 
 	device := mdl.DeviceInfo{
-		ID:          arg.Device.ID,
+		DeviceID:    arg.Device.ID,
 		UserID:      arg.UserID,
 		Name:        arg.Device.Name,
 		IsConfirmed: false,

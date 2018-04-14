@@ -21,7 +21,7 @@ type Client struct {
 // Device
 
 type DeviceInfo struct {
-	ID          string `db:"device_id" structs:"device_id"`
+	DeviceID    string `db:"device_id" structs:"device_id"`
 	Name        string `db:"device_name" structs:"device_name"`
 	UserID      string `db:"user_id" structs:"user_id"`
 	IsConfirmed bool   `db:"is_confirmed" structs:"is_confirmed"`

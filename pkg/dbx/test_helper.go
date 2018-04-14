@@ -23,8 +23,12 @@ func deleteAccount(db Database, accountID string) error {
 	return err
 }
 
-func createTestUser(db Database) (*mdl.UserProfile, error) {
+var testDevice = mdl.DeviceInfo{DeviceID: "d1-tes", Name: "d1-test-name", IsConfirmed: true, Fingerprint: []uint8{}, Locale: "ua", Lang: "en"}
+
+func createTestUser(t *testing.T, db Database) *mdl.UserProfile {
 	username := uuid.NewV4().String()
-	device := mdl.DeviceInfo{ID: "d1-tes", Name: "d1-test-name", IsConfirmed: true}
-	return db.RegisterUser(username, "password", device)
+	p, err := db.RegisterUser(username, "password", testDevice)
+	require.Nil(t, err)
+
+	return p
 }

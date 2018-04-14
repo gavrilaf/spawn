@@ -46,7 +46,7 @@ func CreateAuthUserFromProfile(p db.UserProfile) AuthUser {
 
 func CreateAuthDeviceFromDevice(d db.DeviceInfo) AuthDevice {
 	return AuthDevice{
-		DeviceID:    d.ID,
+		DeviceID:    d.DeviceID,
 		UserID:      d.UserID,
 		IsConfirmed: d.IsConfirmed,
 		Fingerprint: d.Fingerprint,

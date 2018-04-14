@@ -24,7 +24,7 @@ func (br *Bridge) SetUserDevicesInfo(userID string, devices []db.DeviceInfoEx) e
 	}
 
 	for _, d := range devices {
-		key := userDevicesID(userID, d.ID)
+		key := userDevicesID(userID, d.DeviceID)
 		dd := mdl.CreateUserDeviceInfoFromDb(d)
 		_, err := conn.Do("HMSET", redis.Args{}.Add(key).AddFlat(&dd)...)
 

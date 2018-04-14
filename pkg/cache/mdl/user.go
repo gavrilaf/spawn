@@ -22,7 +22,7 @@ type UserDeviceInfo struct {
 
 func CreateUserDeviceInfoFromDb(d db.DeviceInfoEx) UserDeviceInfo {
 	return UserDeviceInfo{
-		ID:          d.ID,
+		ID:          d.DeviceID,
 		Name:        d.Name,
 		IsCurrent:   false,
 		IsConfirmed: d.IsConfirmed,

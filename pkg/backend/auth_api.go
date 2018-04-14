@@ -12,7 +12,7 @@ func (srv *Server) CreateUser(arg *pb.CreateUserReq) (*pb.ResID, error) {
 
 	// Add user to the DB
 	device := mdl.DeviceInfo{
-		ID:          arg.Device.ID,
+		DeviceID:    arg.Device.ID,
 		Name:        arg.Device.Name,
 		IsConfirmed: true, // Confirm device when user is registering
 		Locale:      arg.Device.Locale,
