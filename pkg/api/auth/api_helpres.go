@@ -37,7 +37,7 @@ func (p ApiImpl) registerUser(username string, password string, device db.Device
 		Username:     username,
 		PasswordHash: password,
 		Device: &pb.Device{
-			ID:     device.ID,
+			ID:     device.DeviceID,
 			Name:   device.Name,
 			Locale: device.Locale,
 			Lang:   device.Lang},
@@ -55,15 +55,15 @@ func (self ApiImpl) findUser(username string) (*mdl.AuthUser, error) {
 	return self.ReadModel.FindUserAuthInfo(username)
 }
 
-func (self ApiImpl) getDevice(userId string, deviceId string) (*mdl.AuthDevice, error) {
-	return self.ReadModel.GetDevice(userId, deviceId)
+func (self ApiImpl) getDevice(userID string, deviceID string) (*mdl.AuthDevice, error) {
+	return self.ReadModel.GetDevice(userID, deviceID)
 }
 
 func (self ApiImpl) addDevice(userID string, device db.DeviceInfo) (*mdl.AuthDevice, error) {
 	req := pb.UserDevice{
 		UserID: userID,
 		Device: &pb.Device{
-			ID:     device.ID,
+			ID:     device.DeviceID,
 			Name:   device.Name,
 			Locale: device.Locale,
 			Lang:   device.Lang},
@@ -71,10 +71,10 @@ func (self ApiImpl) addDevice(userID string, device db.DeviceInfo) (*mdl.AuthDev
 
 	_, err := self.WriteModel.AddDevice(&req)
 	if err == nil {
-		log.Infof("Added device (%s, %s)", userID, device.ID)
+		log.Infof("Added device (%s, %s)", userID, device.DeviceID)
 	}
 
-	return self.getDevice(userID, device.ID)
+	return self.getDevice(userID, device.DeviceID)
 }
 
 func (self ApiImpl) addSession(session mdl.Session) (string, error) {

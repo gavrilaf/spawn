@@ -101,10 +101,10 @@ func (p *LoginDTO) String() string {
 
 func (p *LoginDTO) CreateDevice() mdl.DeviceInfo {
 	return mdl.DeviceInfo{
-		ID:     p.DeviceID,
-		Name:   p.DeviceName,
-		Locale: p.Locale,
-		Lang:   p.Lang,
+		DeviceID: p.DeviceID,
+		Name:     p.DeviceName,
+		Locale:   p.Locale,
+		Lang:     p.Lang,
 	}
 }
 
@@ -137,10 +137,10 @@ func (p *RegisterDTO) String() string {
 
 func (p *RegisterDTO) CreateDevice() mdl.DeviceInfo {
 	return mdl.DeviceInfo{
-		ID:     p.DeviceID,
-		Name:   p.DeviceName,
-		Locale: p.Locale,
-		Lang:   p.Lang,
+		DeviceID: p.DeviceID,
+		Name:     p.DeviceName,
+		Locale:   p.Locale,
+		Lang:     p.Lang,
 	}
 }
 

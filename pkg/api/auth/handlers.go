@@ -65,7 +65,7 @@ func (self ApiImpl) handleSignIn(p LoginDTO, ctx LoginContext) (AuthTokenDTO, er
 		log.Infof("Login with new device. User %s, device (%s, %s)", user.ID, p.DeviceID, p.DeviceName)
 		newDevice := p.CreateDevice()
 
-		newDevice.ID = p.DeviceID
+		newDevice.DeviceID = p.DeviceID
 		newDevice.Name = p.DeviceName
 		newDevice.UserID = user.ID
 		newDevice.Lang = p.Lang
