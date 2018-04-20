@@ -38,18 +38,18 @@ type RefreshDTO struct {
 }
 
 type PermissionsDTO struct {
-	IsDeviceConfirmed bool `structs:"is_device_confirmed"`
-	IsEmailConfirmed  bool `structs:"is_email_confirmed"`
-	Is2FARequired     bool `structs:"is_2fa_required"`
-	IsLocked          bool `structs:"is_locked"`
-	Scopes            int  `structs:"scopes"`
+	IsDeviceConfirmed bool `json:"is_device_confirmed" structs:"is_device_confirmed"`
+	IsEmailConfirmed  bool `json:"is_email_confirmed" structs:"is_email_confirmed"`
+	Is2FARequired     bool `json:"is_2fa_required" structs:"is_2fa_required"`
+	IsLocked          bool `json:"is_locked" structs:"is_locked"`
+	Scopes            int  `json:"scopes" structs:"scopes"`
 }
 
 type AuthTokenDTO struct {
-	AuthToken    string         `structs:"auth_token"`
-	RefreshToken string         `structs:"refresh_token"`
-	Expire       time.Time      `structs:"expire"`
-	Permissions  PermissionsDTO `structs:"permissions"`
+	AuthToken    string         `json:"auth_token" structs:"auth_token"`
+	RefreshToken string         `json:"refresh_token" structs:"refresh_token"`
+	Expire       time.Time      `json:"expire" structs:"expire"`
+	Permissions  PermissionsDTO `json:"permissions" structs:"permissions"`
 }
 
 type LoginContext struct {
