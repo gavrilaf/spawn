@@ -9,17 +9,17 @@ import (
 )
 
 type PersonalInfo struct {
-	Country        string `structs:"country"`
-	FirstName      string `structs:"first_name"`
-	LastName       string `structs:"last_name"`
+	Country        string `structs:"country" json:"country"`
+	FirstName      string `structs:"first_name" json:"first_name"`
+	LastName       string `structs:"last_name" json:"last_name"`
 	BirthDate      int64  `structs:"birth_date"`
 	db.PhoneNumber `structs:"phone_number"`
 }
 
 type UserProfile struct {
-	ID           string `structs:"id"`
-	db.AuthInfo  `structs:"auth_info"`
-	PersonalInfo `structs:"personal_info"`
+	ID           string `structs:"id" json:"id"`
+	db.AuthInfo  `structs:"auth_info" json:"auth_info"`
+	PersonalInfo `structs:"personal_info" json:"personal_info"`
 }
 
 func (p UserProfile) GetBirthDate() time.Time {

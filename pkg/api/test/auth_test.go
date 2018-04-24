@@ -73,7 +73,9 @@ func Test_SignUp(t *testing.T) {
 func Test_SignIn(t *testing.T) {
 	teng := createTestEngine(t)
 
-	correct := teng.registerUser(t)
+	registered := teng.registerUser(t)
+
+	correct := registered.user
 	correct["auth_type"] = "password"
 
 	invalid_param := mapDeepCopy(correct)

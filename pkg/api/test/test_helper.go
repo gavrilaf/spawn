@@ -13,6 +13,7 @@ import (
 	"github.com/satori/go.uuid"
 
 	"github.com/gavrilaf/spawn/pkg/api"
+	"github.com/gavrilaf/spawn/pkg/api/auth"
 	"github.com/gavrilaf/spawn/pkg/api/config"
 	"github.com/gavrilaf/spawn/pkg/cryptx"
 	db "github.com/gavrilaf/spawn/pkg/dbx/mdl"
@@ -53,7 +54,12 @@ func (self testEngine) getClient(t *testing.T) *db.Client {
 	return p
 }
 
-func (self testEngine) registerUser(t *testing.T) map[string]string {
+type loginResult struct {
+	user  map[string]string
+	token auth.AuthTokenDTO
+}
+
+func (self testEngine) registerUser(t *testing.T) loginResult {
 	deviceID := "device-111"
 	username := uuid.NewV4().String()
 	client := self.getClient(t)
@@ -75,5 +81,9 @@ func (self testEngine) registerUser(t *testing.T) map[string]string {
 	self.engine.ServeHTTP(w, req)
 	require.Equal(t, 200, w.Code)
 
-	return body
+	var authToken auth.AuthTokenDTO
+	err := json.Unmarshal(w.Body.Bytes(), &authToken)
+	require.Nil(t, err)
+
+	return loginResult{body, authToken}
 }
