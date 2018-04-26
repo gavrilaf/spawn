@@ -99,13 +99,19 @@ func (self *Server) DeleteDevice(arg *pb.UserDeviceID) (*pb.Empty, error) {
 
 	err := self.db.RemoveDevice(arg.UserID, arg.DeviceID)
 	if err != nil {
-		log.Errorf("Could not delete device from the write model, %v", err)
+		log.Errorf("Could not delete device from the database, %v", err)
 		return nil, err
 	}
 
 	err = self.updateCachedUserDevices(arg.UserID)
 	if err != nil {
-		log.Errorf("Could not update devices list in the read model, %v", err)
+		log.Errorf("Could not update devices list in cache, %v", err)
+		return nil, err
+	}
+
+	err = self.cache.DeleteDevice(arg.UserID, arg.DeviceID)
+	if err != nil {
+		log.Errorf("Could not delete device in cache, %v", err)
 		return nil, err
 	}
 
