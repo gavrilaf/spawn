@@ -46,7 +46,7 @@ func (self ApiImpl) handleSignIn(p LoginDTO, ctx LoginContext) (AuthTokenDTO, er
 		return AuthTokenDTO{}, defs.ErrUserUnknown
 	}
 
-	log.Infof("Found user: %s, $s", user.ID, user.Username)
+	log.Infof("Found user: %s, %s", user.ID, user.Username)
 
 	if !p.CheckPassword(user.PasswordHash) {
 		log.Errorf("auth.handleSignIn, invalid password for %s", p.Username)
@@ -81,6 +81,19 @@ func (self ApiImpl) handleSignIn(p LoginDTO, ctx LoginContext) (AuthTokenDTO, er
 		log.Infof("Added new device %s for user %s", device.DeviceID, user.ID)
 	} else {
 		log.Infof("Login with registered device %s for user %s", device.DeviceID, user.ID)
+
+		// If user already signed in ?
+		session, _ := self.ReadModel.FindSession(user.ID, device.DeviceID)
+		if session != nil {
+			log.Infof("User already signed in, invalidate old session, %s, %s, %s", session.ID, user.ID, p.DeviceID)
+
+			// Invalidate old session
+			err = self.ReadModel.DeleteSession(session.ID)
+			if err != nil {
+				log.Errorf("auth.handleSignIn, invalidate old session error: (%s, %s), (%v)", user.ID, p.DeviceID, err)
+				return AuthTokenDTO{}, err
+			}
+		}
 	}
 
 	ctx.DeviceName = p.DeviceName
@@ -272,7 +285,7 @@ func (self ApiImpl) makeLogin(client *db.Client, user *mdl.AuthUser, device *mdl
 	}
 
 	session.ID = sessionID
-	err = self.handlerLogin(session, *ctx)
+	err = self.handleLogin(session, *ctx)
 	if err != nil {
 		return AuthTokenDTO{}, err
 	}

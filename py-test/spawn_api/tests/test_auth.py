@@ -42,9 +42,7 @@ class TestAuth(unittest.TestCase):
         self.assertEqual("user-already-exist", err["reason"])
 
     # Register new user and login with same device
-    # Should: only one session for (user / device) pair is allowed, server rejects login (session-already-exist)
-    # Logout and login again
-    # Should: login success
+    # Should: only one session for (user / device) pair is allowed, first session invalidated
     def testLogin(self):
         username = self.cn.get_name()
         device = spawn.Device("test-device-1", "test-device-1-name")
@@ -54,20 +52,18 @@ class TestAuth(unittest.TestCase):
         self.assertIsNone(err)
 
         # only one login for (username / device) is allowed
-        err = self.cn.api.sign_in(username, password, device, "ru", "es")
-        self.assertIsNotNone(err)
-        self.assertEqual("session-already-exist", err["reason"])
+        cn2 = SpawnConn()
+        cn2.username = username
+        cn2.password = password
+        cn2.device = device
 
-        # logout
-        err = self.cn.api.logout()
+        err = cn2.sign_in()
         self.assertIsNone(err)
 
-        # now you can sign in
-        err = self.cn.api.sign_in(username, password, device, "ru", "es")
-        self.assertIsNone(err)
-
-        # device is confirmed
-        self.assertEqual(True, self.cn.api.permissions["is_device_confirmed"])
+        # first session invalidated
+        is_error, err = self.cn.api.get_state()
+        self.assertTrue(is_error)
+        self.assertEqual("session-not-found", err["reason"])
 
     # Register new user and login with new device
     # Should: login success, device isn't confirmed

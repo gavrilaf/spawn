@@ -95,7 +95,7 @@ func (self ApiImpl) getSession(id string) (*mdl.Session, error) {
 	return session, nil
 }
 
-func (self ApiImpl) handlerLogin(session mdl.Session, ctx LoginContext) error {
+func (self ApiImpl) handleLogin(session mdl.Session, ctx LoginContext) error {
 	req := pb.LoginReq{
 		SessionID: session.ID,
 		UserID:    session.UserID,

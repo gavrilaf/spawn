@@ -34,11 +34,11 @@ func Test_SignUp(t *testing.T) {
 		"password":    "password",
 		"signature":   string(sign)}
 
-	invalid_param := map[string]string{
+	invalidParam := map[string]string{
 		"client_id": client.ID,
 		"device_id": deviceID}
 
-	invalid_sign := map[string]string{
+	invalidSign := map[string]string{
 		"client_id":   client.ID,
 		"device_id":   deviceID,
 		"device_name": "Test device",
@@ -46,16 +46,16 @@ func Test_SignUp(t *testing.T) {
 		"password":    "password",
 		"signature":   "11111"}
 
-	already_registered := correct
+	alreadyRegistered := correct
 
 	tests := []struct {
 		body          map[string]string
 		expected_code int
 	}{
 		{correct, 200},
-		{invalid_param, 400},
-		{invalid_sign, 500},
-		{already_registered, 500},
+		{invalidParam, 400},
+		{invalidSign, 500},
+		{alreadyRegistered, 500},
 	}
 
 	for _, tt := range tests {
@@ -90,7 +90,7 @@ func Test_SignIn(t *testing.T) {
 	}{
 		{"correct", correctUser, 200},
 		{"invalid param", invalidParam, 400},
-		{"invalid sign", invalidSign, 500},
+		{"invalid sign", invalidSign, 401},
 	}
 
 	for _, tt := range tests {
@@ -103,6 +103,29 @@ func Test_SignIn(t *testing.T) {
 
 		assert.Equal(t, tt.expectedCode, w.Code, tt.name)
 	}
+}
+
+func Test_SignInCheckOldSessionInvalidation(t *testing.T) {
+	teng := createTestEngine(t)
+
+	user, oldToken := teng.registerUser(t)
+	user["auth_type"] = "password"
+
+	jbody, _ := json.Marshal(user)
+	req, _ := http.NewRequest("POST", "/auth/login", bytes.NewReader(jbody))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	teng.engine.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code) // Sign in ok
+
+	// Old token is not valid now
+	req, _ = http.NewRequest("GET", "/user/state", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+oldToken.AuthToken)
+	w2 := httptest.NewRecorder()
+	teng.engine.ServeHTTP(w2, req)
+	assert.Equal(t, 401, w2.Code, "token should be invalid")
 }
 
 func Test_AuthToken(t *testing.T) {
