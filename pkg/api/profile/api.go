@@ -21,12 +21,13 @@ func (self ApiImpl) GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := self.ReadModel.GetUserProfile(session.UserID)
+	cachedProfile, err := self.ReadModel.GetUserProfile(session.UserID)
 	if err != nil {
 		log.Errorf("Profile.GetUserProfile, read profile %v error, %v", session.UserID, err)
 		ginx.HandleError(c, defs.ErrScope, http.StatusInternalServerError, err)
 	}
 
+	profile := CreateUserProfile(cachedProfile)
 	c.JSON(http.StatusOK, profile.ToMap())
 }
 

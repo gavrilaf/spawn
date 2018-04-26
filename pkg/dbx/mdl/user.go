@@ -69,10 +69,10 @@ func (d DeviceInfoEx) GetLoginRegion() string {
 // User profile
 
 type Permissions struct {
-	IsLocked         bool `db:"is_locked" structs:"is_locked" json:"is_locked"`
-	IsEmailConfirmed bool `db:"is_email_confirmed" structs:"is_email_confirmed" json:"is_email_confirmed"`
-	Is2FARequired    bool `db:"is_2fa_required" structs:"is_2fa_required" json:"is_2fa_required"`
-	Scope            int  `db:"scope" structs:"scope" json:"scope"`
+	IsLocked         bool `db:"is_locked"`
+	IsEmailConfirmed bool `db:"is_email_confirmed"`
+	Is2FARequired    bool `db:"is_2fa_required"`
+	Scope            int  `db:"scope"`
 }
 
 func (p Permissions) String() string {
@@ -81,26 +81,26 @@ func (p Permissions) String() string {
 }
 
 type AuthInfo struct {
-	Username     string `db:"username" structs:"username" json:"username"`
-	PasswordHash string `db:"password" structs:"password"`
+	Username     string `db:"username"`
+	PasswordHash string `db:"password"`
 	Permissions
 }
 
 type PhoneNumber struct {
-	CountryCode int    `db:"phone_country_code" structs:"phone_country_code" json:"phone_country_code"`
-	Number      string `db:"phone_number" structs:"phone_number" json:"phone_number"`
-	IsConfirmed bool   `db:"is_phone_confirmed" structs:"is_phone_confirmed" json:"is_phone_confirmed"`
+	CountryCode int    `db:"phone_country_code"`
+	Number      string `db:"phone_number"`
+	IsConfirmed bool   `db:"is_phone_confirmed"`
 }
 
 type PersonalInfo struct {
-	FirstName string    `db:"first_name" structs:"first_name"`
-	LastName  string    `db:"last_name" structs:"last_name"`
-	BirthDate time.Time `db:"birth_date" structs:"birth_date"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
+	BirthDate time.Time `db:"birth_date"`
 }
 
 type UserProfile struct {
-	ID      string `db:"id" structs:"id"`
-	Country string `db:"country" structs:"country"`
+	ID      string `db:"id"`
+	Country string `db:"country"`
 	PhoneNumber
 	AuthInfo
 	PersonalInfo

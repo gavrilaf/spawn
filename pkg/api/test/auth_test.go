@@ -73,25 +73,24 @@ func Test_SignUp(t *testing.T) {
 func Test_SignIn(t *testing.T) {
 	teng := createTestEngine(t)
 
-	registered := teng.registerUser(t)
+	correctUser, _ := teng.registerUser(t)
 
-	correct := registered.user
-	correct["auth_type"] = "password"
+	correctUser["auth_type"] = "password"
 
-	invalid_param := mapDeepCopy(correct)
-	delete(invalid_param, "device_id")
+	invalidParam := mapDeepCopy(correctUser)
+	delete(invalidParam, "device_id")
 
-	invalid_sign := mapDeepCopy(correct)
-	invalid_param["signature"] = "11111"
+	invalidSign := mapDeepCopy(correctUser)
+	invalidSign["signature"] = "11111"
 
 	tests := []struct {
-		name          string
-		body          map[string]string
-		expected_code int
+		name         string
+		body         map[string]string
+		expectedCode int
 	}{
-		{"correct", correct, 200},
-		{"invalid param", invalid_param, 400},
-		{"invalid sign", invalid_sign, 500},
+		{"correct", correctUser, 200},
+		{"invalid param", invalidParam, 400},
+		{"invalid sign", invalidSign, 500},
 	}
 
 	for _, tt := range tests {
@@ -102,7 +101,7 @@ func Test_SignIn(t *testing.T) {
 
 		teng.engine.ServeHTTP(w, req)
 
-		assert.Equal(t, tt.expected_code, w.Code, tt.name)
+		assert.Equal(t, tt.expectedCode, w.Code, tt.name)
 	}
 }
 

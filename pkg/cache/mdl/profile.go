@@ -17,9 +17,9 @@ type PersonalInfo struct {
 }
 
 type UserProfile struct {
-	ID           string `structs:"id" json:"id"`
-	db.AuthInfo  `structs:"auth_info" json:"auth_info"`
-	PersonalInfo `structs:"personal_info" json:"personal_info"`
+	ID string
+	db.AuthInfo
+	PersonalInfo
 }
 
 func (p UserProfile) GetBirthDate() time.Time {

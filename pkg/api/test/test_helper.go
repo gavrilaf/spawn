@@ -54,12 +54,7 @@ func (self testEngine) getClient(t *testing.T) *db.Client {
 	return p
 }
 
-type loginResult struct {
-	user  map[string]string
-	token auth.AuthTokenDTO
-}
-
-func (self testEngine) registerUser(t *testing.T) loginResult {
+func (self testEngine) registerUser(t *testing.T) (map[string]string, auth.AuthTokenDTO) {
 	deviceID := "device-111"
 	username := uuid.NewV4().String()
 	client := self.getClient(t)
@@ -85,5 +80,5 @@ func (self testEngine) registerUser(t *testing.T) loginResult {
 	err := json.Unmarshal(w.Body.Bytes(), &authToken)
 	require.Nil(t, err)
 
-	return loginResult{body, authToken}
+	return body, authToken
 }
